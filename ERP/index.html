@@ -1,0 +1,1263 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>PB ERP - Mahindra MRP Model</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Using Phosphor Icons for UI polish -->
+  <script src="https://unpkg.com/@phosphor-icons/web"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <style>
+    /* Custom Scrollbar for dark theme */
+    ::-webkit-scrollbar { width: 8px; height: 8px; }
+    ::-webkit-scrollbar-track { background: #0f172a; }
+    ::-webkit-scrollbar-thumb { background: #334155; border-radius: 4px; }
+    ::-webkit-scrollbar-thumb:hover { background: #475569; }
+    
+    .nav-item.active {
+      background-color: #4f46e5; /* Indigo 600 */
+      color: white;
+      box-shadow: 0 4px 6px -1px rgba(79, 70, 229, 0.2);
+    }
+
+    input:focus, select:focus, textarea:focus {
+        outline: 2px solid #6366f1;
+        outline-offset: -1px;
+    }
+    
+    /* Mobile Sidebar Transition */
+    .sidebar-overlay {
+      background-color: rgba(0, 0, 0, 0.5);
+      backdrop-filter: blur(2px);
+    }
+
+    /* Gantt Chart Styles */
+    .gantt-bar {
+        transition: all 0.3s ease;
+    }
+    .gantt-bar:hover {
+        transform: scaleY(1.1);
+        filter: brightness(1.1);
+        z-index: 10;
+    }
+
+    /* Notification Badge Animation */
+    @keyframes pulse-red {
+      0% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.7); }
+      70% { box-shadow: 0 0 0 6px rgba(239, 68, 68, 0); }
+      100% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0); }
+    }
+    .notif-pulse {
+      animation: pulse-red 2s infinite;
+    }
+    
+    /* Kanban Card Hover */
+    .kanban-card {
+        transition: transform 0.2s, box-shadow 0.2s;
+    }
+    .kanban-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.3);
+    }
+
+    /* Documentation Styles */
+    .doc-content h3 { color: #818cf8; margin-top: 2rem; margin-bottom: 0.75rem; font-size: 1.25rem; font-weight: 700; }
+    .doc-content h4 { color: #e2e8f0; margin-top: 1.5rem; margin-bottom: 0.5rem; font-size: 1.1rem; font-weight: 600; }
+    .doc-content p { color: #94a3b8; margin-bottom: 1rem; line-height: 1.6; }
+    .doc-content ul { list-style-type: disc; padding-left: 1.5rem; color: #cbd5e1; margin-bottom: 1rem; }
+    .doc-content li { margin-bottom: 0.5rem; }
+    .doc-content strong { color: #f1f5f9; }
+    .doc-content code { background: #1e293b; color: #818cf8; padding: 0.2rem 0.4rem; border-radius: 0.25rem; font-family: monospace; font-size: 0.9em; }
+  </style>
+</head>
+<body class="bg-slate-950 text-slate-100 font-sans h-screen flex overflow-hidden selection:bg-indigo-500 selection:text-white">
+
+  <!-- MOBILE OVERLAY (Click to close sidebar) -->
+  <div id="sidebar-overlay" onclick="toggleSidebar()" class="fixed inset-0 z-40 hidden sidebar-overlay md:hidden"></div>
+
+  <!-- SIDEBAR NAVIGATION -->
+  <aside id="sidebar" class="w-64 bg-slate-900 border-r border-slate-800 flex flex-col hidden md:flex shrink-0 transition-all duration-300 fixed inset-y-0 left-0 z-50 md:static shadow-2xl md:shadow-none">
+    <div class="p-6 border-b border-slate-800 flex items-center justify-between">
+      <div class="flex items-center gap-3">
+        <div class="w-8 h-8 rounded bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center">
+          <i class="ph-bold ph-hexagon text-white text-lg"></i>
+        </div>
+        <h1 class="font-bold text-lg tracking-wide">PB <span class="text-indigo-400 font-light">ERP</span></h1>
+      </div>
+      <!-- Close Button (Mobile Only) -->
+      <button onclick="toggleSidebar()" class="md:hidden text-slate-400 hover:text-white p-1 rounded-md hover:bg-slate-800">
+        <i class="ph-bold ph-x text-xl"></i>
+      </button>
+    </div>
+    
+    <nav class="flex-1 p-4 space-y-1 overflow-y-auto">
+      <button onclick="router('dashboard')" id="nav-dashboard" class="nav-item w-full flex items-center gap-3 px-4 py-3 rounded-lg text-slate-400 hover:bg-slate-800 hover:text-white transition-all group">
+        <i class="ph ph-squares-four text-lg group-hover:scale-110 transition-transform"></i> Dashboard
+      </button>
+
+      <div class="pt-6 pb-2 px-4 text-[10px] font-bold text-slate-500 uppercase tracking-widest">Master Data</div>
+      <button onclick="router('inventory')" id="nav-inventory" class="nav-item w-full flex items-center gap-3 px-4 py-3 rounded-lg text-slate-400 hover:bg-slate-800 hover:text-white transition-all group">
+        <i class="ph ph-warehouse text-lg group-hover:scale-110 transition-transform"></i> Inventory
+      </button>
+      <button onclick="router('bom')" id="nav-bom" class="nav-item w-full flex items-center gap-3 px-4 py-3 rounded-lg text-slate-400 hover:bg-slate-800 hover:text-white transition-all group">
+        <i class="ph ph-tree-structure text-lg group-hover:scale-110 transition-transform"></i> Bill of Materials
+      </button>
+      <button onclick="router('vendors')" id="nav-vendors" class="nav-item w-full flex items-center gap-3 px-4 py-3 rounded-lg text-slate-400 hover:bg-slate-800 hover:text-white transition-all group">
+        <i class="ph ph-users text-lg group-hover:scale-110 transition-transform"></i> Partners / Vendors
+      </button>
+
+      <div class="pt-6 pb-2 px-4 text-[10px] font-bold text-slate-500 uppercase tracking-widest">Operations</div>
+      <button onclick="router('planning')" id="nav-planning" class="nav-item w-full flex items-center gap-3 px-4 py-3 rounded-lg text-slate-400 hover:bg-slate-800 hover:text-white transition-all group">
+        <i class="ph ph-calendar text-lg group-hover:scale-110 transition-transform"></i> Planning (MPS)
+      </button>
+      <button onclick="router('production')" id="nav-production" class="nav-item w-full flex items-center gap-3 px-4 py-3 rounded-lg text-slate-400 hover:bg-slate-800 hover:text-white transition-all group">
+        <i class="ph ph-kanban text-lg group-hover:scale-110 transition-transform"></i> Production Floor
+      </button>
+      <button onclick="router('procurement')" id="nav-procurement" class="nav-item w-full flex items-center gap-3 px-4 py-3 rounded-lg text-slate-400 hover:bg-slate-800 hover:text-white transition-all group">
+        <i class="ph ph-shopping-cart text-lg group-hover:scale-110 transition-transform"></i> Procurement
+      </button>
+
+      <div class="pt-6 pb-2 px-4 text-[10px] font-bold text-slate-500 uppercase tracking-widest">Finance & Analytics</div>
+      <button onclick="router('sales')" id="nav-sales" class="nav-item w-full flex items-center gap-3 px-4 py-3 rounded-lg text-slate-400 hover:bg-slate-800 hover:text-white transition-all group">
+        <i class="ph ph-chart-line-up text-lg group-hover:scale-110 transition-transform"></i> Sales & Orders
+      </button>
+      <button onclick="router('financials')" id="nav-financials" class="nav-item w-full flex items-center gap-3 px-4 py-3 rounded-lg text-slate-400 hover:bg-slate-800 hover:text-white transition-all group">
+        <i class="ph ph-currency-dollar text-lg group-hover:scale-110 transition-transform"></i> Fund Flow
+      </button>
+      <button onclick="router('analytics')" id="nav-analytics" class="nav-item w-full flex items-center gap-3 px-4 py-3 rounded-lg text-slate-400 hover:bg-slate-800 hover:text-white transition-all group">
+        <i class="ph ph-presentation-chart text-lg group-hover:scale-110 transition-transform"></i> Analytics
+      </button>
+
+      <div class="pt-6 pb-2 px-4 text-[10px] font-bold text-slate-500 uppercase tracking-widest">Help & Support</div>
+      <button onclick="router('docs')" id="nav-docs" class="nav-item w-full flex items-center gap-3 px-4 py-3 rounded-lg text-slate-400 hover:bg-slate-800 hover:text-white transition-all group">
+        <i class="ph ph-book-open text-lg group-hover:scale-110 transition-transform"></i> User Guide
+      </button>
+    </nav>
+
+    <div class="p-4 border-t border-slate-800 bg-slate-900/50 space-y-2">
+      <button onclick="exportData()" class="w-full text-xs text-slate-400 hover:text-white hover:bg-slate-800 py-2 rounded flex items-center justify-center gap-2 transition-colors border border-slate-800">
+        <i class="ph ph-download-simple"></i> Export Data
+      </button>
+      <button onclick="resetData()" class="w-full text-xs text-red-400 hover:text-red-300 hover:bg-red-900/20 py-2 rounded flex items-center justify-center gap-2 transition-colors">
+        <i class="ph ph-trash"></i> Reset Database
+      </button>
+    </div>
+  </aside>
+
+  <!-- MAIN CONTENT AREA -->
+  <main class="flex-1 flex flex-col h-screen overflow-hidden relative bg-slate-950">
+    <!-- Top Bar / Mobile Header -->
+    <header class="h-16 bg-slate-900 border-b border-slate-800 flex items-center justify-between px-4 shrink-0 z-30 relative">
+      <div class="flex items-center gap-3 md:hidden">
+        <button onclick="toggleSidebar()" class="text-slate-300 p-2 hover:bg-slate-800 rounded transition-colors"><i class="ph ph-list text-2xl"></i></button>
+        <div class="font-bold text-lg flex items-center gap-2">
+           <i class="ph-fill ph-hexagon text-indigo-500"></i> PB ERP
+        </div>
+      </div>
+      
+      <!-- Right Side Controls -->
+      <div class="ml-auto flex items-center gap-4">
+          <!-- Notification Bell -->
+          <div class="relative group">
+            <button id="notif-btn" class="text-slate-400 hover:text-white p-2 rounded-full hover:bg-slate-800 transition-colors relative" onclick="document.getElementById('notif-dropdown').classList.toggle('hidden')">
+                <i class="ph-bold ph-bell text-xl"></i>
+                <span id="notif-badge" class="absolute top-1 right-1 w-2.5 h-2.5 bg-red-500 rounded-full hidden notif-pulse"></span>
+            </button>
+            <!-- Dropdown -->
+            <div id="notif-dropdown" class="hidden absolute right-0 mt-2 w-80 bg-slate-900 border border-slate-700 rounded-xl shadow-2xl overflow-hidden z-50">
+                <div class="p-3 border-b border-slate-800 font-bold text-sm bg-slate-950/50">Notifications</div>
+                <div id="notif-list" class="max-h-64 overflow-y-auto">
+                    <!-- JS Injected -->
+                </div>
+            </div>
+          </div>
+
+          <div class="h-6 w-px bg-slate-800 hidden sm:block"></div>
+
+          <!-- Date Picker -->
+          <div class="flex items-center gap-2">
+              <label for="erp-date" class="text-[10px] text-slate-500 uppercase font-bold hidden sm:block tracking-wider">System Date</label>
+              <input type="date" id="erp-date" onchange="updateSystemDate(this.value)" class="bg-slate-950 border border-slate-700 text-white text-xs rounded px-2 py-1.5 focus:border-indigo-500 transition-colors">
+          </div>
+      </div>
+    </header>
+
+    <!-- App View Container -->
+    <div id="app" class="flex-1 overflow-y-auto p-4 md:p-8 scroll-smooth">
+      <!-- Views are injected here by JS -->
+    </div>
+  </main>
+
+<script>
+/**
+ * ==========================================
+ * DATA STORE (Mahindra MRP Model)
+ * ==========================================
+ */
+const DEFAULT_DB = {
+  systemDate: '2025-02-12',
+  tasks: [
+    { id: 1, text: 'Negotiate price with MRF', done: false },
+    { id: 2, text: 'Review Feb production plan', done: true }
+  ],
+  items: [
+    // --- Finished Goods ---
+    { id: '0011', name: 'Thar', type: 'FG', uom: 'unit', cost: 0, stock: 213, price: 1800000, wh: 'PUN-SN-001' },
+    { id: '0012', name: 'Bolero', type: 'FG', uom: 'unit', cost: 0, stock: 108, price: 1500000, wh: 'PUN-SW-001' },
+    { id: '0013', name: 'XUV', type: 'FG', uom: 'unit', cost: 0, stock: 79, price: 2800000, wh: 'PUN-SN-001' },
+    
+    // --- Raw Materials ---
+    { id: '0023', name: 'Seat', type: 'RM', uom: 'pc', cost: 6000, stock: 800, price: 0, vendor: 'Kararo', wh: 'RM-WBK-001' },
+    { id: '0031', name: 'Nut n Bolt', type: 'RM', uom: 'pc', cost: 17, stock: 15000, price: 0, vendor: 'Sundaram Fastners', wh: 'RM-WBK-001' },
+    { id: '0032', name: 'Tyre MRF 32"', type: 'RM', uom: 'pc', cost: 5000, stock: 500, price: 0, vendor: 'MRF', wh: 'RM-WBK-001' },
+    { id: '0033', name: 'Glass Fitting', type: 'RM', uom: 'pc', cost: 3500, stock: 45, price: 0, vendor: 'Asahi', wh: 'RM-WBK-001' },
+    { id: '0034', name: 'Mechanical Fitting', type: 'RM', uom: 'set', cost: 80000, stock: 120, price: 0, vendor: 'Fintech eng', wh: 'RM-WBK-001' },
+    { id: '0035', name: 'Electrical Fitting', type: 'RM', uom: 'set', cost: 15000, stock: 117, price: 0, vendor: 'Siemens', wh: 'RM-WBK-001' },
+    { id: '0036', name: 'Engine', type: 'RM', uom: 'unit', cost: 1500000, stock: 113, price: 0, vendor: 'Cummins', wh: 'RM-WBK-001' },
+    { id: '0037', name: 'Fuel Injector', type: 'RM', uom: 'unit', cost: 32000, stock: 115, price: 0, vendor: 'Bosch', wh: 'RM-WBK-001' },
+  ],
+  vendors: [
+    { name: 'Kararo', contact: 'Sales Dept', material: 'Seats' },
+    { name: 'Sundaram Fastners', contact: 'Chennai HQ', material: 'Nut n Bolt' },
+    { name: 'MRF', contact: 'Mumbai Branch', material: 'Tyres' },
+    { name: 'Asahi', contact: 'Glass Div', material: 'Glass' },
+    { name: 'Fintech eng', contact: 'Support', material: 'Mech Parts' },
+    { name: 'Siemens', contact: 'Auto Div', material: 'Electronics' },
+    { name: 'Cummins', contact: 'Pune Plant', material: 'Engines' },
+    { name: 'Bosch', contact: 'Bangalore', material: 'Injectors' }
+  ],
+  boms: [
+    { 
+      fgId: '0011', batchQty: 1, labourCost: 50000, 
+      components: [
+        { itemId: '0023', qty: 4 }, { itemId: '0031', qty: 20 }, { itemId: '0032', qty: 5 },
+        { itemId: '0033', qty: 6 }, { itemId: '0034', qty: 1 }, { itemId: '0035', qty: 1 },
+        { itemId: '0036', qty: 1 }, { itemId: '0037', qty: 1 }
+      ] 
+    },
+    { 
+      fgId: '0012', batchQty: 1, labourCost: 45000, 
+      components: [
+        { itemId: '0023', qty: 6 }, { itemId: '0031', qty: 20 }, { itemId: '0032', qty: 5 },
+        { itemId: '0033', qty: 8 }, { itemId: '0034', qty: 1 }, { itemId: '0035', qty: 1 },
+        { itemId: '0036', qty: 1 }, { itemId: '0037', qty: 1 }
+      ] 
+    },
+    { 
+      fgId: '0013', batchQty: 1, labourCost: 60000, 
+      components: [
+        { itemId: '0023', qty: 6 }, { itemId: '0031', qty: 20 }, { itemId: '0032', qty: 5 },
+        { itemId: '0033', qty: 1 }, { itemId: '0034', qty: 1 }, { itemId: '0035', qty: 1 },
+        { itemId: '0036', qty: 1 }, { itemId: '0037', qty: 1 }
+      ] 
+    }
+  ],
+  mps: [
+    { month: 'February', plans: [{ fgId: '0011', qty: 6476 }, { fgId: '0012', qty: 3207 }, { fgId: '0013', qty: 5362 }] },
+    { month: 'March', plans: [{ fgId: '0011', qty: 7000 }, { fgId: '0012', qty: 3500 }, { fgId: '0013', qty: 6000 }] }
+  ],
+  workOrders: [], // { id, fgId, qty, status: 'Planned'|'In Progress'|'Done', startDate: '2025-02-12' }
+  transactions: [], 
+  balance: 10784155466 // Starting Balance
+};
+
+// Initialize DB
+let db = JSON.parse(localStorage.getItem('nexus_erp_mahindra_v1')) || DEFAULT_DB;
+
+// Initialize Date Picker
+document.getElementById('erp-date').value = db.systemDate || '2025-02-12';
+
+// Run Notification Check
+checkNotifications();
+
+function saveDB() {
+  localStorage.setItem('nexus_erp_mahindra_v1', JSON.stringify(db));
+  checkNotifications();
+}
+
+function updateSystemDate(val) {
+    db.systemDate = val;
+    saveDB();
+}
+
+function resetData() {
+  if(confirm('Reset all ERP data to default Mahindra MRP Model? This cannot be undone.')) {
+    localStorage.removeItem('nexus_erp_mahindra_v1');
+    location.reload();
+  }
+}
+
+function exportData() {
+    const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(db, null, 2));
+    const downloadAnchorNode = document.createElement('a');
+    downloadAnchorNode.setAttribute("href", dataStr);
+    downloadAnchorNode.setAttribute("download", "pb_erp_backup_" + new Date().toISOString().split('T')[0] + ".json");
+    document.body.appendChild(downloadAnchorNode);
+    downloadAnchorNode.click();
+    downloadAnchorNode.remove();
+}
+
+// Helpers
+const formatMoney = v => new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR', maximumFractionDigits: 0 }).format(v);
+const formatNum = v => new Intl.NumberFormat('en-IN').format(v);
+const uuid = () => Math.random().toString(36).substr(2, 6).toUpperCase();
+
+/**
+ * ==========================================
+ * NOTIFICATIONS & ALERTS
+ * ==========================================
+ */
+function checkNotifications() {
+    const list = document.getElementById('notif-list');
+    const badge = document.getElementById('notif-badge');
+    let alerts = [];
+
+    // Check Low Stock
+    db.items.forEach(i => {
+        if(i.type === 'RM' && i.stock < 100) {
+            alerts.push({ type: 'critical', msg: `${i.name} stock critical (${i.stock} ${i.uom})` });
+        } else if (i.type === 'RM' && i.stock < 500) {
+            alerts.push({ type: 'warning', msg: `${i.name} running low (${i.stock} ${i.uom})` });
+        }
+    });
+
+    // Check Cash Flow
+    if (db.balance < 100000000) {
+        alerts.push({ type: 'critical', msg: 'Cash balance low! Check Burn Rate.' });
+    }
+
+    if(alerts.length > 0) {
+        badge.classList.remove('hidden');
+        list.innerHTML = alerts.map(a => `
+            <div class="p-3 border-b border-slate-800 hover:bg-slate-800 flex items-start gap-3">
+                <div class="mt-0.5 w-2 h-2 rounded-full ${a.type==='critical'?'bg-red-500':'bg-amber-500'} shrink-0"></div>
+                <div class="text-xs text-slate-300">${a.msg}</div>
+            </div>
+        `).join('');
+    } else {
+        badge.classList.add('hidden');
+        list.innerHTML = '<div class="p-4 text-center text-xs text-slate-500">No new notifications</div>';
+    }
+}
+
+
+/**
+ * ==========================================
+ * ROUTER & UI LOGIC
+ * ==========================================
+ */
+function toggleSidebar() {
+    const sidebar = document.getElementById('sidebar');
+    const overlay = document.getElementById('sidebar-overlay');
+    const isHidden = sidebar.classList.contains('hidden');
+    if (isHidden) { sidebar.classList.remove('hidden'); overlay.classList.remove('hidden'); } 
+    else { sidebar.classList.add('hidden'); overlay.classList.add('hidden'); }
+}
+
+function router(viewName) {
+  document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
+  const navEl = document.getElementById(`nav-${viewName}`);
+  if(navEl) navEl.classList.add('active');
+
+  if (window.innerWidth < 768) {
+     document.getElementById('sidebar').classList.add('hidden');
+     document.getElementById('sidebar-overlay').classList.add('hidden');
+  }
+
+  const app = document.getElementById('app');
+  app.innerHTML = '';
+  app.className = 'flex-1 overflow-y-auto p-4 md:p-8 fade-in';
+
+  switch(viewName) {
+    case 'dashboard': renderDashboard(app); break;
+    case 'inventory': renderInventory(app); break;
+    case 'bom': renderBOM(app); break;
+    case 'vendors': renderVendors(app); break;
+    case 'planning': renderPlanning(app); break;
+    case 'gantt': renderGantt(app); break;
+    case 'production': renderProduction(app); break;
+    case 'procurement': renderProcurement(app); break;
+    case 'sales': renderSales(app); break;
+    case 'financials': renderFinancials(app); break;
+    case 'analytics': renderAnalytics(app); break;
+    case 'docs': renderDocs(app); break;
+    default: renderDashboard(app);
+  }
+}
+
+/**
+ * ==========================================
+ * DOCUMENTATION MODULE
+ * ==========================================
+ */
+function renderDocs(container) {
+    container.innerHTML = `
+        <div class="max-w-4xl mx-auto doc-content">
+            <h2 class="text-3xl font-bold mb-2">User Documentation</h2>
+            <p class="text-slate-400 mb-8 border-b border-slate-800 pb-4">Comprehensive guide to using PB ERP modules.</p>
+
+            <h3 class="text-xl font-bold mt-8 mb-4 text-indigo-400">1. Getting Started</h3>
+            <p>PB ERP is a <strong>Single-File Application</strong>. It runs entirely within your web browser without needing a server or database installation.</p>
+            <ul>
+                <li><strong>To Run:</strong> Simply open the <code class="bg-slate-800 px-1 py-0.5 rounded text-indigo-300 font-mono text-sm">MiniERP_System_v1.html</code> file in any modern web browser.</li>
+                <li><strong>Data Saving:</strong> All data is saved automatically to your browser's <strong>Local Storage</strong>. If you close the tab and reopen it, your data will persist.</li>
+                <li><strong>Reset:</strong> To wipe all data and return to the default "Mahindra Model," click the <strong>Reset Database</strong> button in the sidebar (or bottom menu on mobile).</li>
+            </ul>
+
+            <h3 class="text-xl font-bold mt-8 mb-4 text-indigo-400">2. The Dashboard (Startup Command Center)</h3>
+            <p>The dashboard is designed for high-level visibility into your startup's health.</p>
+            <ul>
+                <li><strong>Financial Runway:</strong> The large card at the top left shows your <strong>Runway in Months</strong>. It calculates this by dividing your <strong>Current Cash Balance</strong> by your <strong>Burn Rate</strong> (average of recent purchases). <em>Tip:</em> Keep this number above 6 months for safety.</li>
+                <li><strong>Team Tasks:</strong> A simple "Sticky Note" area. Click the <strong>+</strong> button to add a reminder (e.g., "Call Vendor X"). Check the box to mark it done.</li>
+                <li><strong>Quick Actions:</strong> One-click buttons to jump straight to common tasks like <strong>Order Material</strong> or <strong>New Sale</strong>.</li>
+                <li><strong>Active Production:</strong> A snapshot of what is currently on the shop floor. Click "View Board" to manage these jobs.</li>
+            </ul>
+
+            <h3 class="text-xl font-bold mt-8 mb-4 text-indigo-400">3. Core Manufacturing Workflows</h3>
+
+            <h4 class="text-lg font-bold mt-6 mb-3 text-white">A. Inventory Management</h4>
+            <ul>
+                <li><strong>View Stock:</strong> Go to the <strong>Inventory</strong> tab to see all Raw Materials (RM) and Finished Goods (FG).</li>
+                <li><strong>Warehouses:</strong> Items are tagged with specific warehouse codes (e.g., <code class="bg-slate-800 px-1 py-0.5 rounded text-indigo-300 font-mono text-sm">RM-WBK-001</code>).</li>
+                <li><strong>Add Item:</strong> Click <strong>New SKU</strong> to add a new part or product to the system.</li>
+            </ul>
+
+            <h4 class="text-lg font-bold mt-6 mb-3 text-white">B. Planning & MRP (The "Brain")</h4>
+            <p>This is where you decide what to build.</p>
+            <ul>
+                <li><strong>View Schedule:</strong> See the Master Production Schedule (MPS) for February and March.</li>
+                <li><strong>Calculate Requirements:</strong> The system automatically calculates how many seats, tyres, and engines you need based on the plan.
+                    <ul>
+                        <li><em>Green Status:</em> You have enough stock.</li>
+                        <li><em>Red Status:</em> You are short on material.</li>
+                    </ul>
+                </li>
+                <li><strong>Release to Production:</strong> Click the <strong>"Release February Plan to Production"</strong> button. This converts the plan into actual <strong>Work Orders</strong> for the shop floor.</li>
+            </ul>
+
+            <h4 class="text-lg font-bold mt-6 mb-3 text-white">C. Production Floor (Kanban)</h4>
+            <p>Once work orders are released, manage them here.</p>
+            <ul>
+                <li><strong>Planned:</strong> Orders start here.</li>
+                <li><strong>Start Job:</strong> Click <strong>Start</strong> to move a card to "In Progress".</li>
+                <li><strong>Complete Job:</strong> Click <strong>Complete</strong> when finished.
+                    <ul>
+                        <li><em>Logic:</em> The system will instantly <strong>deduct Raw Materials</strong> from inventory and <strong>add Finished Goods</strong> stock.</li>
+                        <li><em>Error Prevention:</em> You cannot complete a job if you don't have enough Raw Materials.</li>
+                    </ul>
+                </li>
+            </ul>
+
+            <h4 class="text-lg font-bold mt-6 mb-3 text-white">D. Procurement & Vendors</h4>
+            <ul>
+                <li><strong>Vendors:</strong> Manage your supplier database (Kararo, MRF, etc.) in the <strong>Partners/Vendors</strong> tab.</li>
+                <li><strong>Procurement:</strong> Select a material and quantity to buy. This increases your RM stock and deducts cash from your balance.</li>
+            </ul>
+
+            <h3 class="text-xl font-bold mt-8 mb-4 text-indigo-400">4. Financials & Analytics</h3>
+
+            <h4 class="text-lg font-bold mt-6 mb-3 text-white">A. Fund Flow</h4>
+            <ul>
+                <li>This module projects your cash flow based on the production plan.</li>
+                <li><strong>Inflows:</strong> Projected revenue from selling the planned vehicles.</li>
+                <li><strong>Outflows:</strong> Estimated cost of buying materials for those vehicles.</li>
+                <li><strong>Net Flow:</strong> Shows if you will be cash-positive or negative for the cycle.</li>
+            </ul>
+
+            <h4 class="text-lg font-bold mt-6 mb-3 text-white">B. Analytics</h4>
+            <ul>
+                <li>View the <strong>Regression Analysis</strong> chart to see demand trends over the last 6 months (Sep - Feb).</li>
+                <li>Identify your top-performing products (e.g., Thar vs. XUV).</li>
+            </ul>
+
+            <h4 class="text-lg font-bold mt-6 mb-3 text-white">C. Gantt Tracker</h4>
+            <ul>
+                <li>A visual timeline showing production runs for February and March.</li>
+                <li>Bars are color-coded: <strong>Indigo</strong> for active/current month, <strong>Purple</strong> for future months.</li>
+            </ul>
+
+            <h3 class="text-xl font-bold mt-8 mb-4 text-indigo-400">5. System Features</h3>
+            <ul>
+                <li><strong>Notifications:</strong> Check the <strong>Bell Icon</strong> in the top right. It pulses Red if you have <strong>Critical Stock Lows</strong> or <strong>Low Cash</strong>.</li>
+                <li><strong>System Date:</strong> You can change the "System Date" in the top right. This date is used for all new transactions (Sales, Purchases, Production logs).</li>
+                <li><strong>Data Export (Backup):</strong> Click <strong>Export Data</strong> in the sidebar to download a <code class="bg-slate-800 px-1 py-0.5 rounded text-indigo-300 font-mono text-sm">.json</code> file of your entire system. You can use this to backup your data.</li>
+            </ul>
+            
+            <div class="mt-12 p-6 bg-slate-900 border border-slate-800 rounded-xl text-center">
+                <p class="text-slate-400 italic">PB ERP v1.0 • Startup Edition</p>
+            </div>
+        </div>
+    `;
+}
+
+/**
+ * ==========================================
+ * DASHBOARD
+ * ==========================================
+ */
+function renderDashboard(container) {
+  const fgVal = db.items.filter(i=>i.type==='FG').reduce((acc,i)=>acc+(i.stock*i.price),0);
+  const rmVal = db.items.filter(i=>i.type==='RM').reduce((acc,i)=>acc+(i.stock*i.cost),0);
+  
+  const recentPurchases = db.transactions.filter(t => t.type === 'PURCHASE').slice(-5);
+  const burnTotal = recentPurchases.reduce((acc, t) => acc + Math.abs(t.amount), 0);
+  const burnRate = burnTotal > 0 ? burnTotal : 50000000;
+  const runwayMonths = (db.balance / burnRate).toFixed(1);
+
+  container.innerHTML = `
+    <!-- Top Stats Row -->
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+        <!-- Cash & Runway -->
+        <div class="bg-gradient-to-br from-indigo-900 to-indigo-950 border border-indigo-800 p-6 rounded-xl shadow-xl relative overflow-hidden">
+            <div class="absolute top-0 right-0 p-4 opacity-10"><i class="ph-fill ph-rocket-launch text-8xl text-white"></i></div>
+            <div class="relative z-10">
+                <div class="text-indigo-200 text-xs uppercase font-bold tracking-wider mb-1">Financial Runway</div>
+                <div class="text-3xl font-bold text-white mb-1">~${runwayMonths} Months</div>
+                <div class="text-xs text-indigo-300">Based on recent burn rate of ${formatMoney(burnRate)}/mo</div>
+            </div>
+            <div class="mt-4 pt-4 border-t border-indigo-800/50 flex justify-between items-center">
+                <span class="text-xs text-indigo-300">Current Balance</span>
+                <span class="font-mono font-bold text-white">${formatMoney(db.balance)}</span>
+            </div>
+        </div>
+
+        <!-- Inventory Health -->
+        <div class="bg-slate-900 border border-slate-800 p-6 rounded-xl shadow-lg">
+             <div class="flex justify-between items-start mb-4">
+                <div>
+                    <div class="text-slate-400 text-xs uppercase font-bold tracking-wider mb-1">Total Assets</div>
+                    <div class="text-2xl font-bold text-blue-400">${formatMoney(fgVal + rmVal)}</div>
+                </div>
+                <div class="p-2 bg-slate-800 rounded text-slate-400"><i class="ph-fill ph-warehouse text-xl"></i></div>
+             </div>
+             <div class="grid grid-cols-2 gap-2 mt-4 text-xs">
+                 <div class="bg-slate-950 p-2 rounded border border-slate-800">
+                    <div class="text-slate-500">Finished Goods</div>
+                    <div class="font-bold text-slate-200">${formatMoney(fgVal)}</div>
+                 </div>
+                 <div class="bg-slate-950 p-2 rounded border border-slate-800">
+                    <div class="text-slate-500">Raw Material</div>
+                    <div class="font-bold text-slate-200">${formatMoney(rmVal)}</div>
+                 </div>
+             </div>
+        </div>
+        
+        <!-- Team Tasks -->
+        <div class="bg-slate-900 border border-slate-800 p-6 rounded-xl shadow-lg flex flex-col">
+            <div class="flex justify-between items-center mb-3">
+                <div class="text-slate-400 text-xs uppercase font-bold tracking-wider">Team Tasks</div>
+                <button onclick="addTask()" class="text-indigo-400 hover:text-white"><i class="ph-bold ph-plus"></i></button>
+            </div>
+            <div class="flex-1 overflow-y-auto space-y-2 max-h-[120px]" id="task-list">
+                ${db.tasks.map(t => `
+                    <div class="flex items-center gap-2 group">
+                        <input type="checkbox" ${t.done ? 'checked' : ''} onchange="toggleTask(${t.id})" class="accent-indigo-500 rounded cursor-pointer">
+                        <span class="text-sm ${t.done ? 'line-through text-slate-600' : 'text-slate-300'} flex-1">${t.text}</span>
+                        <button onclick="deleteTask(${t.id})" class="text-slate-600 hover:text-red-400 opacity-0 group-hover:opacity-100 transition-opacity"><i class="ph-bold ph-x"></i></button>
+                    </div>
+                `).join('')}
+            </div>
+        </div>
+    </div>
+
+    <!-- Quick Actions -->
+    <h3 class="font-bold text-lg mb-4 flex items-center gap-2 text-slate-300">
+        <i class="ph-fill ph-lightning text-amber-400"></i> Quick Actions
+    </h3>
+    <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+        <button onclick="router('procurement')" class="bg-slate-800 hover:bg-slate-700 border border-slate-700 p-4 rounded-xl text-left transition-all hover:-translate-y-1">
+            <div class="w-8 h-8 rounded bg-emerald-900/50 text-emerald-400 flex items-center justify-center mb-2"><i class="ph-bold ph-shopping-cart"></i></div>
+            <div class="font-bold text-sm">Order Material</div>
+            <div class="text-[10px] text-slate-500">Create new PO</div>
+        </button>
+        <button onclick="router('sales')" class="bg-slate-800 hover:bg-slate-700 border border-slate-700 p-4 rounded-xl text-left transition-all hover:-translate-y-1">
+            <div class="w-8 h-8 rounded bg-indigo-900/50 text-indigo-400 flex items-center justify-center mb-2"><i class="ph-bold ph-currency-dollar"></i></div>
+            <div class="font-bold text-sm">New Sale</div>
+            <div class="text-[10px] text-slate-500">Record revenue</div>
+        </button>
+        <button onclick="toggleModal('modal-add-item')" class="bg-slate-800 hover:bg-slate-700 border border-slate-700 p-4 rounded-xl text-left transition-all hover:-translate-y-1">
+            <div class="w-8 h-8 rounded bg-blue-900/50 text-blue-400 flex items-center justify-center mb-2"><i class="ph-bold ph-package"></i></div>
+            <div class="font-bold text-sm">Add Product</div>
+            <div class="text-[10px] text-slate-500">Expand inventory</div>
+        </button>
+        <button onclick="router('production')" class="bg-slate-800 hover:bg-slate-700 border border-slate-700 p-4 rounded-xl text-left transition-all hover:-translate-y-1">
+            <div class="w-8 h-8 rounded bg-orange-900/50 text-orange-400 flex items-center justify-center mb-2"><i class="ph-bold ph-factory"></i></div>
+            <div class="font-bold text-sm">Production</div>
+            <div class="text-[10px] text-slate-500">Manage floor</div>
+        </button>
+    </div>
+
+    <!-- Active Production Snapshot -->
+    <div class="bg-slate-900 border border-slate-800 p-6 rounded-xl">
+        <div class="flex justify-between items-center mb-4">
+            <h3 class="font-bold text-lg flex items-center gap-2"><i class="ph-fill ph-kanban text-purple-500"></i> Active Work Orders</h3>
+            <button onclick="router('production')" class="text-xs text-indigo-400 hover:text-white">View Board</button>
+        </div>
+        <div class="space-y-2">
+            ${db.workOrders.filter(w => w.status === 'In Progress').slice(0,3).map(w => {
+                 const fg = db.items.find(i => i.id === w.fgId);
+                 return `
+                    <div class="flex items-center justify-between p-3 bg-slate-950 rounded border-l-4 border-indigo-500">
+                        <div>
+                            <div class="font-bold text-sm text-white">${fg.name} <span class="text-xs font-normal text-slate-500">(${w.id})</span></div>
+                            <div class="text-xs text-slate-400">Batch Qty: ${formatNum(w.qty)}</div>
+                        </div>
+                        <div class="px-2 py-1 bg-indigo-900/30 text-indigo-300 text-[10px] rounded uppercase font-bold">In Progress</div>
+                    </div>
+                 `;
+            }).join('') || '<div class="text-slate-500 text-sm italic">No active production jobs.</div>'}
+        </div>
+    </div>
+    
+    ${modalHtml('modal-add-item', 'Add New Inventory Item', `
+        <form onsubmit="addItem(event)" class="space-y-4">
+          <div class="grid grid-cols-2 gap-4">
+             <div><label class="form-label">Type</label><select name="type" class="form-input"><option value="RM">Raw Material</option><option value="FG">Finished Good</option></select></div>
+             <div><label class="form-label">SKU Code</label><input name="id" required class="form-input" placeholder="e.g. 0099"></div>
+          </div>
+          <div><label class="form-label">Item Name</label><input name="name" required class="form-input"></div>
+          <div class="grid grid-cols-2 gap-4">
+             <div><label class="form-label">UOM</label><input name="uom" required class="form-input" placeholder="pc, kg"></div>
+             <div><label class="form-label">Cost</label><input name="cost" type="number" required class="form-input"></div>
+          </div>
+          <div class="grid grid-cols-2 gap-4">
+             <div><label class="form-label">Warehouse</label><input name="wh" class="form-input" placeholder="e.g. PUN-SN-001"></div>
+             <div><label class="form-label">Sales Price (FG)</label><input name="price" type="number" value="0" class="form-input"></div>
+          </div>
+          <button type="submit" class="w-full btn-primary mt-6">Save Item</button>
+        </form>
+    `)}
+  `;
+}
+
+// Task Functions
+window.addTask = () => {
+    const text = prompt("Enter new task:");
+    if(text) {
+        db.tasks.push({ id: Date.now(), text, done: false });
+        saveDB(); router('dashboard');
+    }
+}
+window.toggleTask = (id) => {
+    const task = db.tasks.find(t=>t.id===id);
+    if(task) { task.done = !task.done; saveDB(); router('dashboard'); }
+}
+window.deleteTask = (id) => {
+    db.tasks = db.tasks.filter(t=>t.id!==id);
+    saveDB(); router('dashboard');
+}
+
+/**
+ * ==========================================
+ * ANALYTICS (Regression)
+ * ==========================================
+ */
+function renderAnalytics(container) {
+  const chartData = {
+    months: ['Sep', 'Oct', 'Nov', 'Dec', 'Jan', 'Feb'],
+    thar: [5011, 4055, 4300, 4478, 7500, 6689],
+    bolero: [3200, 2900, 2870, 2670, 3720, 3315],
+    xuv: [5700, 5320, 5115, 4700, 6100, 5441]
+  };
+
+  container.innerHTML = `
+    <h2 class="text-2xl font-bold mb-6">Sales Analytics & Forecasting</h2>
+    
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
+        <div class="col-span-2 bg-slate-900 border border-slate-800 p-6 rounded-xl">
+            <h3 class="font-bold text-lg mb-4">Regression Analysis (Demand Trend)</h3>
+            <canvas id="regressionChart" height="250"></canvas>
+        </div>
+        <div class="bg-slate-900 border border-slate-800 p-6 rounded-xl flex flex-col justify-center">
+             <div class="mb-6">
+                <div class="text-xs text-slate-500 uppercase font-bold">Top Performer (Jan)</div>
+                <div class="text-2xl font-bold text-white">Thar</div>
+                <div class="text-emerald-400 font-mono">7,500 Units</div>
+             </div>
+             <div>
+                <div class="text-xs text-slate-500 uppercase font-bold">Steady Growth</div>
+                <div class="text-2xl font-bold text-white">XUV</div>
+                <div class="text-blue-400 font-mono">Avg 5,300/mo</div>
+             </div>
+        </div>
+    </div>
+  `;
+
+  setTimeout(() => {
+    new Chart(document.getElementById('regressionChart'), {
+        type: 'line',
+        data: {
+            labels: chartData.months,
+            datasets: [
+                { label: 'Thar', data: chartData.thar, borderColor: '#6366f1', tension: 0.4 },
+                { label: 'Bolero', data: chartData.bolero, borderColor: '#10b981', tension: 0.4 },
+                { label: 'XUV', data: chartData.xuv, borderColor: '#f59e0b', tension: 0.4 }
+            ]
+        },
+        options: {
+            responsive: true,
+            plugins: { legend: { labels: { color: '#94a3b8' } } },
+            scales: {
+                y: { grid: { color: '#1e293b' }, ticks: { color: '#94a3b8' } },
+                x: { grid: { display: false }, ticks: { color: '#94a3b8' } }
+            }
+        }
+    });
+  }, 100);
+}
+
+/**
+ * ==========================================
+ * PRODUCTION (Kanban)
+ * ==========================================
+ */
+function renderProduction(container) {
+    const planned = db.workOrders.filter(w => w.status === 'Planned');
+    const inProgress = db.workOrders.filter(w => w.status === 'In Progress');
+    const done = db.workOrders.filter(w => w.status === 'Done').slice(0, 10); // Show last 10 done
+
+    const card = (w, color) => {
+        const fg = db.items.find(i => i.id === w.fgId);
+        return `
+            <div class="kanban-card bg-slate-800 p-3 rounded-lg border-l-4 ${color} mb-3 cursor-pointer group relative">
+                <div class="font-bold text-sm text-white flex justify-between">
+                    ${fg.name} <span class="font-normal text-slate-500 text-xs">#${w.id}</span>
+                </div>
+                <div class="text-xs text-slate-400 mt-1">Qty: ${formatNum(w.qty)}</div>
+                
+                <div class="mt-3 flex gap-2 justify-end">
+                    ${w.status === 'Planned' ? `<button onclick="moveOrder('${w.id}', 'In Progress')" class="text-[10px] bg-indigo-600 hover:bg-indigo-500 text-white px-2 py-1 rounded">Start</button>` : ''}
+                    ${w.status === 'In Progress' ? `<button onclick="completeOrder('${w.id}')" class="text-[10px] bg-emerald-600 hover:bg-emerald-500 text-white px-2 py-1 rounded">Complete</button>` : ''}
+                </div>
+            </div>
+        `;
+    };
+
+    container.innerHTML = `
+      <div class="flex justify-between items-center mb-6">
+         <h2 class="text-2xl font-bold">Production Floor</h2>
+         <button onclick="router('planning')" class="text-sm bg-slate-800 hover:bg-slate-700 px-3 py-2 rounded text-indigo-400 border border-slate-700">
+            + New Work Order
+         </button>
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-6 h-[calc(100vh-180px)]">
+         <!-- Planned -->
+         <div class="bg-slate-900/50 border border-slate-800 rounded-xl flex flex-col">
+            <div class="p-3 border-b border-slate-800 font-bold text-sm text-slate-400 uppercase tracking-wider flex justify-between">
+                <span>Planned</span>
+                <span class="bg-slate-800 px-2 rounded text-white">${planned.length}</span>
+            </div>
+            <div class="p-3 overflow-y-auto flex-1 bg-slate-900/30">
+                ${planned.map(w => card(w, 'border-slate-500')).join('') || '<div class="text-xs text-slate-600 text-center mt-4">No pending orders</div>'}
+            </div>
+         </div>
+
+         <!-- In Progress -->
+         <div class="bg-slate-900/50 border border-slate-800 rounded-xl flex flex-col">
+            <div class="p-3 border-b border-slate-800 font-bold text-sm text-indigo-400 uppercase tracking-wider flex justify-between">
+                <span>In Progress</span>
+                <span class="bg-indigo-900/30 px-2 rounded text-indigo-300">${inProgress.length}</span>
+            </div>
+            <div class="p-3 overflow-y-auto flex-1 bg-indigo-900/5">
+                ${inProgress.map(w => card(w, 'border-indigo-500')).join('')}
+            </div>
+         </div>
+
+         <!-- Done -->
+         <div class="bg-slate-900/50 border border-slate-800 rounded-xl flex flex-col">
+            <div class="p-3 border-b border-slate-800 font-bold text-sm text-emerald-400 uppercase tracking-wider flex justify-between">
+                <span>Completed</span>
+                <span class="bg-emerald-900/30 px-2 rounded text-emerald-300">${done.length}</span>
+            </div>
+            <div class="p-3 overflow-y-auto flex-1 bg-emerald-900/5">
+                ${done.map(w => card(w, 'border-emerald-500')).join('')}
+            </div>
+         </div>
+      </div>
+    `;
+}
+
+window.moveOrder = (id, status) => {
+    const order = db.workOrders.find(w => w.id === id);
+    if(order) { 
+        order.status = status; 
+        saveDB(); 
+        router('production'); 
+    }
+};
+
+window.completeOrder = (id) => {
+    const order = db.workOrders.find(w => w.id === id);
+    if(!order) return;
+
+    // 1. Check if enough RM exists (Simplified check again for safety)
+    const bom = db.boms.find(b => b.fgId === order.fgId);
+    let possible = true;
+    if(bom) {
+        bom.components.forEach(c => {
+            const rm = db.items.find(i => i.id === c.itemId);
+            if(rm.stock < (c.qty * order.qty)) possible = false;
+        });
+    }
+
+    if(!possible) return alert("Critical: Not enough Raw Materials to complete this batch!");
+
+    // 2. Consume RM
+    if(bom) {
+        bom.components.forEach(c => {
+            const rm = db.items.find(i => i.id === c.itemId);
+            rm.stock -= (c.qty * order.qty);
+        });
+    }
+
+    // 3. Add FG
+    const fg = db.items.find(i => i.id === order.fgId);
+    fg.stock += order.qty;
+
+    // 4. Update Order
+    order.status = 'Done';
+    order.endDate = db.systemDate;
+    
+    // 5. Log
+    db.transactions.push({ 
+        type: 'PROD', 
+        date: db.systemDate, 
+        desc: `Completed WO #${order.id}: ${order.qty} ${fg.name}`, 
+        amount: 0 
+    });
+
+    saveDB();
+    router('production');
+    alert(`Production Complete! ${order.qty} ${fg.name} added to inventory.`);
+};
+
+/**
+ * ==========================================
+ * PLANNING (MPS)
+ * ==========================================
+ */
+function renderPlanning(container) {
+    const fgs = db.items.filter(i=>i.type==='FG');
+    const febPlan = db.mps.find(m => m.month === 'February');
+    
+    // Aggregate RM needs
+    let requirements = {};
+    febPlan.plans.forEach(plan => {
+        const bom = db.boms.find(b => b.fgId === plan.fgId);
+        if(bom) {
+            bom.components.forEach(comp => {
+                if(!requirements[comp.itemId]) requirements[comp.itemId] = 0;
+                requirements[comp.itemId] += (comp.qty * plan.qty);
+            });
+        }
+    });
+
+    const reqRows = Object.entries(requirements).map(([itemId, qty]) => {
+        const item = db.items.find(i=>i.id===itemId);
+        const status = item.stock >= qty ? 'text-emerald-400' : 'text-red-400 font-bold';
+        return `
+            <tr class="border-b border-slate-800 text-sm">
+                <td class="p-3 text-slate-400">${item.id}</td>
+                <td class="p-3 font-medium">${item.name}</td>
+                <td class="p-3 text-right font-mono text-indigo-300">${formatNum(qty)}</td>
+                <td class="p-3 text-right font-mono ${status}">${formatNum(item.stock)}</td>
+                <td class="p-3 text-right text-xs text-slate-500">${item.stock >= qty ? 'OK' : 'SHORT'}</td>
+            </tr>
+        `;
+    }).join('');
+
+    container.innerHTML = `
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 h-full">
+        <!-- MPS INPUT -->
+        <div class="flex flex-col gap-6">
+            <div>
+                <h2 class="text-2xl font-bold mb-2">Master Production Schedule</h2>
+                <p class="text-slate-400 text-sm">Planned quantities for February (Regression adjusted)</p>
+            </div>
+            
+            <div class="bg-slate-900 border border-slate-800 rounded-xl overflow-hidden">
+                <table class="w-full text-sm">
+                    <thead class="bg-slate-950 text-slate-400 uppercase text-[10px] font-bold">
+                        <tr><th class="p-3 text-left">Model</th><th class="p-3 text-right">Feb Qty</th><th class="p-3 text-right">Mar Qty</th></tr>
+                    </thead>
+                    <tbody class="divide-y divide-slate-800">
+                        ${fgs.map(fg => {
+                            const febQ = febPlan.plans.find(p=>p.fgId===fg.id)?.qty || 0;
+                            const marQ = db.mps.find(m=>m.month==='March').plans.find(p=>p.fgId===fg.id)?.qty || 0;
+                            return `<tr><td class="p-3 font-medium">${fg.name}</td><td class="p-3 text-right font-mono text-indigo-300 bg-slate-800/30">${formatNum(febQ)}</td><td class="p-3 text-right font-mono text-slate-500">${formatNum(marQ)}</td></tr>`;
+                        }).join('')}
+                    </tbody>
+                </table>
+                <div class="p-3 bg-slate-950/50 border-t border-slate-800 text-center">
+                    <button onclick="generateWorkOrders()" class="w-full bg-indigo-600 hover:bg-indigo-500 text-white py-2 rounded font-bold text-sm shadow-lg shadow-indigo-900/20">
+                        Release February Plan to Production
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- MRP CALCULATION -->
+        <div class="flex flex-col gap-6">
+            <div><h2 class="text-2xl font-bold mb-2">Material Requirements</h2><p class="text-slate-400 text-sm">Calculated needs based on BOM</p></div>
+            <div class="bg-slate-900 border border-slate-800 rounded-xl overflow-hidden flex-1">
+                <div class="overflow-y-auto max-h-[500px]">
+                    <table class="w-full">
+                        <thead class="bg-slate-950 text-slate-400 uppercase text-[10px] font-bold sticky top-0">
+                            <tr><th class="p-3 text-left">Code</th><th class="p-3 text-left">Material</th><th class="p-3 text-right">Required</th><th class="p-3 text-right">On Hand</th><th class="p-3 text-right">Status</th></tr>
+                        </thead>
+                        <tbody>${reqRows}</tbody>
+                    </table>
+                </div>
+            </div>
+             <button onclick="router('procurement')" class="w-full py-3 bg-emerald-600 hover:bg-emerald-500 text-white rounded-lg font-bold shadow-lg shadow-emerald-900/20">Create Purchase Orders for Shortage</button>
+        </div>
+      </div>
+    `;
+}
+
+window.generateWorkOrders = () => {
+    const febPlan = db.mps.find(m => m.month === 'February');
+    if(!confirm(`Create ${febPlan.plans.length} Work Orders based on Feb Plan?`)) return;
+
+    febPlan.plans.forEach(p => {
+        // Simple batching: divide large orders into manageable batches? 
+        // For simplicity, 1 plan = 1 order
+        db.workOrders.push({
+            id: uuid(),
+            fgId: p.fgId,
+            qty: p.qty,
+            status: 'Planned',
+            startDate: db.systemDate
+        });
+    });
+
+    saveDB();
+    router('production');
+    alert('Work Orders Generated!');
+};
+
+/**
+ * ==========================================
+ * INVENTORY
+ * ==========================================
+ */
+function renderInventory(container) {
+  container.innerHTML = `
+    <div class="flex justify-between items-center mb-6">
+      <h2 class="text-2xl font-bold">Inventory Management</h2>
+      <button onclick="toggleModal('modal-add-item')" class="bg-indigo-600 hover:bg-indigo-500 text-white px-4 py-2 rounded-lg text-sm font-medium flex items-center gap-2 shadow-lg shadow-indigo-900/20">
+        <i class="ph-bold ph-plus"></i> New SKU
+      </button>
+    </div>
+
+    <div class="bg-slate-900 border border-slate-800 rounded-xl overflow-hidden shadow-xl">
+      <div class="overflow-x-auto">
+        <table class="w-full text-sm text-left">
+          <thead class="bg-slate-950 text-slate-400 uppercase text-[10px] font-bold tracking-wider">
+            <tr>
+              <th class="p-4">SKU</th>
+              <th class="p-4">Item Name</th>
+              <th class="p-4">Type</th>
+              <th class="p-4">Warehouse</th>
+              <th class="p-4 text-right">Stock</th>
+              <th class="p-4 text-right">Cost</th>
+              <th class="p-4 text-right">Vendor/Price</th>
+              <th class="p-4 text-center">Actions</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-slate-800">
+            ${db.items.map(item => `
+              <tr class="hover:bg-slate-800/40 transition-colors group">
+                <td class="p-4 font-mono text-indigo-300 font-bold">${item.id}</td>
+                <td class="p-4 font-medium text-white">${item.name}</td>
+                <td class="p-4"><span class="px-2 py-1 rounded text-[10px] font-bold uppercase tracking-wide border ${item.type === 'RM' ? 'border-amber-900/50 bg-amber-900/20 text-amber-500' : 'border-blue-900/50 bg-blue-900/20 text-blue-400'}">${item.type}</span></td>
+                <td class="p-4 text-slate-400 text-xs">${item.wh || '-'}</td>
+                <td class="p-4 text-right ${item.stock < 100 ? 'text-red-400 font-bold' : 'text-slate-300'}">${formatNum(item.stock)} <span class="text-slate-600 text-[10px]">${item.uom}</span></td>
+                <td class="p-4 text-right text-slate-300">${formatMoney(item.cost)}</td>
+                <td class="p-4 text-right text-slate-400 text-xs">${item.type === 'FG' ? `<span class="text-emerald-400 font-bold text-sm">${formatMoney(item.price)}</span>` : item.vendor || '-'}</td>
+                <td class="p-4 text-center flex justify-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                   <button onclick="deleteItem('${item.id}')" class="p-1 text-red-400 hover:text-red-300 bg-slate-800 rounded"><i class="ph-bold ph-trash"></i></button>
+                </td>
+              </tr>
+            `).join('')}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  `;
+}
+window.addItem = (e) => {
+    e.preventDefault();
+    const fd = new FormData(e.target);
+    const item = Object.fromEntries(fd.entries());
+    item.cost = Number(item.cost); item.price = Number(item.price); item.stock = 0;
+    if(db.items.find(i=>i.id===item.id)) return alert('ID exists');
+    db.items.push(item); saveDB(); router('inventory');
+};
+window.deleteItem = (id) => { if(confirm('Delete?')) { db.items = db.items.filter(i=>i.id!==id); saveDB(); router('inventory'); }};
+
+/**
+ * ==========================================
+ * GANTT CHART
+ * ==========================================
+ */
+function renderGantt(container) {
+  // Construct Timeline Data
+  const plans = db.mps; 
+  
+  let timelineItems = [];
+  plans.forEach(m => {
+     m.plans.forEach(p => {
+         const fg = db.items.find(i => i.id === p.fgId);
+         timelineItems.push({ month: m.month, fgName: fg.name, qty: p.qty });
+     });
+  });
+
+  container.innerHTML = `
+    <h2 class="text-2xl font-bold mb-6">Production Gantt Tracker</h2>
+    
+    <div class="overflow-x-auto pb-4">
+        <div class="min-w-[800px] bg-slate-900 border border-slate-800 rounded-xl p-6">
+            <div class="flex border-b border-slate-700 mb-4 pb-2">
+                <div class="w-32 shrink-0 font-bold text-slate-400 uppercase text-xs">Model</div>
+                <div class="flex-1 grid grid-cols-2">
+                    <div class="text-center font-bold text-slate-400 uppercase text-xs border-r border-slate-800">February 2025</div>
+                    <div class="text-center font-bold text-slate-400 uppercase text-xs">March 2025</div>
+                </div>
+            </div>
+            <div class="space-y-6">
+                ${['Thar', 'Bolero', 'XUV'].map(model => {
+                    const febPlan = timelineItems.find(t => t.fgName === model && t.month === 'February');
+                    const marPlan = timelineItems.find(t => t.fgName === model && t.month === 'March');
+                    return `
+                    <div class="flex items-center group relative h-12">
+                        <div class="w-32 shrink-0 font-medium text-slate-200 z-10 bg-slate-900">${model}</div>
+                        <div class="flex-1 grid grid-cols-2 relative h-full bg-slate-950/50 rounded-lg border border-slate-800/50 overflow-hidden">
+                            <div class="absolute inset-0 grid grid-cols-8 pointer-events-none">
+                                ${Array(8).fill('').map(() => `<div class="border-r border-slate-800/30 h-full"></div>`).join('')}
+                            </div>
+                            <div class="relative p-1">
+                                ${febPlan ? `
+                                    <div class="h-8 mt-1 rounded shadow-lg flex items-center px-3 text-xs font-bold text-white whitespace-nowrap gantt-bar bg-indigo-600 w-[90%] ml-[5%]" 
+                                         title="Plan: ${febPlan.qty} units">
+                                        Feb Run: ${formatNum(febPlan.qty)} units
+                                    </div>
+                                ` : ''}
+                            </div>
+                            <div class="relative p-1 border-l border-slate-800">
+                                ${marPlan ? `
+                                    <div class="h-8 mt-1 rounded shadow-lg flex items-center px-3 text-xs font-bold text-white whitespace-nowrap gantt-bar bg-purple-600 w-[95%] ml-[2%]" 
+                                         title="Plan: ${marPlan.qty} units">
+                                        Mar Run: ${formatNum(marPlan.qty)} units
+                                    </div>
+                                ` : ''}
+                            </div>
+                        </div>
+                    </div>
+                    `;
+                }).join('')}
+            </div>
+            <div class="mt-8 flex gap-4 text-xs">
+                <div class="flex items-center gap-2"><div class="w-3 h-3 bg-indigo-600 rounded"></div> Active Production</div>
+                <div class="flex items-center gap-2"><div class="w-3 h-3 bg-purple-600 rounded"></div> Future Schedule</div>
+            </div>
+        </div>
+    </div>
+  `;
+}
+
+/**
+ * ==========================================
+ * OTHER MODULES (Vendors, BOM, Sales, etc.)
+ * ==========================================
+ */
+function renderVendors(container) {
+    container.innerHTML = `
+      <h2 class="text-2xl font-bold mb-6">Partner Ecosystem</h2>
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+        ${db.vendors.map((v, i) => `
+            <div class="bg-slate-900 border border-slate-800 p-6 rounded-xl hover:border-indigo-500/50 transition-colors group relative">
+                <button onclick="deleteVendor(${i})" class="absolute top-4 right-4 text-slate-600 hover:text-red-400 opacity-0 group-hover:opacity-100 transition-opacity"><i class="ph-bold ph-trash"></i></button>
+                <div class="flex items-center gap-4 mb-4">
+                    <div class="w-12 h-12 rounded-full bg-slate-800 flex items-center justify-center text-xl font-bold text-indigo-400">${v.name.charAt(0)}</div>
+                    <div>
+                        <div class="font-bold text-lg text-white group-hover:text-indigo-400 transition-colors">${v.name}</div>
+                        <div class="text-xs text-slate-500">Supplier</div>
+                    </div>
+                </div>
+                <div class="space-y-2 text-sm text-slate-400">
+                    <div class="flex justify-between border-b border-slate-800 pb-2"><span>Material</span> <span class="text-white">${v.material}</span></div>
+                    <div class="flex justify-between pt-1"><span>Contact</span> <span class="text-white">${v.contact}</span></div>
+                </div>
+            </div>
+        `).join('')}
+         <button onclick="toggleModal('modal-add-vendor')" class="bg-slate-900 border border-slate-800 border-dashed border-2 p-6 rounded-xl flex flex-col items-center justify-center text-slate-500 hover:text-indigo-400 hover:border-indigo-500 hover:bg-slate-800/50 transition-all">
+            <i class="ph-bold ph-plus text-3xl mb-2"></i>
+            <span class="font-bold">Add Vendor</span>
+         </button>
+      </div>
+      
+      ${modalHtml('modal-add-vendor', 'Add New Vendor', `
+        <form onsubmit="addVendor(event)" class="space-y-4">
+          <div><label class="form-label">Company Name</label><input name="name" required class="form-input"></div>
+          <div><label class="form-label">Supply Material</label><input name="material" required class="form-input"></div>
+          <div><label class="form-label">Contact Details</label><input name="contact" required class="form-input"></div>
+          <button type="submit" class="w-full btn-primary mt-6">Save Partner</button>
+        </form>
+    `)}
+    `;
+}
+window.addVendor = (e) => { e.preventDefault(); const fd = new FormData(e.target); db.vendors.push(Object.fromEntries(fd.entries())); saveDB(); router('vendors'); }
+window.deleteVendor = (idx) => { if(confirm('Remove?')) { db.vendors.splice(idx, 1); saveDB(); router('vendors'); } }
+
+function renderProcurement(container) {
+    const rms = db.items.filter(i=>i.type==='RM');
+    container.innerHTML = `
+        <h2 class="text-2xl font-bold mb-6">Procurement</h2>
+        <div class="bg-slate-900 border border-slate-800 p-6 rounded-xl max-w-md">
+            <h3 class="font-bold mb-4">Quick Purchase Order</h3>
+            <form onsubmit="buyItem(event)" class="space-y-4">
+                <div><label class="form-label">Material</label>
+                <select name="itemId" class="form-input">
+                    ${rms.map(r=>`<option value="${r.id}">${r.name} (${r.vendor})</option>`).join('')}
+                </select></div>
+                <div><label class="form-label">Quantity</label><input type="number" name="qty" class="form-input" value="100"></div>
+                <button class="w-full btn-primary">Create PO</button>
+            </form>
+        </div>
+    `;
+}
+window.buyItem = (e) => {
+    e.preventDefault(); const fd = new FormData(e.target); const id = fd.get('itemId'); const qty = Number(fd.get('qty'));
+    const item = db.items.find(i=>i.id===id); const cost = item.cost * qty;
+    if(cost > db.balance) return alert('Insufficient Funds');
+    item.stock += qty; db.balance -= cost;
+    db.transactions.push({ type:'PURCHASE', date: db.systemDate, desc: `Purchased ${qty} ${item.name} from ${item.vendor}`, amount: -cost });
+    saveDB(); router('inventory');
+}
+
+function renderSales(container) {
+    container.innerHTML = `
+        <h2 class="text-2xl font-bold mb-6">Sales Orders</h2>
+        <div class="bg-slate-900 border border-slate-800 p-6 rounded-xl max-w-md">
+            <h3 class="font-bold mb-4">Record New Sale</h3>
+            <form onsubmit="sellItem(event)" class="space-y-4">
+                <div><label class="form-label">Vehicle Model</label>
+                <select name="itemId" class="form-input">
+                    ${db.items.filter(i=>i.type==='FG').map(r=>`<option value="${r.id}">${r.name}</option>`).join('')}
+                </select></div>
+                <div><label class="form-label">Units Sold</label><input type="number" name="qty" class="form-input" value="1"></div>
+                <button class="w-full btn-primary bg-indigo-600">Record Revenue</button>
+            </form>
+        </div>
+    `;
+}
+window.sellItem = (e) => {
+    e.preventDefault(); const fd = new FormData(e.target); const id = fd.get('itemId'); const qty = Number(fd.get('qty'));
+    const item = db.items.find(i=>i.id===id); const rev = item.price * qty;
+    if(item.stock < qty) return alert('Insufficient Finished Goods Inventory');
+    item.stock -= qty; db.balance += rev;
+    db.transactions.push({ type:'SALE', date: db.systemDate, desc: `Sold ${qty} ${item.name}`, amount: rev });
+    saveDB(); router('dashboard');
+}
+
+function renderFinancials(container) {
+    const febPlan = db.mps.find(m => m.month === 'February');
+    const inflows = febPlan.plans.map(p => {
+        const item = db.items.find(i=>i.id===p.fgId);
+        return { name: item.name, qty: p.qty, revenue: item.price * p.qty };
+    });
+    const totalInflow = inflows.reduce((s, i) => s + i.revenue, 0);
+    let totalMatCost = 0;
+    febPlan.plans.forEach(plan => {
+        const bom = db.boms.find(b => b.fgId === plan.fgId);
+        if(bom) bom.components.forEach(comp => { const rm = db.items.find(i=>i.id === comp.itemId); totalMatCost += (comp.qty * plan.qty * rm.cost); });
+    });
+    const netFlow = totalInflow - totalMatCost;
+
+    container.innerHTML = `
+        <h2 class="text-2xl font-bold mb-6">Financial Fund Flow Statement (Projected)</h2>
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+            ${kpiCard('Projected Inflows (Sales)', formatMoney(totalInflow), 'ph-trend-up', 'text-emerald-400')}
+            ${kpiCard('Projected Outflows (Mat.)', formatMoney(totalMatCost), 'ph-trend-down', 'text-red-400')}
+            ${kpiCard('Net Operating Flow', formatMoney(netFlow), 'ph-scales', netFlow>0 ? 'text-indigo-400' : 'text-orange-400')}
+        </div>
+        <div class="bg-slate-900 border border-slate-800 rounded-xl overflow-hidden p-6">
+            <h3 class="font-bold mb-4">Projected Balance: <span class="text-indigo-400">${formatMoney(netFlow)}</span></h3>
+            <p class="text-sm text-slate-400">This projection is based on the Master Production Schedule (MPS) for February.</p>
+        </div>
+    `;
+}
+function kpiCard(title, value, icon, colorClass) {
+  return `
+    <div class="bg-slate-900 border border-slate-800 p-6 rounded-xl shadow-lg shadow-black/20">
+      <div class="flex justify-between items-start mb-4">
+        <div><div class="text-slate-400 text-xs uppercase font-bold tracking-wider mb-1">${title}</div><div class="text-2xl font-bold ${colorClass}">${value}</div></div>
+        <div class="p-2.5 bg-slate-800 rounded-lg text-slate-300"><i class="ph-fill ${icon} text-xl"></i></div>
+      </div>
+    </div>
+  `;
+}
+
+function renderBOM(container) {
+  let html = `<h2 class="text-2xl font-bold mb-6">Bill of Materials Configuration</h2><div class="space-y-6">`;
+  db.boms.forEach(bom => {
+      const fg = db.items.find(i=>i.id===bom.fgId);
+      const totalCost = bom.components.reduce((acc, c) => { const rm = db.items.find(i=>i.id===c.itemId); return acc + (rm.cost * c.qty); }, 0);
+      html += `
+        <div class="bg-slate-900 border border-slate-800 rounded-xl overflow-hidden">
+            <div class="p-4 bg-slate-950 border-b border-slate-800 flex justify-between items-center">
+                <div class="font-bold text-lg text-white">${fg.name} <span class="text-slate-500 text-sm font-normal">(${fg.id})</span></div>
+                <div class="text-sm"><span class="text-slate-400">Material Cost:</span> <span class="text-emerald-400 font-mono font-bold">${formatMoney(totalCost)}</span></div>
+            </div>
+            <div class="p-4 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                ${bom.components.map(c => {
+                    const rm = db.items.find(i=>i.id===c.itemId);
+                    return `
+                        <div class="flex items-center gap-3 p-2 bg-slate-950/50 rounded border border-slate-800/50">
+                            <div class="w-8 h-8 rounded bg-slate-800 flex items-center justify-center text-xs font-bold text-slate-400">${c.qty}</div>
+                            <div class="text-sm"><div class="text-slate-200">${rm.name}</div><div class="text-[10px] text-slate-500">${rm.id}</div></div>
+                        </div>
+                    `;
+                }).join('')}
+            </div>
+        </div>
+      `;
+  });
+  html += `</div>`;
+  container.innerHTML = html;
+}
+
+// Shared CSS
+const styleEl = document.createElement('style');
+styleEl.textContent = `
+  .form-label { display: block; font-size: 0.75rem; text-transform: uppercase; color: #94a3b8; margin-bottom: 0.25rem; font-weight: 700; }
+  .form-input { width: 100%; background: #020617; border: 1px solid #334155; padding: 0.5rem; border-radius: 0.5rem; color: white; transition: all 0.2s; }
+  .btn-primary { background: #4f46e5; color: white; padding: 0.75rem; border-radius: 0.5rem; font-weight: 600; transition: background 0.2s; }
+  .btn-primary:hover { background: #4338ca; }
+  .fade-in { animation: fadeIn 0.3s ease-out; }
+  @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
+`;
+document.head.appendChild(styleEl);
+
+function modalHtml(id, title, content) {
+    return `
+      <div id="${id}" class="fixed inset-0 bg-black/80 hidden z-50 flex items-center justify-center backdrop-blur-sm transition-all" onclick="if(event.target===this) toggleModal('${id}')">
+        <div class="bg-slate-900 border border-slate-700 p-6 rounded-xl w-full max-w-md shadow-2xl scale-100 transform transition-transform">
+          <div class="flex justify-between items-center mb-6">
+             <h3 class="text-lg font-bold text-white">${title}</h3>
+             <button onclick="toggleModal('${id}')" class="text-slate-400 hover:text-white"><i class="ph-bold ph-x"></i></button>
+          </div>
+          ${content}
+        </div>
+      </div>
+    `;
+}
+
+// Initial Load
+router('dashboard');
+</script>
+</body>
+</html>
