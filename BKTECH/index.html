@@ -1,0 +1,1009 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FinCore Enterprise | Premium Banking System</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- FontAwesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Fonts: Inter & JetBrains Mono -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+    
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        // Custom Gold Scale (Amber/Yellow based but tuned for UI)
+                        gold: { 
+                            50: '#fffbeb', 100: '#fef3c7', 200: '#fde68a', 300: '#fcd34d', 
+                            400: '#fbbf24', 500: '#f59e0b', 600: '#d97706', 700: '#b45309', 
+                            800: '#92400e', 900: '#78350f', 950: '#451a03' 
+                        },
+                        // Custom Silver Scale (Cool Slate)
+                        silver: { 
+                            50: '#f8fafc', 100: '#f1f5f9', 200: '#e2e8f0', 300: '#cbd5e1', 
+                            400: '#94a3b8', 500: '#64748b', 600: '#475569', 700: '#334155', 
+                            800: '#1e293b', 900: '#0f172a', 950: '#020617' 
+                        },
+                        money: { light: '#dcfce7', dark: '#166534' }
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                        mono: ['JetBrains Mono', 'monospace'],
+                    },
+                    animation: {
+                        'fade-in': 'fadeIn 0.4s ease-out',
+                        'slide-up': 'slideUp 0.5s cubic-bezier(0.16, 1, 0.3, 1)',
+                        'pulse-slow': 'pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+                    },
+                    keyframes: {
+                        fadeIn: { '0%': { opacity: '0' }, '100%': { opacity: '1' } },
+                        slideUp: { '0%': { transform: 'translateY(20px)', opacity: '0' }, '100%': { transform: 'translateY(0)', opacity: '1' } }
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        /* --- CORE SYSTEM STYLES --- */
+        body { font-family: 'Inter', sans-serif; background-color: #f8fafc; color: #334155; }
+        
+        /* Custom Scrollbar */
+        .custom-scroll::-webkit-scrollbar { width: 6px; height: 6px; }
+        .custom-scroll::-webkit-scrollbar-track { background: transparent; }
+        .custom-scroll::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
+        .custom-scroll::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+
+        /* View Transitions */
+        .tab-content { display: none; opacity: 0; transition: opacity 0.2s ease-in-out; }
+        .tab-content.active { display: block; opacity: 1; animation: fadeIn 0.3s forwards; }
+
+        /* Enterprise Data Tables */
+        .data-table { width: 100%; border-collapse: separate; border-spacing: 0; font-size: 0.85rem; }
+        .data-table th { 
+            font-size: 0.7rem; 
+            text-transform: uppercase; 
+            letter-spacing: 0.05em; 
+            font-weight: 700; 
+            color: #64748b; 
+            background-color: #f8fafc; 
+            border-bottom: 2px solid #e2e8f0; 
+            padding: 12px 16px; 
+            text-align: left; 
+            position: sticky; top: 0; z-index: 10; 
+        }
+        .data-table td { border-bottom: 1px solid #f1f5f9; padding: 12px 16px; transition: background-color 0.1s; }
+        .data-table tr:hover td { background-color: #f8fafc; }
+
+        /* Navigation Tabs */
+        .nav-tab { border-bottom: 2px solid transparent; color: #64748b; transition: all 0.2s; position: relative; }
+        .nav-tab:hover { color: #1e293b; background-color: #f1f5f9; }
+        /* Gold Active State */
+        .nav-tab.active { border-bottom-color: #d97706; color: #d97706; font-weight: 600; background-color: #fffbeb; }
+
+        /* Wizard & Status Components */
+        .step-indicator { width: 2rem; height: 2rem; border-radius: 50%; border: 2px solid #e2e8f0; color: #94a3b8; font-weight: 600; background: white; display: flex; align-items: center; justify-content: center; z-index: 1; }
+        .step-indicator.active { border-color: #d97706; color: #d97706; }
+        .step-indicator.completed { background-color: #d97706; border-color: #d97706; color: white; }
+        .step-line { flex: 1; height: 2px; background-color: #e2e8f0; margin: 0 8px; }
+        .step-line.completed { background-color: #d97706; }
+
+        .badge { display: inline-flex; align-items: center; padding: 2px 8px; border-radius: 9999px; font-size: 0.7rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; border: 1px solid transparent; }
+
+        /* Technical Panel (Dark Silver Style) */
+        .tech-panel { background: #0f172a; color: #fbbf24; font-family: 'JetBrains Mono', monospace; border: 1px solid #334155; }
+        .tech-glow { box-shadow: 0 0 15px rgba(251, 191, 36, 0.1); }
+
+        /* Documentation Styling */
+        .doc-section { background: white; padding: 2rem; border-radius: 0.75rem; border: 1px solid #e2e8f0; margin-bottom: 2rem; box-shadow: 0 1px 2px rgba(0,0,0,0.05); }
+        .doc-title { font-size: 1.5rem; font-weight: 700; color: #1e293b; margin-bottom: 1rem; padding-bottom: 0.5rem; border-bottom: 2px solid #f1f5f9; }
+        .doc-subtitle { font-size: 1.1rem; font-weight: 600; color: #334155; margin-top: 1.5rem; margin-bottom: 0.75rem; }
+        .doc-text { color: #475569; line-height: 1.7; margin-bottom: 1rem; font-size: 0.95rem; }
+        .doc-code { background: #f8fafc; padding: 1rem; border-radius: 0.5rem; border: 1px solid #e2e8f0; font-family: 'JetBrains Mono', monospace; font-size: 0.85rem; color: #0f172a; overflow-x: auto; margin: 1rem 0; }
+        .doc-list { list-style-type: disc; padding-left: 1.5rem; color: #475569; margin-bottom: 1rem; }
+        .doc-list li { margin-bottom: 0.5rem; }
+    </style>
+</head>
+<body class="h-screen flex flex-col overflow-hidden text-slate-800 selection:bg-gold-100 selection:text-gold-900">
+
+    <!-- ========================================== -->
+    <!--            1. LOGIN OVERLAY                -->
+    <!-- ========================================== -->
+    <div id="login-screen" class="fixed inset-0 bg-silver-900 z-[100] flex items-center justify-center bg-[url('https://images.unsplash.com/photo-1621360841012-32925b6a7ee7?auto=format&fit=crop&q=80')] bg-cover bg-center">
+        <div class="absolute inset-0 bg-silver-900/90 backdrop-blur-md"></div>
+        <div class="bg-white w-full max-w-md p-10 rounded-2xl shadow-2xl relative z-10 animate-slide-up border border-white/20">
+            <div class="flex flex-col items-center mb-8">
+                <div class="w-20 h-20 bg-gradient-to-br from-gold-500 to-gold-700 rounded-2xl flex items-center justify-center text-white text-4xl shadow-xl mb-4 shadow-gold-500/20">
+                    <i class="fa-solid fa-building-columns"></i>
+                </div>
+                <h1 class="text-3xl font-bold text-silver-900 tracking-tight">FinCore <span class="text-gold-600">Prime</span></h1>
+                <p class="text-silver-500 text-sm mt-2 font-medium">Core Banking System (CBS)</p>
+            </div>
+            
+            <form onsubmit="Auth.login(event)" class="space-y-6">
+                <div>
+                    <label class="block text-xs font-bold text-silver-500 uppercase mb-2 tracking-wider">Banker ID</label>
+                    <div class="relative group">
+                        <i class="fa-solid fa-id-badge absolute left-4 top-1/2 -translate-y-1/2 text-silver-400 group-focus-within:text-gold-600 transition-colors"></i>
+                        <input type="text" value="EMP-8842" class="w-full pl-12 pr-4 py-3.5 bg-silver-50 border border-silver-200 rounded-xl focus:ring-2 focus:ring-gold-500 focus:border-gold-500 outline-none transition-all font-mono text-sm" placeholder="Enter ID">
+                    </div>
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-silver-500 uppercase mb-2 tracking-wider">2FA Token</label>
+                    <div class="relative group">
+                        <i class="fa-solid fa-key absolute left-4 top-1/2 -translate-y-1/2 text-silver-400 group-focus-within:text-gold-600 transition-colors"></i>
+                        <input type="password" value="password123" class="w-full pl-12 pr-4 py-3.5 bg-silver-50 border border-silver-200 rounded-xl focus:ring-2 focus:ring-gold-500 focus:border-gold-500 outline-none transition-all font-mono text-sm" placeholder="••••••••">
+                    </div>
+                </div>
+                <button type="submit" class="w-full bg-gradient-to-r from-gold-600 to-gold-700 hover:from-gold-500 hover:to-gold-600 text-white font-bold py-4 rounded-xl shadow-lg hover:shadow-gold-500/30 transition-all duration-200 transform hover:-translate-y-0.5 flex items-center justify-center gap-2">
+                    <span>Access Terminal</span>
+                    <i class="fa-solid fa-arrow-right"></i>
+                </button>
+            </form>
+            <div class="mt-8 pt-6 border-t border-silver-100 text-center">
+                <p class="text-[10px] text-silver-400 uppercase tracking-widest">Compliance: ISO 27001 • v5.0.0-Gold</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- ========================================== -->
+    <!--            2. APP HEADER                   -->
+    <!-- ========================================== -->
+    <header class="bg-silver-900 text-white flex-none z-30 shadow-md transition-all duration-300 relative">
+        <!-- Top Gradient Line (Gold to Silver) -->
+        <div class="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-gold-400 via-yellow-200 to-gold-600"></div>
+        
+        <div class="px-6 h-16 flex items-center justify-between">
+            <!-- Brand Identity -->
+            <div class="flex items-center gap-4">
+                <div class="w-10 h-10 bg-gradient-to-br from-gold-500 to-gold-700 rounded-lg flex items-center justify-center text-white font-bold shadow-lg shadow-gold-900/50 cursor-pointer hover:scale-105 transition-transform" onclick="router.navigate('dashboard')">
+                    <i class="fa-solid fa-vault text-xl"></i>
+                </div>
+                <div>
+                    <h1 class="text-xl font-bold tracking-tight leading-none text-white">FinCore <span class="opacity-80 font-light text-gold-200">Prime</span></h1>
+                    <div class="text-[10px] text-silver-400 uppercase tracking-[0.2em] font-bold mt-1">Parth Bhosale • Senior Banker</div>
+                </div>
+            </div>
+
+            <!-- Global Actions -->
+            <div class="flex items-center gap-6">
+                <!-- AI Status Pill -->
+                <div class="hidden lg:flex items-center gap-3 px-4 py-1.5 bg-silver-800 rounded-full border border-silver-700 shadow-inner">
+                    <span class="relative flex h-2 w-2">
+                      <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-gold-400 opacity-75"></span>
+                      <span class="relative inline-flex rounded-full h-2 w-2 bg-gold-500"></span>
+                    </span>
+                    <span class="text-[11px] font-mono text-gold-400 tracking-wide">FRAUD GUARD: <span class="font-bold">ACTIVE</span></span>
+                </div>
+
+                <div class="h-8 w-px bg-silver-700"></div>
+
+                <!-- Notifications -->
+                <div class="relative group" id="notification-container">
+                    <button onclick="Notifications.toggle()" class="w-10 h-10 rounded-lg hover:bg-silver-800 flex items-center justify-center text-silver-400 hover:text-white transition-all relative">
+                        <i class="fa-solid fa-bell text-lg"></i>
+                        <span id="notif-badge" class="absolute top-2 right-2 w-2.5 h-2.5 bg-red-500 rounded-full border-2 border-silver-900 hidden animate-pulse"></span>
+                    </button>
+                    <!-- Dropdown -->
+                    <div id="notif-dropdown" class="absolute right-0 top-full mt-3 w-96 bg-white rounded-xl shadow-2xl border border-silver-200 hidden overflow-hidden text-silver-800 origin-top-right transition-transform z-50">
+                        <div class="px-5 py-4 border-b border-silver-100 bg-silver-50 flex justify-between items-center">
+                            <h4 class="font-bold text-sm text-silver-700">Bank Alerts</h4>
+                            <button onclick="Notifications.clearAll()" class="text-xs text-gold-600 hover:text-gold-800 font-medium">Clear All</button>
+                        </div>
+                        <div id="notif-list" class="max-h-80 overflow-y-auto custom-scroll bg-white"></div>
+                    </div>
+                </div>
+
+                <!-- Settings/Reset -->
+                <button onclick="app.resetData()" title="System Reboot" class="w-10 h-10 rounded-lg hover:bg-silver-800 flex items-center justify-center text-silver-400 hover:text-red-400 transition-all">
+                    <i class="fa-solid fa-power-off text-lg"></i>
+                </button>
+                
+                <!-- Profile -->
+                <div class="flex items-center gap-3 pl-2 cursor-pointer group">
+                     <div class="w-9 h-9 bg-gradient-to-r from-gold-500 to-yellow-600 rounded-full flex items-center justify-center text-xs font-bold border-2 border-silver-800 shadow-sm relative group-hover:border-silver-600 transition-colors text-white">
+                        PB
+                        <span class="absolute bottom-0 right-0 w-2.5 h-2.5 bg-green-500 border-2 border-silver-900 rounded-full"></span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- ========================================== -->
+    <!--            3. NAVIGATION BAR               -->
+    <!-- ========================================== -->
+    <nav class="bg-white border-b border-silver-200 shadow-sm flex-none z-20 sticky top-0">
+        <div class="px-6 flex items-center gap-2 overflow-x-auto no-scrollbar">
+            <button onclick="router.navigate('dashboard')" id="nav-dashboard" class="nav-tab px-4 py-3.5 text-sm flex items-center gap-2.5 active font-medium transition-all"><i class="fa-solid fa-chart-pie w-4"></i> Overview</button>
+            <button onclick="router.navigate('accounts')" id="nav-accounts" class="nav-tab px-4 py-3.5 text-sm flex items-center gap-2.5 font-medium transition-all"><i class="fa-solid fa-wallet w-4"></i> Accounts</button>
+            <button onclick="router.navigate('customers')" id="nav-customers" class="nav-tab px-4 py-3.5 text-sm flex items-center gap-2.5 font-medium transition-all"><i class="fa-solid fa-users w-4"></i> Customers</button>
+            <button onclick="router.navigate('transactions')" id="nav-transactions" class="nav-tab px-4 py-3.5 text-sm flex items-center gap-2.5 font-medium transition-all"><i class="fa-solid fa-money-bill-transfer w-4"></i> Monitoring</button>
+            <button onclick="router.navigate('credit')" id="nav-credit" class="nav-tab px-4 py-3.5 text-sm flex items-center gap-2.5 font-medium transition-all"><i class="fa-solid fa-scale-balanced w-4"></i> Credit Lab</button>
+            <button onclick="router.navigate('ledger')" id="nav-ledger" class="nav-tab px-4 py-3.5 text-sm flex items-center gap-2.5 font-medium transition-all"><i class="fa-solid fa-book-journal-whills w-4"></i> General Ledger</button>
+            <button onclick="router.navigate('audit')" id="nav-audit" class="nav-tab px-4 py-3.5 text-sm flex items-center gap-2.5 font-medium transition-all"><i class="fa-solid fa-list-check w-4"></i> Audit Logs</button>
+            <button onclick="router.navigate('docs')" id="nav-docs" class="nav-tab px-4 py-3.5 text-sm flex items-center gap-2.5 font-bold text-gold-700 ml-auto border-l border-silver-100 hover:bg-gold-50"><i class="fa-solid fa-server w-4"></i> System Docs</button>
+        </div>
+    </nav>
+
+    <!-- ========================================== -->
+    <!--            4. MAIN VIEWPORT                -->
+    <!-- ========================================== -->
+    <main id="workspace" class="flex-1 overflow-hidden relative bg-silver-50/50">
+        <!-- Dashboard -->
+        <div id="view-dashboard" class="tab-content h-full overflow-y-auto custom-scroll p-8 active"></div>
+        <!-- Modules -->
+        <div id="view-accounts" class="tab-content h-full overflow-y-auto custom-scroll p-8"></div>
+        <div id="view-customers" class="tab-content h-full overflow-y-auto custom-scroll p-8"></div>
+        <div id="view-transactions" class="tab-content h-full overflow-y-auto custom-scroll p-8"></div>
+        <div id="view-credit" class="tab-content h-full overflow-y-auto custom-scroll p-8"></div>
+        <div id="view-ledger" class="tab-content h-full overflow-y-auto custom-scroll p-8"></div>
+        <div id="view-audit" class="tab-content h-full overflow-y-auto custom-scroll p-8"></div>
+        <!-- Documentation -->
+        <div id="view-docs" class="tab-content h-full overflow-y-auto custom-scroll p-8 bg-silver-100"></div>
+    </main>
+
+    <!-- ========================================== -->
+    <!--            5. STATUS FOOTER                -->
+    <!-- ========================================== -->
+    <footer class="bg-white border-t border-silver-200 h-9 flex-none flex items-center justify-between px-6 text-[11px] text-silver-500 font-medium z-30">
+        <div class="flex items-center gap-6">
+            <span class="flex items-center text-emerald-600"><span class="w-1.5 h-1.5 rounded-full bg-emerald-500 mr-2 animate-pulse"></span> CBS CONNECTED</span>
+            <span class="flex items-center text-silver-400"><i class="fa-solid fa-database mr-1.5"></i> <span id="storage-usage">DB: Checking...</span></span>
+            <span class="flex items-center text-silver-400"><i class="fa-solid fa-globe mr-1.5"></i> Node: APAC-South-1</span>
+        </div>
+        <div class="flex items-center gap-4">
+            <span class="text-gold-600 font-bold">FINCORE PRO v5.0</span>
+            <span class="text-silver-300">|</span>
+            <span>© 2025 Parth Bhosale</span>
+        </div>
+    </footer>
+
+    <!-- ========================================== -->
+    <!--            6. MODALS & TOASTS              -->
+    <!-- ========================================== -->
+
+    <!-- Shared Modal Container -->
+    <div id="modal-backdrop" class="fixed inset-0 bg-silver-900/60 backdrop-blur-md z-[60] hidden flex items-center justify-center opacity-0 transition-opacity duration-300">
+        <div id="modal-panel" class="bg-white rounded-xl shadow-2xl w-full max-w-2xl mx-4 transform scale-95 transition-all duration-300 flex flex-col max-h-[90vh] border border-silver-200">
+            <!-- Modal Header -->
+            <div class="px-6 py-5 border-b border-silver-100 flex justify-between items-center bg-silver-50 rounded-t-xl">
+                <div>
+                    <h3 id="modal-title" class="font-bold text-silver-800 text-lg">Title</h3>
+                    <p class="text-xs text-silver-500 mt-0.5">Banking Operations</p>
+                </div>
+                <button onclick="ui.closeModal()" class="w-8 h-8 rounded-full bg-white border border-silver-200 text-silver-400 hover:text-silver-700 hover:bg-silver-100 transition-colors flex items-center justify-center shadow-sm">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+            <!-- Modal Content -->
+            <div id="modal-content" class="p-8 overflow-y-auto custom-scroll"></div>
+        </div>
+    </div>
+
+    <!-- Toast Notification -->
+    <div id="toast" class="fixed top-24 right-8 bg-white border-l-4 border-gold-600 text-silver-800 px-6 py-4 rounded-lg shadow-2xl transform translate-x-full transition-all duration-500 z-[70] flex items-start gap-4 max-w-sm ring-1 ring-silver-900/5">
+        <div class="mt-0.5"><i id="toast-icon" class="fa-solid fa-circle-check text-gold-600 text-xl"></i></div>
+        <div>
+            <h4 id="toast-title" class="font-bold text-sm text-silver-900">Success</h4>
+            <p id="toast-message" class="text-xs text-silver-500 mt-1 leading-relaxed">Transaction processed.</p>
+        </div>
+        <button onclick="document.getElementById('toast').classList.add('translate-x-full')" class="text-silver-300 hover:text-silver-500 ml-auto"><i class="fa-solid fa-times"></i></button>
+    </div>
+
+    <!-- ========================================== -->
+    <!--            7. JAVASCRIPT LOGIC             -->
+    <!-- ========================================== -->
+    <script>
+        /**
+         * FinCore Banking Kernel
+         * Version: 5.0.0
+         * Theme: Gold & Silver
+         */
+
+        // --- CORE UTILITIES ---
+        const Utils = {
+            id: (p) => `${p}-${Math.floor(Math.random()*10000000000).toString()}`, // Numeric for banking
+            currency: (n) => new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR', maximumFractionDigits: 0 }).format(n),
+            date: (d) => new Date(d).toLocaleDateString('en-GB'),
+            dateTime: (d) => new Date(d).toLocaleString('en-GB', { hour: '2-digit', minute:'2-digit', day:'numeric', month:'short' }),
+            pick: (a) => a[Math.floor(Math.random() * a.length)],
+            sleep: (ms) => new Promise(r => setTimeout(r, ms)),
+            randInt: (min, max) => Math.floor(Math.random() * (max - min + 1)) + min
+        };
+
+        // --- AUTHENTICATION ---
+        const Auth = {
+            isAuthenticated: false,
+            login(e) {
+                e.preventDefault();
+                const btn = e.target.querySelector('button');
+                btn.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i> Establishing VPN Tunnel...';
+                btn.classList.add('opacity-75', 'cursor-not-allowed');
+                
+                setTimeout(() => {
+                    document.getElementById('login-screen').classList.add('opacity-0', 'pointer-events-none');
+                    this.isAuthenticated = true;
+                    setTimeout(() => document.getElementById('login-screen').remove(), 500);
+                    Notifications.add('Connected to Core Banking System (CBS).', 'success');
+                }, 1500);
+            }
+        };
+
+        // --- FINTECH ENGINE (The Logic Layer) ---
+        const FinTech = {
+            // Credit Risk & Loan Origination
+            scoreCredit: (inputs) => {
+                const annualIncome = inputs.income * 12;
+                const dti = (inputs.debt * 12) / annualIncome * 100; 
+                let score = inputs.creditScore;
+                
+                if(dti < 30) score += 50;
+                else if(dti > 50) score -= 100;
+                
+                const ltv = (inputs.loanAmount / inputs.collateral) * 100; 
+                if(ltv < 60) score += 30;
+                
+                score = Math.max(300, Math.min(900, Math.floor(score)));
+                
+                let decision = 'Reject';
+                let interestRate = 0;
+                
+                if (score > 750 && dti < 40) {
+                    decision = 'Approve (Prime)';
+                    interestRate = 8.5;
+                } else if (score > 650 && dti < 50) {
+                    decision = 'Approve (Standard)';
+                    interestRate = 11.5;
+                } else if (score > 600) {
+                    decision = 'Review Required';
+                    interestRate = 14.0;
+                }
+
+                return { score, decision, interestRate, dti: dti.toFixed(1) + '%' };
+            },
+
+            // Fraud Detection Bot
+            analyzeTx: (tx, account) => {
+                const rules = [
+                    { name: 'Account Active', pass: account.status === 'Active' },
+                    { name: 'Balance Sufficient', pass: account.balance >= tx.amount },
+                    { name: 'Velocity Check (<3/hr)', pass: Math.random() > 0.1 },
+                    { name: 'Geo-IP Match', pass: Math.random() > 0.05 }
+                ];
+                
+                const approved = rules.every(r => r.pass);
+                return { 
+                    approved, 
+                    log: rules.map(r => `<span class="${r.pass ? 'text-emerald-500' : 'text-red-500'}">${r.name}: ${r.pass ? 'PASS' : 'FAIL'}</span>`).join('<br>')
+                };
+            },
+
+            // Wealth Segmentation
+            segmentCustomer: (accounts) => {
+                const totalBalance = accounts.reduce((sum, acc) => sum + acc.balance, 0);
+                if (totalBalance > 5000000) return 'Private Banking'; 
+                if (totalBalance > 1000000) return 'Priority'; 
+                return 'Retail';
+            }
+        };
+
+        // --- DATA STORE ---
+        const Store = {
+            key: 'fincore_v5_gold_db',
+            data: { customers: [], accounts: [], transactions: [], logs: [], notifications: [] },
+            
+            init() {
+                const d = localStorage.getItem(this.key);
+                if(d) {
+                    try { this.data = JSON.parse(d); } catch(e) { this.seed(); }
+                } else {
+                    this.seed();
+                }
+                this.updateSegments();
+                this.updateMeta();
+            },
+
+            save() {
+                localStorage.setItem(this.key, JSON.stringify(this.data));
+                this.updateMeta();
+            },
+
+            log(action, module, details) {
+                this.data.logs.unshift({ 
+                    id: Utils.id('LOG'), 
+                    time: new Date(), 
+                    user: 'Admin', 
+                    action, 
+                    module, 
+                    details 
+                });
+                if(this.data.logs.length > 200) this.data.logs.pop();
+                this.save();
+            },
+
+            updateSegments() {
+                this.data.customers.forEach(c => {
+                    const accs = this.data.accounts.filter(a => a.customerId === c.id);
+                    c.segment = FinTech.segmentCustomer(accs);
+                });
+                this.save();
+            },
+
+            updateMeta() {
+                const bytes = new Blob([JSON.stringify(this.data)]).size;
+                const kb = (bytes / 1024).toFixed(2);
+                document.getElementById('storage-usage').innerText = `DB: ${kb} KB`;
+            },
+
+            seed() {
+                console.log("Initializing Banking Core...");
+                const fNames = ['Aditya', 'Rohan', 'Priya', 'Sneha', 'Vikram', 'Arjun', 'Kavita', 'Rahul', 'Anjali', 'Deepak'];
+                const lNames = ['Sharma', 'Verma', 'Singh', 'Patel', 'Iyer', 'Reddy', 'Gupta', 'Malhotra', 'Jain'];
+                
+                this.data.customers = Array.from({length: 40}, (_, i) => ({
+                    id: `CUST-${Utils.randInt(10000, 99999)}`,
+                    name: `${Utils.pick(fNames)} ${Utils.pick(lNames)}`,
+                    contact: `+91 9${Utils.randInt(100000000, 999999999)}`,
+                    email: `user${i}@mail.com`,
+                    segment: 'Retail', 
+                    status: 'Active'
+                }));
+
+                const products = ['Savings Account', 'Current Account', 'Home Loan', 'Personal Loan', 'Fixed Deposit'];
+                this.data.accounts = Array.from({length: 80}, () => ({
+                    id: `ACC-${Utils.randInt(1000000000, 9999999999)}`,
+                    customerId: Utils.pick(this.data.customers).id,
+                    type: Utils.pick(products),
+                    balance: Utils.randInt(1000, 2500000),
+                    status: Math.random() > 0.9 ? 'Frozen' : 'Active',
+                    opened: new Date(new Date().setMonth(new Date().getMonth() - Utils.randInt(1, 48))).toISOString()
+                }));
+
+                this.data.transactions = Array.from({length: 30}, () => {
+                    const acc = Utils.pick(this.data.accounts);
+                    return {
+                        id: `TXN-${Utils.randInt(100000, 999999)}`,
+                        accountId: acc.id,
+                        amount: Utils.randInt(100, 50000),
+                        type: Math.random() > 0.5 ? 'Credit' : 'Debit',
+                        status: Utils.pick(['Pending', 'Cleared', 'Flagged']),
+                        date: new Date().toISOString()
+                    };
+                });
+
+                this.data.logs.push({id: 'INIT', time: new Date(), user: 'System', action: 'BOOT', module: 'Kernel', details: 'Cold start complete'});
+                this.save();
+            }
+        };
+
+        // --- UI HELPER ---
+        const ui = {
+            toast(msg, type='info') {
+                const t = document.getElementById('toast');
+                document.getElementById('toast-message').textContent = msg;
+                document.getElementById('toast-title').textContent = type === 'error' ? 'Security Alert' : 'System Notice';
+                document.getElementById('toast-title').className = `font-bold text-sm ${type==='error'?'text-red-600':'text-silver-900'}`;
+                document.getElementById('toast-icon').className = `fa-solid ${type==='error'?'fa-shield-halved text-red-500':'fa-circle-check text-gold-600'} text-xl`;
+                
+                t.classList.remove('translate-x-full');
+                setTimeout(() => t.classList.add('translate-x-full'), 4000);
+            },
+            
+            badge(text) {
+                const map = {
+                    'Active': 'bg-emerald-100 text-emerald-800', 'Cleared': 'bg-emerald-100 text-emerald-800', 'Approve (Prime)': 'bg-emerald-100 text-emerald-800',
+                    'Private Banking': 'bg-silver-900 text-gold-400 border border-silver-700', // Gold/Silver theme
+                    'Priority': 'bg-gold-100 text-gold-800 border border-gold-200', 
+                    'Retail': 'bg-silver-100 text-silver-600',
+                    'Frozen': 'bg-red-50 text-red-600', 'Flagged': 'bg-red-50 text-red-600', 'Pending': 'bg-blue-50 text-blue-600',
+                    'Credit': 'bg-green-50 text-green-700', 'Debit': 'bg-red-50 text-red-700'
+                };
+                return `<span class="badge ${map[text] || 'bg-silver-100 text-silver-500'}">${text}</span>`;
+            },
+
+            table(headers, rows) {
+                if(!rows.length) return `<div class="p-12 text-center border-2 border-dashed border-silver-200 rounded-xl"><p class="text-silver-400">No records found.</p></div>`;
+                return `
+                <div class="bg-white border border-silver-200 rounded-xl shadow-sm overflow-hidden">
+                    <table class="data-table">
+                        <thead><tr>${headers.map(h => `<th>${h}</th>`).join('')}</tr></thead>
+                        <tbody>${rows.map(r => `<tr class="group hover:bg-silver-50 cursor-default">${r.map(c => `<td>${c}</td>`).join('')}</tr>`).join('')}</tbody>
+                    </table>
+                </div>`;
+            },
+
+            openModal(title, content) {
+                document.getElementById('modal-title').textContent = title;
+                document.getElementById('modal-content').innerHTML = content;
+                const backdrop = document.getElementById('modal-backdrop');
+                const panel = document.getElementById('modal-panel');
+                backdrop.classList.remove('hidden');
+                setTimeout(() => {
+                    backdrop.classList.remove('opacity-0');
+                    panel.classList.remove('scale-95');
+                    panel.classList.add('scale-100');
+                }, 10);
+            },
+
+            closeModal() {
+                const backdrop = document.getElementById('modal-backdrop');
+                const panel = document.getElementById('modal-panel');
+                backdrop.classList.add('opacity-0');
+                panel.classList.remove('scale-100');
+                setTimeout(() => backdrop.classList.add('hidden'), 300);
+            }
+        };
+
+        // --- NOTIFICATIONS ---
+        const Notifications = {
+            add(msg, type='info') {
+                Store.data.notifications.unshift({ msg, type, read: false, time: new Date() });
+                this.render();
+                ui.toast(msg, type);
+            },
+            toggle() { document.getElementById('notif-dropdown').classList.toggle('hidden'); },
+            clearAll() { Store.data.notifications = []; this.render(); Store.save(); },
+            render() {
+                const list = document.getElementById('notif-list');
+                const badge = document.getElementById('notif-badge');
+                if(!list) return;
+                
+                const unread = Store.data.notifications.filter(n => !n.read).length;
+                unread > 0 ? badge.classList.remove('hidden') : badge.classList.add('hidden');
+                
+                list.innerHTML = Store.data.notifications.length === 0 
+                    ? `<div class="p-8 text-center"><i class="fa-regular fa-bell-slash text-silver-300 text-2xl mb-2"></i><p class="text-xs text-silver-400">No alerts</p></div>` 
+                    : Store.data.notifications.map(n => `
+                        <div class="px-5 py-3 border-b border-silver-50 hover:bg-silver-50 transition-colors">
+                            <p class="text-xs font-medium text-silver-700 leading-snug">${n.msg}</p>
+                            <p class="text-[10px] text-silver-400 mt-1">${Utils.dateTime(n.time)}</p>
+                        </div>`).join('');
+            }
+        };
+
+        // --- CONTROLLERS ---
+        const Controllers = {
+            // New Account Wizard
+            newAccount() {
+                const customers = Store.data.customers.map(c => `<option value="${c.id}">${c.name}</option>`).join('');
+                const step1 = `
+                    <div class="animate-fade-in space-y-4">
+                        <div class="bg-gold-50 border border-gold-100 p-4 rounded-lg flex gap-3">
+                            <div class="text-gold-600"><i class="fa-solid fa-info-circle"></i></div>
+                            <p class="text-xs text-gold-800 leading-relaxed">Opening a new facility requires KYC verification. Ensure customer documents are uploaded to DMS.</p>
+                        </div>
+                        <div><label class="block text-xs font-bold text-silver-500 mb-1">Customer</label><select id="na-cust" class="w-full border border-silver-300 p-2.5 rounded-lg text-sm bg-white">${customers}</select></div>
+                        <div><label class="block text-xs font-bold text-silver-500 mb-1">Product Type</label><select id="na-type" class="w-full border border-silver-300 p-2.5 rounded-lg text-sm bg-white"><option>Savings Account</option><option>Current Account</option><option>Fixed Deposit</option><option>Personal Loan</option></select></div>
+                    </div>`;
+                
+                const footer = `
+                    <div class="flex justify-between items-center mt-8 pt-4 border-t border-silver-100">
+                        <div class="flex items-center gap-2">
+                             <div class="step-indicator active">1</div><div class="step-line"></div><div class="step-indicator">2</div>
+                        </div>
+                        <button onclick="Controllers.finishAccount()" class="px-6 py-2.5 bg-gold-600 hover:bg-gold-700 text-white rounded-lg text-sm font-bold shadow-lg shadow-gold-200 transition-all">Originate</button>
+                    </div>`;
+                ui.openModal('New Account Origination', step1 + footer);
+            },
+            
+            finishAccount() {
+                const cid = document.getElementById('na-cust').value;
+                Store.data.accounts.unshift({
+                    id: `ACC-${Utils.randInt(1000000000, 9999999999)}`,
+                    customerId: cid,
+                    type: document.getElementById('na-type').value,
+                    balance: 0,
+                    status: 'Active',
+                    opened: new Date().toISOString()
+                });
+                Store.log('CREATE', 'Core', 'New account opened via Wizard');
+                Store.updateSegments();
+                ui.closeModal();
+                ui.toast('Account Opened Successfully', 'success');
+                router.navigate('accounts');
+            },
+
+            // Credit Lab Calc
+            calcCredit() {
+                const f = document.getElementById('credit-form');
+                if(!f) return;
+                const ins = { 
+                    income: Number(f.querySelector('[name=inc]').value), 
+                    debt: Number(f.querySelector('[name=debt]').value), 
+                    creditScore: Number(f.querySelector('[name=score]').value),
+                    loanAmount: Number(f.querySelector('[name=loan]').value),
+                    collateral: Number(f.querySelector('[name=col]').value)
+                };
+                
+                const res = FinTech.scoreCredit(ins);
+                const scoreEl = document.getElementById('cr-score');
+                scoreEl.innerText = res.score;
+                scoreEl.className = `text-5xl font-mono font-bold tracking-tighter ${res.score>700?'text-gold-400': res.score>600?'text-yellow-400':'text-red-500'}`;
+                
+                document.getElementById('cr-decision').innerText = res.decision;
+                document.getElementById('cr-dti').innerText = res.dti;
+                document.getElementById('cr-rate').innerText = res.interestRate + '%';
+                
+                document.getElementById('cr-log').innerHTML = `<p>> Retrieving Bureau Data...</p><p>> DTI Ratio: ${res.dti}</p><p class="text-gold-400">> DECISION FINALIZED</p>`;
+            },
+
+            // Fraud Bot
+            async runFraudBot() {
+                const pending = Store.data.transactions.filter(t => t.status === 'Pending');
+                if(!pending.length) return ui.toast('No transactions pending', 'info');
+                
+                ui.toast(`Scanning ${pending.length} transactions...`, 'info');
+                const btn = document.getElementById('btn-run-bot');
+                btn.innerHTML = `<i class="fa-solid fa-circle-notch fa-spin"></i> Analyzing...`;
+                
+                for(const tx of pending) {
+                    await Utils.sleep(300);
+                    const acc = Store.data.accounts.find(a => a.id === tx.accountId);
+                    const res = FinTech.analyzeTx(tx, acc);
+                    
+                    tx.status = res.approved ? 'Cleared' : 'Flagged';
+                    if(!res.approved) Store.log('ALERT', 'FraudBot', `Tx ${tx.id} flagged for review`);
+                }
+                Store.save();
+                btn.innerHTML = `<i class="fa-solid fa-shield-cat"></i> Scan Queue`;
+                ui.toast('Batch Analysis Complete', 'success');
+                router.navigate('transactions');
+            }
+        };
+
+        // --- VIEWS ---
+        const Views = {
+            dashboard() {
+                const s = Store.data;
+                const deposits = s.accounts.filter(a=>a.type.includes('Account') || a.type.includes('Deposit')).reduce((sum,a)=>sum+a.balance,0);
+                const loans = s.accounts.filter(a=>a.type.includes('Loan')).reduce((sum,a)=>sum+a.balance,0);
+                const flagged = s.transactions.filter(t=>t.status==='Flagged').length;
+
+                return `
+                <div class="space-y-8 animate-fade-in max-w-7xl mx-auto">
+                    <!-- Hero -->
+                    <div class="bg-gradient-to-r from-silver-900 to-silver-800 rounded-2xl p-8 text-white shadow-2xl relative overflow-hidden border border-silver-700">
+                        <div class="relative z-10 max-w-2xl">
+                            <h2 class="text-3xl font-bold tracking-tight mb-2">FinCore Command Center</h2>
+                            <p class="text-gold-200">Real-time liquidity monitoring and fraud surveillance.</p>
+                        </div>
+                        <i class="fa-solid fa-chart-line absolute -right-10 -bottom-10 text-[10rem] text-white opacity-5"></i>
+                    </div>
+
+                    <!-- KPI Cards -->
+                    <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
+                        <div class="bg-white p-6 rounded-xl border border-silver-200 shadow-sm hover:shadow-md transition-shadow">
+                            <div class="text-[10px] font-bold text-silver-400 uppercase tracking-wider mb-2">Total Deposits</div>
+                            <div class="text-3xl font-bold text-silver-800 tracking-tight">${Utils.currency(deposits)}</div>
+                            <div class="text-xs text-emerald-600 font-bold mt-2 flex items-center gap-1"><i class="fa-solid fa-arrow-trend-up"></i> 8.4% MoM</div>
+                        </div>
+                        <div class="bg-white p-6 rounded-xl border border-silver-200 shadow-sm hover:shadow-md transition-shadow">
+                            <div class="text-[10px] font-bold text-silver-400 uppercase tracking-wider mb-2">Loan Book Size</div>
+                            <div class="text-3xl font-bold text-gold-600 tracking-tight">${Utils.currency(loans)}</div>
+                            <div class="text-xs text-silver-400 font-medium mt-2">LDR Ratio: ${((loans/deposits)*100).toFixed(1)}%</div>
+                        </div>
+                         <div class="bg-white p-6 rounded-xl border border-silver-200 shadow-sm hover:shadow-md transition-shadow">
+                            <div class="text-[10px] font-bold text-silver-400 uppercase tracking-wider mb-2">Fraud Alerts</div>
+                            <div class="text-3xl font-bold text-red-600 tracking-tight">${flagged}</div>
+                            <div class="text-xs text-red-400 font-medium mt-2">Action Required</div>
+                        </div>
+                         <div class="bg-white p-6 rounded-xl border border-silver-200 shadow-sm hover:shadow-md transition-shadow">
+                            <div class="text-[10px] font-bold text-silver-400 uppercase tracking-wider mb-2">Private Banking Clients</div>
+                            <div class="text-3xl font-bold text-silver-800 tracking-tight">${s.customers.filter(c=>c.segment==='Private Banking').length}</div>
+                            <div class="text-xs text-silver-400 font-medium mt-2">High Net Worth</div>
+                        </div>
+                    </div>
+
+                    <!-- Feed -->
+                    <div class="bg-white rounded-xl border border-silver-200 shadow-sm overflow-hidden">
+                        <div class="px-6 py-4 border-b border-silver-100 flex justify-between items-center bg-silver-50/50">
+                            <h3 class="font-bold text-sm text-silver-700">Live Transaction Feed</h3>
+                            <span class="flex items-center gap-2 text-[10px] font-bold text-emerald-600 bg-emerald-50 px-2 py-1 rounded-full"><span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span> SYNCING</span>
+                        </div>
+                        <div class="divide-y divide-silver-50 max-h-80 overflow-y-auto custom-scroll">
+                            ${s.logs.slice(0, 10).map(l => `
+                                <div class="px-6 py-3 flex items-center justify-between hover:bg-silver-50 transition-colors group">
+                                    <div class="flex items-center gap-4">
+                                        <div class="w-8 h-8 rounded-full bg-silver-100 text-silver-500 flex items-center justify-center text-xs font-mono group-hover:bg-gold-100 group-hover:text-gold-600 transition-colors">
+                                            <i class="fa-solid fa-terminal"></i>
+                                        </div>
+                                        <div>
+                                            <p class="text-xs font-semibold text-silver-700">${l.action} <span class="text-silver-400 font-normal">in</span> ${l.module}</p>
+                                            <p class="text-[10px] text-silver-400">${l.details}</p>
+                                        </div>
+                                    </div>
+                                    <div class="text-[10px] text-silver-400 font-mono">${Utils.dateTime(l.time)}</div>
+                                </div>
+                            `).join('')}
+                        </div>
+                    </div>
+                </div>`;
+            },
+
+            credit() {
+                return `
+                <div class="max-w-7xl mx-auto animate-fade-in space-y-6">
+                    <div class="flex justify-between items-end">
+                        <div>
+                            <h2 class="text-2xl font-bold text-silver-800">Credit Risk Laboratory</h2>
+                            <p class="text-silver-500 text-sm">Loan Origination System (LOS) Simulator.</p>
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+                        <!-- Inputs -->
+                        <div class="lg:col-span-4 bg-white p-6 rounded-xl border border-silver-200 shadow-sm">
+                            <h4 class="text-xs font-bold text-silver-400 uppercase tracking-wider mb-6">Applicant Data</h4>
+                            <form id="credit-form" oninput="Controllers.calcCredit()" class="space-y-6">
+                                <div><label class="block text-xs font-bold text-silver-700 mb-2">Monthly Income</label><input type="number" name="inc" value="80000" class="w-full border border-silver-300 rounded-lg p-2 text-sm"></div>
+                                <div><label class="block text-xs font-bold text-silver-700 mb-2">Monthly Debt Obligations</label><input type="number" name="debt" value="20000" class="w-full border border-silver-300 rounded-lg p-2 text-sm"></div>
+                                <div>
+                                    <label class="block text-xs font-bold text-silver-700 mb-2">CIBIL / Credit Score</label>
+                                    <input type="range" name="score" min="300" max="900" value="750" class="w-full h-2 bg-silver-200 rounded-lg appearance-none cursor-pointer">
+                                    <div class="flex justify-between text-[10px] text-silver-400 mt-1"><span>300</span><span>900</span></div>
+                                </div>
+                                <div><label class="block text-xs font-bold text-silver-700 mb-2">Requested Loan</label><input type="number" name="loan" value="2000000" class="w-full border border-silver-300 rounded-lg p-2 text-sm"></div>
+                                <div><label class="block text-xs font-bold text-silver-700 mb-2">Collateral Value</label><input type="number" name="col" value="3000000" class="w-full border border-silver-300 rounded-lg p-2 text-sm"></div>
+                            </form>
+                        </div>
+
+                        <!-- Output -->
+                        <div class="lg:col-span-8 tech-panel p-8 rounded-xl shadow-2xl relative overflow-hidden flex flex-col justify-between">
+                            <div class="relative z-10 flex justify-between items-start">
+                                <div>
+                                    <h4 class="text-gold-400 font-mono text-sm tracking-widest mb-4">>> CREDIT_DECISION_ENGINE</h4>
+                                    <div id="cr-log" class="font-mono text-xs text-silver-400 space-y-2">
+                                        <p>> System Ready...</p>
+                                        <p class="animate-pulse">> Awaiting Data...</p>
+                                    </div>
+                                </div>
+                                <div class="text-right">
+                                    <div class="text-xs text-silver-500 uppercase font-mono mb-1">Calculated Score</div>
+                                    <div id="cr-score" class="text-6xl font-bold text-white font-mono tracking-tighter">--</div>
+                                </div>
+                            </div>
+
+                            <div class="relative z-10 mt-12 pt-8 border-t border-silver-700/50 grid grid-cols-3 gap-8 text-center">
+                                <div><div class="text-xs text-silver-500 uppercase font-mono mb-1">Final Decision</div><div id="cr-decision" class="text-xl font-bold text-white font-mono">PENDING</div></div>
+                                <div><div class="text-xs text-silver-500 uppercase font-mono mb-1">DTI Ratio</div><div id="cr-dti" class="text-xl font-bold text-gold-400 font-mono">0%</div></div>
+                                <div><div class="text-xs text-silver-500 uppercase font-mono mb-1">Approved Rate</div><div id="cr-rate" class="text-xl font-bold text-emerald-400 font-mono">0%</div></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>`;
+            },
+
+            transactions() {
+                const pending = Store.data.transactions.filter(t => t.status === 'Pending');
+                return `
+                <div class="max-w-7xl mx-auto animate-fade-in space-y-6">
+                    <div class="bg-gold-50 border border-gold-100 rounded-xl p-6 flex justify-between items-center shadow-sm">
+                        <div class="flex gap-4 items-center">
+                            <div class="w-12 h-12 bg-gold-100 rounded-lg flex items-center justify-center text-gold-600 text-2xl">
+                                <i class="fa-solid fa-shield-cat"></i>
+                            </div>
+                            <div>
+                                <h2 class="text-lg font-bold text-gold-900">Fraud Detection Bot</h2>
+                                <p class="text-sm text-gold-700">Suspicious Activity Queue: <strong>${pending.length}</strong> items.</p>
+                            </div>
+                        </div>
+                        <button id="btn-run-bot" onclick="Controllers.runFraudBot()" class="bg-gold-600 hover:bg-gold-700 text-white px-6 py-3 rounded-lg font-bold shadow-lg shadow-gold-200 transition-all flex items-center gap-2">
+                            <i class="fa-solid fa-shield-halved"></i> Scan Queue
+                        </button>
+                    </div>
+
+                    ${ui.table(['Tx ID', 'Account', 'Amount', 'Type', 'Status', 'Timestamp'], 
+                        Store.data.transactions.map(t => [
+                            `<span class="font-mono text-xs font-bold">${t.id}</span>`,
+                            `<span class="text-xs text-silver-500">${t.accountId}</span>`,
+                            Utils.currency(t.amount),
+                            ui.badge(t.type),
+                            ui.badge(t.status),
+                            `<span class="text-xs text-silver-400 font-mono">${Utils.dateTime(t.date)}</span>`
+                        ])
+                    )}
+                </div>`;
+            },
+
+            accounts() {
+                return `
+                <div class="max-w-7xl mx-auto animate-fade-in space-y-6">
+                    <div class="flex justify-between items-center">
+                        <h2 class="text-2xl font-bold text-silver-800">Account Management</h2>
+                        <button onclick="Controllers.newAccount()" class="bg-gold-600 text-white px-5 py-2.5 rounded-lg text-sm font-bold shadow-md transition-all hover:bg-gold-700"><i class="fa-solid fa-plus mr-2"></i>New Account</button>
+                    </div>
+                    ${ui.table(['Account ID', 'Product Type', 'Balance', 'Status', 'Opened Date'], 
+                        Store.data.accounts.map(a => [
+                            `<span class="font-mono text-xs font-bold text-gold-600">${a.id}</span>`,
+                            a.type,
+                            `<span class="font-bold">${Utils.currency(a.balance)}</span>`,
+                            ui.badge(a.status),
+                            `<span class="text-xs text-silver-400">${Utils.date(a.opened)}</span>`
+                        ])
+                    )}
+                </div>`;
+            },
+
+            customers() {
+                return `
+                <div class="max-w-7xl mx-auto animate-fade-in space-y-6">
+                    <div class="flex justify-between items-center">
+                        <h2 class="text-2xl font-bold text-silver-800">Customer Intelligence</h2>
+                    </div>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <div class="bg-silver-900 text-gold-400 p-5 rounded-xl border border-silver-700 shadow flex justify-between items-center">
+                            <div><div class="text-xs text-silver-400 uppercase font-bold">Private Banking</div><div class="text-sm text-silver-500">Wealth (>50L)</div></div>
+                            <div class="text-3xl font-bold text-white">${Store.data.customers.filter(c=>c.segment==='Private Banking').length}</div>
+                        </div>
+                        <div class="bg-gold-100 text-gold-800 p-5 rounded-xl border border-gold-200 shadow flex justify-between items-center">
+                            <div><div class="text-xs text-gold-600 uppercase font-bold">Priority</div><div class="text-sm text-gold-600/70">Affluent</div></div>
+                            <div class="text-3xl font-bold">${Store.data.customers.filter(c=>c.segment==='Priority').length}</div>
+                        </div>
+                         <div class="bg-white text-silver-700 p-5 rounded-xl border border-silver-200 shadow flex justify-between items-center">
+                            <div><div class="text-xs text-silver-400 uppercase font-bold">Retail</div><div class="text-sm text-silver-400">Mass Market</div></div>
+                            <div class="text-3xl font-bold">${Store.data.customers.filter(c=>c.segment==='Retail').length}</div>
+                        </div>
+                    </div>
+
+                    ${ui.table(['Name', 'ID', 'Segment', 'Contact', 'Status'], 
+                        Store.data.customers.map(c => [
+                            `<span class="font-bold text-silver-700">${c.name}</span>`,
+                            `<span class="font-mono text-xs text-silver-400">${c.id}</span>`,
+                            ui.badge(c.segment),
+                            c.contact,
+                            ui.badge(c.status)
+                        ])
+                    )}
+                </div>`;
+            },
+            
+            ledger() {
+                const txns = Store.data.transactions.sort((a,b) => new Date(b.date) - new Date(a.date));
+                return `
+                <div class="max-w-7xl mx-auto animate-fade-in space-y-6">
+                    <h2 class="text-2xl font-bold text-silver-800">General Ledger (GL)</h2>
+                    ${ui.table(['Date', 'Tx ID', 'Account', 'Amount', 'Type'], 
+                        txns.slice(0, 50).map(t => [
+                            Utils.date(t.date), 
+                            `<span class="font-mono text-xs text-silver-500">${t.id}</span>`, 
+                            `<span class="font-mono text-xs">${t.accountId}</span>`,
+                            `<span class="font-mono font-bold ${t.type==='Credit'?'text-emerald-600':'text-red-600'}">${t.type==='Credit'?'+':'-'}${Utils.currency(t.amount)}</span>`, 
+                            ui.badge(t.type)
+                        ])
+                    )}
+                </div>`;
+            },
+
+            audit() {
+                return `
+                <div class="max-w-7xl mx-auto animate-fade-in space-y-6">
+                    <h2 class="text-2xl font-bold text-silver-800">System Audit Logs</h2>
+                    ${ui.table(['Timestamp', 'User', 'Action', 'Module', 'Details'], 
+                        Store.data.logs.map(l => [Utils.dateTime(l.time), `<span class="font-bold">${l.user}</span>`, l.action, l.module, l.details])
+                    )}
+                </div>`;
+            },
+
+            docs() {
+                return `
+                <div class="max-w-5xl mx-auto animate-fade-in pb-20">
+                    <div class="bg-white p-10 rounded-xl border border-silver-200 shadow-sm">
+                        
+                        <div class="border-b border-silver-100 pb-8 mb-8">
+                            <h1 class="text-4xl font-bold text-silver-900 mb-3">CBS Modernization Roadmap</h1>
+                            <div class="flex items-center gap-4 text-sm text-silver-500">
+                                <span><i class="fa-solid fa-server mr-2 text-gold-600"></i>FinCore Enterprise</span>
+                                <span><i class="fa-solid fa-code-branch mr-2"></i>v5.0 Architecture</span>
+                                <span class="bg-gold-100 text-gold-700 px-2 py-0.5 rounded text-xs font-bold">INTERNAL USE ONLY</span>
+                            </div>
+                        </div>
+                        
+                        <div class="prose max-w-none">
+                            <div class="doc-section">
+                                <div class="doc-title">1. Executive Summary</div>
+                                <p class="doc-text">This whitepaper outlines the architectural shift of FinCore from a monolithic prototype to a distributed, cloud-native Core Banking System (CBS). The goal is to support high-frequency trading (HFT), real-time settlements, and Open Banking APIs (PSD2 compliance).</p>
+                            </div>
+
+                            <div class="doc-section">
+                                <div class="doc-title">2. Architecture: From Monolith to Microservices</div>
+                                <div class="doc-subtitle">Current State</div>
+                                <p class="doc-text">Single-threaded JavaScript execution with local persistence. Sufficient for branch simulations but not production ledgers.</p>
+                                
+                                <div class="doc-subtitle">Target State (The "Banking Cloud")</div>
+                                <ul class="doc-list">
+                                    <li><strong>API Gateway:</strong> Kong or Apigee for rate limiting and mTLS authentication.</li>
+                                    <li><strong>Ledger Service:</strong> Immutable append-only log using Apache Kafka or Amazon QLDB.</li>
+                                    <li><strong>Customer Service:</strong> GraphQL endpoint for 360-degree customer views.</li>
+                                    <li><strong>Payments Engine:</strong> ISO 20022 compliant messaging system connected to SWIFT/SEPA.</li>
+                                </ul>
+                            </div>
+
+                            <div class="doc-section">
+                                <div class="doc-title">3. Algorithmic Modules</div>
+                                
+                                <div class="doc-subtitle">A. Credit Scoring Engine (LOS)</div>
+                                <p class="doc-text">The current logic in <code>FinTech.scoreCredit()</code> will be upgraded to a Python-based ML pipeline.</p>
+                                <div class="doc-code">
+                                    // Python Microservice Logic <br>
+                                    def predict_default_probability(applicant): <br>
+                                        features = transform(applicant.income, applicant.credit_history) <br>
+                                        pd = xgboost_model.predict_proba(features) <br>
+                                        return pd # Probability of Default
+                                </div>
+
+                                <div class="doc-subtitle">B. Real-Time Fraud Detection</div>
+                                <p class="doc-text">Moving from static rules to an Anomaly Detection model (Random Cut Forest).</p>
+                                <ul class="doc-list">
+                                    <li><strong>Ingestion:</strong> Transactions streamed via Kafka Topics.</li>
+                                    <li><strong>Analysis:</strong> Flink Job computes rolling averages and velocity.</li>
+                                    <li><strong>Action:</strong> If score > 90, freeze account via gRPC call to Core.</li>
+                                </ul>
+                            </div>
+
+                            <div class="doc-section">
+                                <div class="doc-title">4. Database Schema (PostgreSQL/CockroachDB)</div>
+                                <div class="doc-code">
+                                    TABLE accounts ( <br>
+                                      id UUID PRIMARY KEY, <br>
+                                      balance DECIMAL(18, 4) CHECK (balance >= 0), <br>
+                                      currency CHAR(3) DEFAULT 'INR' <br>
+                                    ); <br>
+                                    TABLE journal_entries ( <br>
+                                      id UUID, <br>
+                                      dr_account UUID, <br>
+                                      cr_account UUID, <br>
+                                      amount DECIMAL, <br>
+                                      timestamp TIMESTAMPTZ <br>
+                                    );
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>`;
+            }
+        };
+
+        // --- ROUTER ---
+        const router = {
+            navigate(route) {
+                document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
+                document.querySelectorAll('.nav-tab').forEach(el => el.classList.remove('active', 'border-gold-600', 'text-gold-600', 'bg-gold-50'));
+                
+                const view = document.getElementById(`view-${route}`);
+                const btn = document.getElementById(`nav-${route}`);
+                
+                if(view) {
+                    view.classList.add('active');
+                    if(Views[route]) view.innerHTML = Views[route]();
+                    if(route === 'credit') setTimeout(Controllers.calcCredit, 100);
+                }
+                if(btn) btn.classList.add('active', 'border-gold-600', 'text-gold-600', 'bg-gold-50');
+            }
+        };
+
+        // --- INIT ---
+        const app = {
+            init() {
+                Store.init();
+                router.navigate('dashboard');
+                Notifications.render();
+            },
+            resetData() { 
+                if(confirm('SYSTEM RESET: Wipe all banking records?')) { 
+                    localStorage.removeItem(Store.key); 
+                    location.reload(); 
+                } 
+            }
+        };
+
+        window.onload = app.init;
+    </script>
+</body>
+</html>
