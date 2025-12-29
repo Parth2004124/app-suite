@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>PB WorkCap</title>
+  <title>PB WorkCap Pro</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <!-- Phosphor Icons -->
   <script src="https://unpkg.com/@phosphor-icons/web"></script>
@@ -37,19 +37,29 @@
         width: 100%;
         padding: 0.5rem;
         border-radius: 0.25rem;
+        font-size: 0.875rem;
     }
     .input-field:focus {
         outline: none;
         border-color: var(--accent);
         box-shadow: 0 0 0 1px rgba(176, 38, 255, 0.3);
     }
+    
+    select.input-field {
+        appearance: none;
+        background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%2394a3b8' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e");
+        background-position: right 0.5rem center;
+        background-repeat: no-repeat;
+        background-size: 1.5em 1.5em;
+        padding-right: 2.5rem;
+    }
 
     /* Range Slider (Purple) */
     input[type=range] { -webkit-appearance: none; background: transparent; width: 100%; }
     input[type=range]::-webkit-slider-thumb {
-      -webkit-appearance: none; height: 16px; width: 16px;
+      -webkit-appearance: none; height: 14px; width: 14px;
       border-radius: 50%; background: var(--accent);
-      cursor: pointer; margin-top: -6px; 
+      cursor: pointer; margin-top: -5px; 
       box-shadow: 0 0 10px rgba(176, 38, 255, 0.5);
     }
     input[type=range]::-webkit-slider-runnable-track {
@@ -88,345 +98,387 @@
         to { opacity: 1; transform: translateY(0); }
     }
 
-    /* Print Styles */
+    /* Print Styles - Hides App, Shows Report */
     @media print {
-        aside, header, .no-print { display: none !important; }
         body { background: white; color: black; overflow: visible; height: auto; }
-        main { overflow: visible; height: auto; }
-        .bg-zinc-900, .bg-\[\#18181b\], .bg-\[\#09090b\], .bg-\[\#0f0c29\], .bg-\[\#1a1642\] { background: white !important; border: 1px solid #ccc !important; color: black !important; box-shadow: none !important; }
-        .text-white { color: black !important; }
-        .input-field { border: 1px solid #ddd; color: black; background: white; }
-        canvas { border: 1px solid #eee; page-break-inside: avoid; }
-        table { width: 100%; border-collapse: collapse; font-size: 10px; }
-        th, td { border: 1px solid #ddd; padding: 4px; color: black !important; }
+        #app-wrapper { display: none !important; }
+        #printable-report { display: block !important; visibility: visible; position: absolute; top: 0; left: 0; width: 100%; }
+        
+        /* Print Typography */
+        h1 { font-size: 24px; font-weight: bold; margin-bottom: 10px; color: #1e1b4b; }
+        h2 { font-size: 18px; font-weight: bold; margin-top: 20px; margin-bottom: 10px; border-bottom: 2px solid #ddd; padding-bottom: 5px; color: #312e81; }
+        p, li { font-size: 12px; line-height: 1.5; color: #333; }
+        table { width: 100%; border-collapse: collapse; font-size: 10px; margin-top: 15px; }
+        th { background: #f1f5f9; color: #0f172a; font-weight: bold; text-align: right; padding: 6px; border: 1px solid #e2e8f0; }
+        td { border: 1px solid #e2e8f0; padding: 6px; text-align: right; }
+        td:first-child, th:first-child { text-align: left; }
+        .print-box { border: 1px solid #ddd; padding: 15px; border-radius: 8px; background: #f8fafc; margin-bottom: 15px; }
     }
   </style>
 </head>
-<body class="flex h-screen w-full">
+<body class="h-screen w-full">
 
-  <!-- SIDEBAR -->
-  <aside id="main-sidebar" class="w-64 bg-[#0f0c29] border-r border-[#312e81] flex flex-col shrink-0 z-20 transition-all duration-300 transform md:translate-x-0 -translate-x-full absolute md:relative h-full">
-    <div class="h-16 flex items-center px-6 border-b border-[#312e81] justify-between">
-      <div class="flex items-center gap-3">
-        <div class="w-8 h-8 rounded bg-gradient-to-br from-purple-600 to-cyan-400 flex items-center justify-center shadow-lg shadow-purple-900/40">
-          <i class="ph-bold ph-chart-polar text-white text-lg"></i>
+  <!-- WRAPPER FOR SCREEN VIEW -->
+  <div id="app-wrapper" class="flex h-full w-full">
+      <!-- SIDEBAR -->
+      <aside id="main-sidebar" class="w-64 bg-[#0f0c29] border-r border-[#312e81] flex flex-col shrink-0 z-20 transition-all duration-300 transform md:translate-x-0 -translate-x-full absolute md:relative h-full">
+        <div class="h-16 flex items-center px-6 border-b border-[#312e81] justify-between">
+          <div class="flex items-center gap-3">
+            <div class="w-8 h-8 rounded bg-gradient-to-br from-purple-600 to-cyan-400 flex items-center justify-center shadow-lg shadow-purple-900/40">
+              <i class="ph-bold ph-chart-polar text-white text-lg"></i>
+            </div>
+            <h1 class="font-bold text-lg tracking-wide text-slate-200">PB <span class="text-[#b026ff]">WorkCap</span></h1>
+          </div>
+          <!-- Mobile Close Button -->
+          <button onclick="toggleSidebar()" class="md:hidden text-slate-400 hover:text-white">
+            <i class="ph-bold ph-x"></i>
+          </button>
         </div>
-        <h1 class="font-bold text-lg tracking-wide text-slate-200">PB <span class="text-[#b026ff]">WorkCap</span></h1>
-      </div>
-      <!-- Mobile Close Button -->
-      <button onclick="toggleSidebar()" class="md:hidden text-slate-400 hover:text-white">
-        <i class="ph-bold ph-x"></i>
-      </button>
-    </div>
-    
-    <nav class="flex-1 py-6 space-y-1">
-      <div class="px-6 mb-2 text-[10px] uppercase font-bold text-slate-500 tracking-widest">Core</div>
-      
-      <button onclick="switchTab('simulator')" id="nav-simulator" class="nav-item active">
-        <i class="ph-bold ph-chart-line-up text-lg"></i>
-        <span>Simulator Output</span>
-      </button>
+        
+        <nav class="flex-1 py-6 space-y-1">
+          <div class="px-6 mb-2 text-[10px] uppercase font-bold text-slate-500 tracking-widest">Core</div>
+          
+          <button onclick="switchTab('simulator')" id="nav-simulator" class="nav-item active">
+            <i class="ph-bold ph-chart-line-up text-lg"></i>
+            <span>Simulator Output</span>
+          </button>
 
-      <button onclick="switchTab('inputs')" id="nav-inputs" class="nav-item">
-        <i class="ph-bold ph-sliders text-lg"></i>
-        <span>Inputs Configuration</span>
-      </button>
+          <button onclick="switchTab('inputs')" id="nav-inputs" class="nav-item">
+            <i class="ph-bold ph-sliders text-lg"></i>
+            <span>Inputs & Config</span>
+          </button>
 
-      <button onclick="switchTab('documentation')" id="nav-documentation" class="nav-item">
-        <i class="ph-bold ph-book-open text-lg"></i>
-        <span>Documentation</span>
-      </button>
-      
-      <div class="mt-8 px-6 mb-2 text-[10px] uppercase font-bold text-slate-500 tracking-widest">Tools</div>
-      
-      <button onclick="downloadCSV()" class="nav-item hover:text-[#00f2ea]">
-        <i class="ph ph-download-simple text-lg"></i>
-        <span>Export CSV</span>
-      </button>
-      
-      <button onclick="window.print()" class="nav-item hover:text-[#00f2ea]">
-        <i class="ph ph-printer text-lg"></i>
-        <span>Print Report</span>
-      </button>
-    </nav>
-  </aside>
+          <button onclick="switchTab('documentation')" id="nav-documentation" class="nav-item">
+            <i class="ph-bold ph-book-open text-lg"></i>
+            <span>Documentation</span>
+          </button>
+          
+          <div class="mt-8 px-6 mb-2 text-[10px] uppercase font-bold text-slate-500 tracking-widest">Tools</div>
+          
+          <button onclick="downloadCSV()" class="nav-item hover:text-[#00f2ea]">
+            <i class="ph ph-download-simple text-lg"></i>
+            <span>Export Report (CSV)</span>
+          </button>
+          
+          <button onclick="printReport()" class="nav-item hover:text-[#00f2ea]">
+            <i class="ph ph-printer text-lg"></i>
+            <span>Print Full Report</span>
+          </button>
+        </nav>
+      </aside>
 
-  <!-- MAIN CONTENT -->
-  <main class="flex-1 flex flex-col h-full overflow-hidden bg-[#0f0c29] relative">
-    
-    <!-- Header -->
-    <header class="h-16 border-b border-[#312e81] flex items-center justify-between px-6 bg-[#0f0c29] shrink-0">
-      <div class="flex items-center gap-4">
-        <!-- Sidebar Toggle Button -->
-        <button onclick="toggleSidebar()" class="text-slate-300 hover:text-white p-2 rounded hover:bg-[#312e81]/50 transition">
-            <i class="ph ph-list text-2xl"></i>
-        </button>
-        <h2 class="text-lg font-semibold text-white" id="header-title">Simulator Output</h2>
-      </div>
-      
-      <!-- Scenarios (Visible in Inputs & Simulator) -->
-      <div id="scenario-controls" class="flex items-center gap-2">
-          <span class="text-xs text-slate-500 uppercase font-bold mr-2 hidden sm:block">Scenarios:</span>
-          <button onclick="setScenario('base')" class="px-3 py-1.5 rounded border border-[#312e81] text-xs text-slate-300 hover:bg-[#312e81] hover:text-[#b026ff] transition">Base</button>
-          <button onclick="setScenario('crunch')" class="px-3 py-1.5 rounded border border-[#312e81] text-xs text-slate-300 hover:bg-[#312e81] hover:text-red-400 transition">Crunch</button>
-          <button onclick="setScenario('optimized')" class="px-3 py-1.5 rounded border border-[#312e81] text-xs text-slate-300 hover:bg-[#312e81] hover:text-[#00f2ea] transition">Optim</button>
-      </div>
-    </header>
+      <!-- MAIN CONTENT -->
+      <main class="flex-1 flex flex-col h-full overflow-hidden bg-[#0f0c29] relative">
+        
+        <!-- Header -->
+        <header class="h-16 border-b border-[#312e81] flex items-center justify-between px-6 bg-[#0f0c29] shrink-0">
+          <div class="flex items-center gap-4">
+            <!-- Sidebar Toggle Button -->
+            <button onclick="toggleSidebar()" class="text-slate-300 hover:text-white p-2 rounded hover:bg-[#312e81]/50 transition">
+                <i class="ph ph-list text-2xl"></i>
+            </button>
+            <h2 class="text-lg font-semibold text-white" id="header-title">Simulator Output</h2>
+          </div>
+          
+          <!-- Scenarios (Visible in Inputs & Simulator) -->
+          <div id="scenario-controls" class="flex items-center gap-2">
+              <span class="text-xs text-slate-500 uppercase font-bold mr-2 hidden sm:block">Scenarios:</span>
+              <button onclick="setScenario('base')" class="px-3 py-1.5 rounded border border-[#312e81] text-xs text-slate-300 hover:bg-[#312e81] hover:text-[#b026ff] transition">Base</button>
+              <button onclick="setScenario('crunch')" class="px-3 py-1.5 rounded border border-[#312e81] text-xs text-slate-300 hover:bg-[#312e81] hover:text-red-400 transition">Crunch</button>
+              <button onclick="setScenario('optimized')" class="px-3 py-1.5 rounded border border-[#312e81] text-xs text-slate-300 hover:bg-[#312e81] hover:text-[#00f2ea] transition">Optim</button>
+          </div>
+        </header>
 
-    <!-- Scrollable Area -->
-    <div class="flex-1 overflow-y-auto p-8 scroll-smooth">
-      <div class="max-w-7xl mx-auto">
+        <!-- Scrollable Area -->
+        <div class="flex-1 overflow-y-auto p-4 md:p-8 scroll-smooth">
+          <div class="max-w-7xl mx-auto">
 
-        <!-- ==================== VIEW 1: SIMULATOR (Outputs Only) ==================== -->
-        <section id="view-simulator" class="view-section active">
-            <div class="flex flex-col gap-6">
-                
-                <!-- KPI Row -->
-                <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-                    <!-- Net Cash Cycle -->
-                    <div class="bg-[#1a1642] border border-[#312e81] p-5 rounded-xl shadow-lg flex items-center gap-4">
-                         <div class="w-12 h-12 rounded-full bg-[#312e81]/50 flex items-center justify-center text-[#b026ff]">
-                            <i class="ph-fill ph-clock-countdown text-2xl"></i>
+            <!-- ==================== VIEW 1: SIMULATOR (Outputs Only) ==================== -->
+            <section id="view-simulator" class="view-section active">
+                <div class="flex flex-col gap-6">
+                    
+                    <!-- KPI Row -->
+                    <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
+                        <!-- Net Cash Cycle -->
+                        <div class="bg-[#1a1642] border border-[#312e81] p-5 rounded-xl shadow-lg relative overflow-hidden">
+                             <div class="absolute right-0 top-0 p-3 opacity-10">
+                                <i class="ph-fill ph-clock-countdown text-4xl text-[#b026ff]"></i>
+                            </div>
+                            <p class="text-[10px] text-slate-500 uppercase font-bold tracking-wider">Cash Conversion Cycle</p>
+                            <p class="text-2xl font-bold text-white mt-1"><span id="out-ccc">75</span> <span class="text-sm font-normal text-slate-500">days</span></p>
                         </div>
-                        <div>
-                             <p class="text-xs text-slate-500 uppercase font-bold">Cash Conversion Cycle</p>
-                             <p class="text-2xl font-bold text-white mt-1"><span id="out-ccc">75</span> <span class="text-sm font-normal text-slate-500">days</span></p>
+
+                        <!-- ROIC Proxy -->
+                        <div class="bg-[#1a1642] border border-[#312e81] p-5 rounded-xl shadow-lg relative overflow-hidden">
+                             <div class="absolute right-0 top-0 p-3 opacity-10">
+                                <i class="ph-fill ph-chart-bar text-4xl text-[#00f2ea]"></i>
+                            </div>
+                            <p class="text-[10px] text-slate-500 uppercase font-bold tracking-wider">FCF Conversion</p>
+                            <p class="text-2xl font-bold text-[#00f2ea] mt-1" id="out-efficiency">85%</p>
+                        </div>
+
+                        <!-- NPV Profit -->
+                        <div class="bg-[#1a1642] border border-[#312e81] p-5 rounded-xl shadow-lg relative overflow-hidden">
+                             <div class="absolute right-0 top-0 p-3 opacity-10">
+                                <i class="ph-fill ph-coins text-4xl text-white"></i>
+                            </div>
+                            <p class="text-[10px] text-slate-500 uppercase font-bold tracking-wider">NPV (Net Income)</p>
+                            <p class="text-xl font-bold text-white mt-1" id="out-npv-profit">$0</p>
+                        </div>
+
+                        <!-- NPV Cash Flow -->
+                        <div class="bg-[#1a1642] border border-[#312e81] p-5 rounded-xl shadow-lg relative overflow-hidden">
+                             <div class="absolute right-0 top-0 p-3 opacity-10">
+                                <i class="ph-fill ph-lightning text-4xl text-[#b026ff]"></i>
+                            </div>
+                            <p class="text-[10px] text-slate-500 uppercase font-bold tracking-wider">NPV (Operating FCF)</p>
+                            <p class="text-xl font-bold text-[#b026ff] mt-1" id="out-npv-fcf">$0</p>
                         </div>
                     </div>
 
-                    <!-- NPV Profit -->
-                    <div class="bg-[#1a1642] border border-[#312e81] p-5 rounded-xl shadow-lg flex items-center gap-4">
-                         <div class="w-12 h-12 rounded-full bg-[#312e81]/50 flex items-center justify-center text-[#00f2ea]">
-                            <i class="ph-fill ph-coins text-2xl"></i>
+                    <!-- Chart Container -->
+                    <div class="bg-[#1a1642] border border-[#312e81] p-6 rounded-xl shadow-lg min-h-[350px]">
+                         <div class="flex justify-between items-start mb-4">
+                            <h4 class="text-sm font-bold text-slate-400 uppercase tracking-wider">Analysis: Net Income vs. Operating FCF</h4>
+                            <div class="flex gap-4 text-xs">
+                                <span class="flex items-center gap-2 text-slate-400"><div class="w-3 h-3 rounded bg-[#00f2ea]"></div> Net Income</span>
+                                <span class="flex items-center gap-2 text-slate-400"><div class="w-3 h-3 rounded bg-[#b026ff]"></div> Op. FCF</span>
+                            </div>
                         </div>
-                        <div>
-                             <p class="text-xs text-slate-500 uppercase font-bold">NPV (Accounting)</p>
-                             <p class="text-2xl font-bold text-[#00f2ea] mt-1" id="out-npv-profit">$0</p>
+                        <div class="h-[300px] w-full">
+                            <canvas id="wcChart"></canvas>
                         </div>
                     </div>
 
-                    <!-- NPV Cash Flow -->
-                    <div class="bg-[#1a1642] border border-[#312e81] p-5 rounded-xl shadow-lg flex items-center gap-4">
-                         <div class="w-12 h-12 rounded-full bg-[#312e81]/50 flex items-center justify-center text-[#b026ff]">
-                            <i class="ph-fill ph-lightning text-2xl"></i>
+                    <!-- Detailed Table -->
+                    <div class="bg-[#1a1642] border border-[#312e81] rounded-xl shadow-lg overflow-hidden">
+                        <div class="p-4 border-b border-[#312e81] flex justify-between items-center bg-[#131130]">
+                            <h3 class="font-bold text-slate-200 text-sm flex items-center gap-2">
+                                <i class="ph-fill ph-table text-[#b026ff]"></i> Detailed Breakdown
+                            </h3>
+                            <div class="text-[10px] text-slate-500 italic">Projections based on inputs</div>
+                        </div>
+                        <div class="overflow-x-auto">
+                            <table class="w-full text-sm text-left" id="dataTable">
+                                <thead class="text-xs text-slate-500 uppercase bg-[#0f0c29] border-b border-[#312e81] font-semibold">
+                                    <tr id="table-header">
+                                        <!-- JS Injected -->
+                                    </tr>
+                                </thead>
+                                <tbody class="divide-y divide-[#312e81]" id="table-body">
+                                   <!-- JS Injected -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <!-- Summary / Insight Box -->
+                    <div id="sim-summary-box" class="bg-[#1a1642] border border-[#312e81] rounded-xl p-5 flex items-start gap-4 shadow-lg mb-8">
+                        <div class="p-2 bg-[#312e81]/50 rounded-lg text-[#b026ff] mt-1 shrink-0">
+                            <i class="ph-fill ph-lightbulb text-xl"></i>
                         </div>
                         <div>
-                             <p class="text-xs text-slate-500 uppercase font-bold">NPV (Free Cash Flow)</p>
-                             <p class="text-2xl font-bold text-[#b026ff] mt-1" id="out-npv-fcf">$0</p>
+                            <h4 class="text-sm font-bold text-white mb-2">Executive Summary</h4>
+                            <p id="sim-summary-text" class="text-sm text-slate-400 leading-relaxed">
+                                Loading analysis...
+                            </p>
                         </div>
                     </div>
                 </div>
+            </section>
 
-                <!-- Chart Container -->
-                <div class="bg-[#1a1642] border border-[#312e81] p-6 rounded-xl shadow-lg min-h-[350px]">
-                     <div class="flex justify-between items-start mb-4">
-                        <h4 class="text-sm font-bold text-slate-400 uppercase tracking-wider">Analysis: Profit vs. Cash Flow</h4>
-                        <div class="flex gap-4 text-xs">
-                            <span class="flex items-center gap-2 text-slate-400"><div class="w-3 h-3 rounded bg-[#00f2ea]"></div> Accounting Profit</span>
-                            <span class="flex items-center gap-2 text-slate-400"><div class="w-3 h-3 rounded bg-[#b026ff]"></div> Free Cash Flow</span>
+            <!-- ==================== VIEW 2: INPUTS & CONFIG ==================== -->
+            <section id="view-inputs" class="view-section">
+                <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+                    
+                    <!-- Global Settings (Full Width) -->
+                    <div class="lg:col-span-12 bg-[#1a1642] border border-[#312e81] p-4 rounded-xl shadow-lg flex flex-col md:flex-row gap-6 items-center">
+                        <div class="flex items-center gap-2 shrink-0">
+                            <i class="ph-fill ph-gear text-[#b026ff] text-xl"></i>
+                            <h3 class="text-sm font-bold text-white uppercase">Model Config</h3>
+                        </div>
+                        <div class="grid grid-cols-2 md:grid-cols-4 gap-4 w-full">
+                            <div>
+                                <label class="text-[10px] text-slate-400 uppercase font-bold block mb-1">Currency</label>
+                                <select id="cfg-currency" class="input-field" onchange="updateCalc()">
+                                    <option value="USD">USD ($)</option>
+                                    <option value="EUR">EUR (€)</option>
+                                    <option value="GBP">GBP (£)</option>
+                                    <option value="INR">INR (₹)</option>
+                                    <option value="JPY">JPY (¥)</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="text-[10px] text-slate-400 uppercase font-bold block mb-1">Start Year</label>
+                                <input type="number" id="cfg-start-year" class="input-field" value="2025" oninput="updateCalc()">
+                            </div>
+                            <div>
+                                <label class="text-[10px] text-slate-400 uppercase font-bold block mb-1">Tax Rate (%)</label>
+                                <input type="number" id="cfg-tax" class="input-field" value="25" oninput="updateCalc()">
+                            </div>
+                            <div>
+                                <label class="text-[10px] text-slate-400 uppercase font-bold block mb-1">WACC (%)</label>
+                                <input type="number" id="cfg-wacc" class="input-field text-[#00f2ea] font-bold" value="10" oninput="updateCalc()">
+                            </div>
                         </div>
                     </div>
-                    <div class="h-[300px] w-full">
-                        <canvas id="wcChart"></canvas>
-                    </div>
-                </div>
 
-                <!-- Detailed Table -->
-                <div class="bg-[#1a1642] border border-[#312e81] rounded-xl shadow-lg overflow-hidden">
-                    <div class="p-4 border-b border-[#312e81] flex justify-between items-center bg-[#131130]">
-                        <h3 class="font-bold text-slate-200 text-sm flex items-center gap-2">
-                            <i class="ph-fill ph-table text-[#b026ff]"></i> Detailed Breakdown
+                    <!-- Operating Inputs -->
+                    <div class="lg:col-span-6 bg-[#1a1642] border border-[#312e81] p-6 rounded-xl shadow-lg h-fit">
+                        <h3 class="text-sm font-bold text-slate-500 uppercase mb-6 flex items-center gap-2 border-b border-[#312e81] pb-2">
+                            <i class="ph-fill ph-sliders text-[#b026ff]"></i> Revenue & Expenses
                         </h3>
-                        <div class="text-[10px] text-slate-500 italic">Values in USD</div>
+                        
+                        <div class="space-y-6">
+                            <div class="grid grid-cols-2 gap-4">
+                                <div>
+                                    <label class="text-xs text-slate-400 uppercase font-bold block mb-2">Base Revenue</label>
+                                    <input type="number" id="inp-rev" value="1000000" class="input-field focus:ring-1 focus:ring-purple-500" oninput="updateCalc()">
+                                </div>
+                                <div>
+                                    <label class="text-xs text-slate-400 uppercase font-bold block mb-2">Real Growth (%)</label>
+                                    <input type="number" id="inp-growth" value="5" class="input-field text-center" oninput="updateCalc()">
+                                </div>
+                            </div>
+
+                            <div>
+                                <label class="text-xs text-slate-400 uppercase font-bold block mb-2">COGS (% of Rev)</label>
+                                <div class="flex gap-4 items-center">
+                                    <input type="range" min="10" max="90" value="60" class="flex-1 slider-secondary" oninput="document.getElementById('inp-cogs-pct').value=this.value; updateCalc()">
+                                    <input type="number" id="inp-cogs-pct" value="60" class="input-field w-16 p-2 text-center text-sm" oninput="updateCalc()">
+                                </div>
+                            </div>
+
+                            <div class="grid grid-cols-2 gap-4 pt-4 border-t border-[#312e81]">
+                                <div>
+                                    <label class="text-xs text-slate-400 uppercase font-bold block mb-2">Inflation Rate (%)</label>
+                                    <input type="number" id="inp-inflation" value="3" class="input-field text-center" oninput="updateCalc()">
+                                    <p class="text-[10px] text-slate-600 mt-1">Impacts Rev & Costs</p>
+                                </div>
+                                <div>
+                                    <label class="text-xs text-slate-400 uppercase font-bold block mb-2">Bad Debt (% Rev)</label>
+                                    <input type="number" id="inp-bad-debt" value="1" class="input-field text-center text-red-400" oninput="updateCalc()">
+                                    <p class="text-[10px] text-slate-600 mt-1">Uncollectible sales</p>
+                                </div>
+                            </div>
+                        </div>
                     </div>
-                    <div class="overflow-x-auto">
-                        <table class="w-full text-sm text-left" id="dataTable">
-                            <thead class="text-xs text-slate-500 uppercase bg-[#0f0c29] border-b border-[#312e81] font-semibold">
-                                <tr id="table-header">
-                                    <!-- JS Injected -->
-                                </tr>
-                            </thead>
-                            <tbody class="divide-y divide-[#312e81]" id="table-body">
-                               <!-- JS Injected -->
-                            </tbody>
-                        </table>
+
+                    <!-- Cycle Drivers -->
+                    <div class="lg:col-span-6 bg-[#1a1642] border border-[#312e81] p-6 rounded-xl shadow-lg h-fit">
+                        <h3 class="text-sm font-bold text-slate-500 uppercase mb-6 flex items-center gap-2 border-b border-[#312e81] pb-2">
+                            <i class="ph-fill ph-clock-countdown text-[#b026ff]"></i> Detailed Cycle Drivers
+                        </h3>
+
+                        <div class="space-y-6">
+                            <!-- Receivables -->
+                            <div>
+                                <div class="flex justify-between text-xs mb-2">
+                                    <label class="text-slate-400 font-bold uppercase">Receivables (DSO)</label>
+                                    <span class="text-[#b026ff] font-mono font-bold" id="disp-dso">45 Days</span>
+                                </div>
+                                <input type="range" id="inp-dso" min="0" max="120" value="45" class="w-full" oninput="updateCalc()">
+                            </div>
+
+                            <!-- Inventory -->
+                            <div>
+                                <div class="flex justify-between text-xs mb-2">
+                                    <label class="text-slate-400 font-bold uppercase">Inventory (DIO)</label>
+                                    <span class="text-[#b026ff] font-mono font-bold" id="disp-dio">60 Days</span>
+                                </div>
+                                <input type="range" id="inp-dio" min="0" max="180" value="60" class="w-full" oninput="updateCalc()">
+                                
+                                <div class="flex items-center gap-4 mt-2">
+                                    <label class="text-[10px] text-slate-500 uppercase whitespace-nowrap">Shrinkage %:</label>
+                                    <input type="number" id="inp-shrinkage" value="2" class="input-field text-xs h-6 w-16 text-center" oninput="updateCalc()">
+                                </div>
+                            </div>
+
+                            <!-- Payables -->
+                            <div>
+                                <div class="flex justify-between text-xs mb-2">
+                                    <label class="text-slate-400 font-bold uppercase">Payables (DPO)</label>
+                                    <span class="text-[#b026ff] font-mono font-bold" id="disp-dpo">30 Days</span>
+                                </div>
+                                <input type="range" id="inp-dpo" min="0" max="120" value="30" class="w-full" oninput="updateCalc()">
+                            </div>
+
+                            <!-- Other Current Assets/Liabilities -->
+                            <div class="grid grid-cols-2 gap-4 pt-4 border-t border-[#312e81]">
+                                <div>
+                                    <label class="text-xs text-slate-400 uppercase font-bold block mb-2">Prepaids (% Rev)</label>
+                                    <input type="number" id="inp-prepaid" value="1" class="input-field text-center" oninput="updateCalc()">
+                                </div>
+                                <div>
+                                    <label class="text-xs text-slate-400 uppercase font-bold block mb-2">Accruals (% COGS)</label>
+                                    <input type="number" id="inp-accruals" value="2" class="input-field text-center" oninput="updateCalc()">
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
+            </section>
 
-                <!-- Summary / Insight Box -->
-                <div id="sim-summary-box" class="bg-[#1a1642] border border-[#312e81] rounded-xl p-5 flex items-start gap-4 shadow-lg">
-                    <div class="p-2 bg-[#312e81]/50 rounded-lg text-[#b026ff] mt-1 shrink-0">
-                        <i class="ph-fill ph-lightbulb text-xl"></i>
-                    </div>
-                    <div>
-                        <h4 class="text-sm font-bold text-white mb-2">Executive Summary</h4>
-                        <p id="sim-summary-text" class="text-sm text-slate-400 leading-relaxed">
-                            Loading analysis...
+            <!-- ==================== VIEW 3: DOCUMENTATION ==================== -->
+            <section id="view-documentation" class="view-section space-y-8">
+                <div class="max-w-3xl mx-auto space-y-6">
+                    <div class="card bg-[#1a1642] p-6 rounded-xl border border-[#312e81]">
+                        <h3 class="text-lg font-bold text-white mb-2">Detailed Methodology</h3>
+                        <p class="text-sm text-slate-400 leading-relaxed">
+                            This simulator uses a granular calculation engine to project <strong>Net Operating Working Capital (NOWC)</strong> and its impact on Free Cash Flow.
+                            Unlike simple calculators, this model adjusts for inflation, tax effects, bad debt, and operational accruals.
                         </p>
                     </div>
-                </div>
-            </div>
-        </section>
 
-        <!-- ==================== VIEW 2: INPUTS (Forms Only) ==================== -->
-        <section id="view-inputs" class="view-section">
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <!-- Operating Inputs -->
-                <div class="bg-[#1a1642] border border-[#312e81] p-6 rounded-xl shadow-lg h-fit">
-                    <h3 class="text-sm font-bold text-slate-500 uppercase mb-6 flex items-center gap-2 border-b border-[#312e81] pb-2">
-                        <i class="ph-fill ph-sliders text-[#b026ff]"></i> Operating Assumptions
-                    </h3>
-                    
-                    <div class="space-y-6">
-                        <div>
-                            <label class="text-xs text-slate-400 uppercase font-bold block mb-2">Year 1 Revenue ($)</label>
-                            <input type="number" id="inp-rev" value="1000000" class="input-field focus:ring-1 focus:ring-purple-500" oninput="updateCalc()">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div class="bg-[#1a1642] p-6 rounded-xl border-l-4 border-indigo-500">
+                            <h4 class="text-sm font-bold text-indigo-400">Net Operating Working Capital</h4>
+                            <p class="text-xs text-slate-400 mt-2">Calculated as (Current Operating Assets) - (Current Operating Liabilities).</p>
+                            <ul class="text-[10px] text-slate-500 mt-2 list-disc pl-4 space-y-1">
+                                <li>Assets: AR + Inventory + Prepaid Expenses</li>
+                                <li>Liabilities: AP + Accrued Liabilities</li>
+                            </ul>
                         </div>
-                        <div>
-                            <label class="text-xs text-slate-400 uppercase font-bold block mb-2">COGS Margin (%)</label>
-                            <div class="flex gap-4 items-center">
-                                <input type="range" min="10" max="90" value="60" class="flex-1 slider-secondary" oninput="document.getElementById('inp-cogs-pct').value=this.value; updateCalc()">
-                                <input type="number" id="inp-cogs-pct" value="60" class="input-field w-16 p-2 text-center text-sm" oninput="updateCalc()">
-                            </div>
-                        </div>
-                        <div>
-                            <label class="text-xs text-slate-400 uppercase font-bold block mb-2">Annual Growth (%)</label>
-                            <div class="flex gap-4 items-center">
-                                <input type="range" min="0" max="50" value="15" class="flex-1" oninput="document.getElementById('inp-growth').value=this.value; updateCalc()">
-                                <input type="number" id="inp-growth" value="15" class="input-field w-16 p-2 text-center text-sm" oninput="updateCalc()">
-                            </div>
-                        </div>
-                        <div class="pt-4 border-t border-[#312e81]">
-                             <label class="text-xs text-slate-400 uppercase font-bold block mb-2">Discount Rate (WACC %)</label>
-                             <div class="flex gap-4 items-center">
-                                <input type="range" min="5" max="25" value="10" class="flex-1 slider-secondary" oninput="document.getElementById('inp-wacc').value=this.value; updateCalc()">
-                                <input type="number" id="inp-wacc" value="10" class="input-field w-16 p-2 text-center text-sm text-[#00f2ea] font-bold" oninput="updateCalc()">
-                            </div>
-                            <p class="text-[10px] text-slate-600 mt-2">Used for NPV calculation.</p>
+                        
+                        <div class="bg-[#1a1642] p-6 rounded-xl border-l-4 border-cyan-500">
+                            <h4 class="text-sm font-bold text-[#00f2ea]">Operating Free Cash Flow</h4>
+                            <p class="text-xs text-slate-400 mt-2">The cash generated from core business operations after tax and WC investments.</p>
+                            <code class="text-[10px] bg-[#131130] px-2 py-1 rounded text-slate-300 mt-2 block w-fit">NOPAT - Change in NOWC</code>
                         </div>
                     </div>
                 </div>
+            </section>
 
-                <!-- Cycle Drivers -->
-                <div class="bg-[#1a1642] border border-[#312e81] p-6 rounded-xl shadow-lg h-fit">
-                    <h3 class="text-sm font-bold text-slate-500 uppercase mb-6 flex items-center gap-2 border-b border-[#312e81] pb-2">
-                        <i class="ph-fill ph-clock-countdown text-[#b026ff]"></i> Working Capital Drivers
-                    </h3>
+          </div>
+        </div>
+      </main>
+  </div>
 
-                    <div class="space-y-6">
-                        <!-- DIO -->
-                        <div>
-                            <div class="flex justify-between text-xs mb-2">
-                                <label class="text-slate-400 font-bold uppercase">Inventory (DIO)</label>
-                                <span class="text-[#b026ff] font-mono font-bold" id="disp-dio">60 Days</span>
-                            </div>
-                            <input type="range" id="inp-dio" min="0" max="180" value="60" class="w-full" oninput="updateCalc()">
-                            <p class="text-[10px] text-slate-500 mt-1">Days Inventory Outstanding</p>
-                        </div>
-
-                        <!-- DSO -->
-                        <div>
-                            <div class="flex justify-between text-xs mb-2">
-                                <label class="text-slate-400 font-bold uppercase">Receivables (DSO)</label>
-                                <span class="text-[#b026ff] font-mono font-bold" id="disp-dso">45 Days</span>
-                            </div>
-                            <input type="range" id="inp-dso" min="0" max="120" value="45" class="w-full" oninput="updateCalc()">
-                            <p class="text-[10px] text-slate-500 mt-1">Days Sales Outstanding</p>
-                        </div>
-
-                        <!-- DPO -->
-                        <div>
-                            <div class="flex justify-between text-xs mb-2">
-                                <label class="text-slate-400 font-bold uppercase">Payables (DPO)</label>
-                                <span class="text-[#b026ff] font-mono font-bold" id="disp-dpo">30 Days</span>
-                            </div>
-                            <input type="range" id="inp-dpo" min="0" max="120" value="30" class="w-full" oninput="updateCalc()">
-                            <p class="text-[10px] text-slate-500 mt-1">Days Payable Outstanding</p>
-                        </div>
-                    </div>
-                    
-                    <div class="mt-8 p-4 bg-[#131130] rounded border border-[#312e81] text-center">
-                        <p class="text-xs text-slate-500">Changes are automatically applied to the Simulator view.</p>
-                    </div>
-                </div>
-            </div>
-        </section>
-
-        <!-- ==================== VIEW 3: DOCUMENTATION ==================== -->
-        <section id="view-documentation" class="view-section space-y-8">
-            <div class="max-w-3xl mx-auto space-y-6">
-                
-                <div class="card bg-[#1a1642] p-6 rounded-xl border border-[#312e81]">
-                    <h3 class="text-lg font-bold text-white mb-2">What is Working Capital?</h3>
-                    <p class="text-sm text-slate-400 leading-relaxed">
-                        Net Working Capital (NWC) represents the liquidity available to a business for daily operations. 
-                        It is calculated as Current Assets minus Current Liabilities. 
-                        In this model, we focus on the operating cycle components: 
-                        Receivables + Inventory - Payables.
-                    </p>
-                </div>
-
-                <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-                    <div class="bg-[#1a1642] p-6 rounded-xl border-l-4 border-indigo-500">
-                        <h4 class="text-sm font-bold text-indigo-400">DSO</h4>
-                        <p class="text-xs text-slate-400 mt-2">Days Sales Outstanding. Avg days to collect payment.</p>
-                        <code class="text-[10px] bg-[#131130] px-2 py-1 rounded text-slate-300 mt-2 block w-fit">(Rev / 365) * DSO</code>
-                    </div>
-                    
-                    <div class="bg-[#1a1642] p-6 rounded-xl border-l-4 border-cyan-500">
-                        <h4 class="text-sm font-bold text-[#00f2ea]">DIO</h4>
-                        <p class="text-xs text-slate-400 mt-2">Days Inventory Outstanding. Avg days to sell inventory.</p>
-                        <code class="text-[10px] bg-[#131130] px-2 py-1 rounded text-slate-300 mt-2 block w-fit">(COGS / 365) * DIO</code>
-                    </div>
-
-                    <div class="bg-[#1a1642] p-6 rounded-xl border-l-4 border-purple-500">
-                        <h4 class="text-sm font-bold text-[#b026ff]">DPO</h4>
-                        <p class="text-xs text-slate-400 mt-2">Days Payable Outstanding. Avg days to pay suppliers.</p>
-                        <code class="text-[10px] bg-[#131130] px-2 py-1 rounded text-slate-300 mt-2 block w-fit">(COGS / 365) * DPO</code>
-                    </div>
-                </div>
-
-                <div class="bg-[#1a1642] p-6 rounded-xl border border-purple-900/30 bg-purple-900/10">
-                    <h3 class="text-sm font-bold text-purple-400 mb-2">Understanding NPV</h3>
-                    <p class="text-xs text-slate-300">
-                        This simulator calculates two NPVs. 
-                        <span class="text-[#00f2ea]">Accounting NPV</span> discounts the Operating Profit (EBIT).
-                        <span class="text-[#b026ff]">Free Cash Flow NPV</span> discounts the actual cash generated after adjusting for changes in Working Capital.
-                        A positive gap indicates efficient cash management.
-                    </p>
-                </div>
-            </div>
-        </section>
-
-      </div>
-    </div>
-  </main>
+  <!-- PRINT REPORT CONTAINER (Hidden on Screen) -->
+  <div id="printable-report" style="display:none;">
+      <!-- Content Injected via JS -->
+  </div>
 
   <script>
-    // --- Configuration & State ---
+    // --- Global State ---
+    let reportData = {}; 
     let myChart = null;
 
     // --- Navigation Logic ---
     function switchTab(tabId) {
-        // Update Sidebar UI
         document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
         document.getElementById(`nav-${tabId}`).classList.add('active');
 
-        // Update View Visibility
         document.querySelectorAll('.view-section').forEach(el => el.classList.remove('active'));
         document.getElementById(`view-${tabId}`).classList.add('active');
 
-        // Update Header Title
         const titles = { 'simulator': 'Simulator Output', 'inputs': 'Inputs Configuration', 'documentation': 'Documentation' };
         document.getElementById('header-title').textContent = titles[tabId];
 
-        // Toggle Scenarios Visibility
         const scenarioControls = document.getElementById('scenario-controls');
-        // Show scenarios in both simulator and inputs tabs
         if (tabId === 'simulator' || tabId === 'inputs') scenarioControls.classList.remove('hidden');
         else scenarioControls.classList.add('hidden');
         
-        // On mobile, close sidebar after click
         if(window.innerWidth < 768) {
              document.getElementById('main-sidebar').classList.remove('translate-x-0');
              document.getElementById('main-sidebar').classList.add('-translate-x-full');
@@ -435,7 +487,6 @@
 
     function toggleSidebar() {
         const sidebar = document.getElementById('main-sidebar');
-        // Toggle transform classes
         if (sidebar.classList.contains('-translate-x-full')) {
             sidebar.classList.remove('-translate-x-full');
             sidebar.classList.add('translate-x-0');
@@ -447,9 +498,9 @@
 
     // --- Scenarios ---
     const scenarios = {
-        base: { growth: 15, dio: 60, dso: 45, dpo: 30, wacc: 10 },
-        crunch: { growth: 40, dio: 90, dso: 60, dpo: 15, wacc: 12 },
-        optimized: { growth: 10, dio: 30, dso: 30, dpo: 60, wacc: 8 }
+        base: { growth: 5, dio: 60, dso: 45, dpo: 30, wacc: 10, inflation: 3 },
+        crunch: { growth: 15, dio: 90, dso: 75, dpo: 15, wacc: 12, inflation: 8 },
+        optimized: { growth: 5, dio: 30, dso: 30, dpo: 60, wacc: 8, inflation: 2 }
     };
 
     function setScenario(key) {
@@ -458,117 +509,197 @@
         document.getElementById('inp-dio').value = s.dio;
         document.getElementById('inp-dso').value = s.dso;
         document.getElementById('inp-dpo').value = s.dpo;
-        document.getElementById('inp-wacc').value = s.wacc;
+        document.getElementById('cfg-wacc').value = s.wacc;
+        document.getElementById('inp-inflation').value = s.inflation;
         updateCalc();
     }
 
     // --- Formatters ---
     const fmtMoney = (num) => {
-        if(Math.abs(num) >= 1000000) return '$' + (num/1000000).toFixed(2) + 'M';
-        if(Math.abs(num) >= 1000) return '$' + (num/1000).toFixed(0) + 'k';
-        return '$' + num.toFixed(0);
+        const currency = document.getElementById('cfg-currency').value;
+        const lookup = { 'USD': 'en-US', 'EUR': 'de-DE', 'GBP': 'en-GB', 'INR': 'en-IN', 'JPY': 'ja-JP' };
+        
+        const locale = lookup[currency] || 'en-US';
+        
+        // Compact notation for chart/cards
+        const formatter = new Intl.NumberFormat(locale, { 
+            style: 'currency', 
+            currency: currency, 
+            notation: "compact",
+            maximumFractionDigits: 1
+        });
+        
+        return formatter.format(num);
     };
+
+    // --- Suggestions Engine ---
+    function getSuggestions(dso, dio, dpo, efficiency) {
+        let suggestions = [];
+        if (dio > 60) suggestions.push(`High Inventory Days (${dio}): Holding stock too long ties up capital. Consider Just-in-Time inventory or liquidating obsolete stock.`);
+        else if (dio < 30) suggestions.push(`Low Inventory Days (${dio}): Good liquidity, but ensure you are not missing sales due to stockouts.`);
+        
+        if (dso > 45) suggestions.push(`Slow Collections (${dso} days): Receivables are aging. Tighten credit terms or incentivize early payment.`);
+        else if (dso < 30) suggestions.push(`Fast Collections (${dso} days): Excellent cash inflow management.`);
+        
+        if (dpo < 30) suggestions.push(`Fast Payables (${dpo} days): You are paying suppliers too quickly. Negotiate longer payment terms to improve liquidity.`);
+        else if (dpo > 60) suggestions.push(`Extended Payables (${dpo} days): Good for cash flow, but ensure supplier relationships aren't strained.`);
+        
+        if (efficiency < 70) suggestions.push(`Low Cash Conversion (${efficiency.toFixed(0)}%): Significant profit is trapped in working capital. Prioritize cycle reduction.`);
+        
+        if (suggestions.length === 0) suggestions.push("Operations appear balanced. Continue monitoring cycle times.");
+        return suggestions;
+    }
 
     // --- Calculation Logic ---
     function updateCalc() {
-        // 1. Get Inputs
-        const revY1 = parseFloat(document.getElementById('inp-rev').value) || 0;
+        // --- 1. Read Globals ---
+        const currency = document.getElementById('cfg-currency').value;
+        const startYear = parseInt(document.getElementById('cfg-start-year').value) || 2025;
+        const taxRate = parseFloat(document.getElementById('cfg-tax').value) / 100;
+        const wacc = parseFloat(document.getElementById('cfg-wacc').value) / 100;
+
+        // --- 2. Read Inputs ---
+        const baseRev = parseFloat(document.getElementById('inp-rev').value) || 0;
+        const realGrowth = parseFloat(document.getElementById('inp-growth').value) / 100;
+        const inflation = parseFloat(document.getElementById('inp-inflation').value) / 100;
         const cogsPct = parseFloat(document.getElementById('inp-cogs-pct').value) / 100;
-        const growth = parseFloat(document.getElementById('inp-growth').value) / 100;
-        const wacc = parseFloat(document.getElementById('inp-wacc').value) / 100;
-        const years = 5; 
+        const badDebtPct = parseFloat(document.getElementById('inp-bad-debt').value) / 100;
         
-        const dio = parseInt(document.getElementById('inp-dio').value);
+        // Cycle
         const dso = parseInt(document.getElementById('inp-dso').value);
+        const dio = parseInt(document.getElementById('inp-dio').value);
         const dpo = parseInt(document.getElementById('inp-dpo').value);
+        const shrinkagePct = parseFloat(document.getElementById('inp-shrinkage').value) / 100;
         
-        // Update Slider Labels
+        // Other WC
+        const prepaidPct = parseFloat(document.getElementById('inp-prepaid').value) / 100; // of Rev
+        const accrualPct = parseFloat(document.getElementById('inp-accruals').value) / 100; // of COGS
+
+        // Update Slider UI
         document.getElementById('disp-dio').innerText = dio + ' Days';
         document.getElementById('disp-dso').innerText = dso + ' Days';
         document.getElementById('disp-dpo').innerText = dpo + ' Days';
 
-        // 2. Calculate CCC
         const ccc = dio + dso - dpo;
         document.getElementById('out-ccc').innerText = ccc;
         document.getElementById('out-ccc').className = `text-2xl font-bold mt-1 ${ccc > 100 ? 'text-red-400' : 'text-[#b026ff]'}`;
 
-        // 3. Generate Projection Arrays
-        let arrYears = [];
-        let arrRev = [], arrProfit = [], arrInv = [], arrAR = [], arrAP = [];
-        let arrNWC = [], arrDeltaNWC = [], arrFCF = [];
+        // --- 3. Projection Loop ---
+        const years = 5; 
+        let arrYears = [], arrRev = [], arrNetIncome = [], arrFCF = [];
+        let arrAR = [], arrInv = [], arrPrepaid = [], arrAP = [], arrAccruals = [];
+        let arrNWC = [], arrDeltaNWC = [];
+        
         let totalNPVProfit = 0;
         let totalNPVFCF = 0;
 
-        let currRev = revY1;
+        let currRev = baseRev;
         let prevNWC = 0; 
 
+        // Initial combined growth factor
+        const totalGrowth = (1 + realGrowth) * (1 + inflation) - 1;
+
         for(let i=1; i<=years; i++) {
-            arrYears.push('Year ' + i);
+            arrYears.push(startYear + (i - 1));
             
-            const currCOGS = currRev * cogsPct;
-            const opProfit = currRev - currCOGS; // Simplified EBIT
+            // P&L Logic
+            let grossRev = currRev;
+            let badDebt = grossRev * badDebtPct;
+            let netSales = grossRev - badDebt; // Simplification: bad debt as contra revenue or expense
             
-            // Components
-            const inv = (currCOGS / 365) * dio;
-            const ar = (currRev / 365) * dso;
-            const ap = (currCOGS / 365) * dpo;
+            let rawCOGS = grossRev * cogsPct;
+            let inventoryLoss = rawCOGS * shrinkagePct; // Add shrinkage to COGS
+            let totalCOGS = rawCOGS + inventoryLoss;
             
-            const nwc = inv + ar - ap;
-            const deltaNWC = nwc - prevNWC;
-            const fcf = opProfit - deltaNWC;
+            let ebit = netSales - totalCOGS;
+            let tax = Math.max(0, ebit * taxRate);
+            let nopat = ebit - tax; // Net Operating Profit After Tax
+
+            // Balance Sheet Logic (Average balances)
+            let ar = (grossRev / 365) * dso; 
+            let inv = (totalCOGS / 365) * dio;
+            let ap = (totalCOGS / 365) * dpo;
+
+            // Tiny Factors
+            let prepaids = grossRev * prepaidPct;
+            let accruals = totalCOGS * accrualPct;
+
+            // Net Working Capital
+            let operatingAssets = ar + inv + prepaids;
+            let operatingLiabilities = ap + accruals;
+            let nwc = operatingAssets - operatingLiabilities;
+
+            let deltaNWC = nwc - prevNWC;
+            
+            // FCF Calculation
+            let fcf = nopat - deltaNWC;
 
             // Discounting
-            const df = 1 / Math.pow(1 + wacc, i);
-            totalNPVProfit += opProfit * df;
+            let df = 1 / Math.pow(1 + wacc, i);
+            totalNPVProfit += nopat * df; 
             totalNPVFCF += fcf * df;
 
-            // Store Data
-            arrRev.push(currRev);
-            arrProfit.push(opProfit);
-            arrInv.push(inv);
+            // Storage
+            arrRev.push(grossRev);
+            arrNetIncome.push(nopat); 
+            arrFCF.push(fcf);
+            
             arrAR.push(ar);
+            arrInv.push(inv);
+            arrPrepaid.push(prepaids);
             arrAP.push(ap);
+            arrAccruals.push(accruals);
             arrNWC.push(nwc);
             arrDeltaNWC.push(deltaNWC);
-            arrFCF.push(fcf);
 
             // Next Year
             prevNWC = nwc;
-            currRev = currRev * (1 + growth);
+            currRev = currRev * (1 + totalGrowth);
         }
 
-        // 4. Update Summary Cards
+        // --- 4. Update UI ---
         document.getElementById('out-npv-profit').innerText = fmtMoney(totalNPVProfit);
         document.getElementById('out-npv-fcf').innerText = fmtMoney(totalNPVFCF);
-        
-        // Color logic for NPV comparison
-        const fcfElem = document.getElementById('out-npv-fcf');
-        if(totalNPVFCF < totalNPVProfit * 0.5) fcfElem.className = "text-2xl font-bold text-red-400 mt-1";
-        else fcfElem.className = "text-2xl font-bold text-[#b026ff] mt-1";
-
-        // 5. Update Table & Chart
-        renderTable(arrYears, arrRev, arrProfit, arrInv, arrAR, arrAP, arrNWC, arrDeltaNWC, arrFCF);
-        renderChart(arrYears, arrProfit, arrFCF);
-
-        // 6. Update Text Summary
-        const summaryEl = document.getElementById('sim-summary-text');
-        let summaryHTML = '';
-
         const efficiency = totalNPVProfit > 0 ? (totalNPVFCF / totalNPVProfit) * 100 : 0;
-        
-        if(efficiency > 90) {
-            summaryHTML = `Based on current assumptions, the business converts <span class="text-[#00f2ea] font-bold">${efficiency.toFixed(0)}%</span> of its accounting profit into real cash flow. This indicates a <span class="text-[#00f2ea] font-bold">highly efficient</span> capital cycle with a CCC of ${ccc} days.`;
-        } else if (efficiency > 70) {
-            summaryHTML = `The business generates <span class="text-white font-bold">${efficiency.toFixed(0)}%</span> of profit as free cash. While stable, optimizing Inventory (DIO: ${dio}) or Payables (DPO: ${dpo}) could unlock more liquidity.`;
-        } else {
-            summaryHTML = `Warning: Only <span class="text-red-400 font-bold">${efficiency.toFixed(0)}%</span> of profit realizes as cash. A long Cash Conversion Cycle (${ccc} days) is trapping significant liquidity in operations, potentially requiring external financing to support growth.`;
-        }
+        document.getElementById('out-efficiency').innerText = efficiency.toFixed(0) + '%';
 
-        summaryEl.innerHTML = summaryHTML;
+        const fcfElem = document.getElementById('out-npv-fcf');
+        if(totalNPVFCF < totalNPVProfit * 0.6) fcfElem.className = "text-xl font-bold text-red-400 mt-1";
+        else fcfElem.className = "text-xl font-bold text-[#b026ff] mt-1";
+
+        renderTable(arrYears, arrRev, arrNetIncome, arrInv, arrAR, arrAP, arrNWC, arrDeltaNWC, arrFCF, arrPrepaid, arrAccruals);
+        renderChart(arrYears, arrNetIncome, arrFCF);
+        updateSummary(totalNPVProfit, totalNPVFCF, ccc, dio, dpo);
+
+        // Store Data for Report
+        reportData = {
+            years: arrYears,
+            rev: arrRev,
+            netIncome: arrNetIncome,
+            nwc: arrNWC,
+            fcf: arrFCF,
+            dso, dio, dpo, ccc,
+            efficiency,
+            totalNPVProfit, totalNPVFCF,
+            currency
+        };
+    }
+
+    function updateSummary(profit, cash, ccc, dio, dpo) {
+        const efficiency = profit > 0 ? (cash / profit) * 100 : 0;
+        let html = '';
+        if(efficiency > 90) {
+            html = `High Efficiency: The business realizes <span class="text-[#00f2ea] font-bold">${efficiency.toFixed(0)}%</span> of its NOPAT as free cash. A CCC of ${ccc} days suggests lean operations.`;
+        } else if (efficiency > 65) {
+            html = `Moderate Efficiency: <span class="text-white font-bold">${efficiency.toFixed(0)}%</span> cash conversion. Consider reducing Inventory (DIO: ${dio}) to unlock capital.`;
+        } else {
+            html = `Cash Drain Warning: Only <span class="text-red-400 font-bold">${efficiency.toFixed(0)}%</span> of profit becomes cash. High working capital requirements are consuming growth capital.`;
+        }
+        document.getElementById('sim-summary-text').innerHTML = html;
     }
 
     // --- Table Renderer ---
-    function renderTable(years, rev, profit, inv, ar, ap, nwc, delta, fcf) {
+    function renderTable(years, rev, profit, inv, ar, ap, nwc, delta, fcf, prepaids, accruals) {
         const thead = document.getElementById('table-header');
         const tbody = document.getElementById('table-body');
         
@@ -589,7 +720,6 @@
             
             data.forEach(val => {
                 let displayVal = fmtMoney(val);
-                // Highlight negative cash flow impact (positive delta) as bad
                 if(name.includes("Change in WC")) {
                     displayVal = `<span class="${val > 0 ? 'text-red-400' : 'text-[#b026ff]'}">${displayVal}</span>`;
                 }
@@ -599,14 +729,16 @@
         };
 
         let bHTML = '';
-        bHTML += row('Revenue', rev);
-        bHTML += row('Operating Profit', profit, "bold");
-        bHTML += row('Inventory (Asset)', inv, "sub");
-        bHTML += row('Receivables (Asset)', ar, "sub");
-        bHTML += row('Payables (Liability)', ap, "sub");
-        bHTML += row('Net Working Capital', nwc);
+        bHTML += row('Gross Revenue', rev);
+        bHTML += row('NOPAT (Net Income)', profit, "bold");
+        bHTML += row('(+) Receivables', ar, "sub");
+        bHTML += row('(+) Inventory', inv, "sub");
+        bHTML += row('(+) Prepaid Exp', prepaids, "sub");
+        bHTML += row('(-) Payables', ap, "sub");
+        bHTML += row('(-) Accruals', accruals, "sub");
+        bHTML += row('Net Operating WC', nwc);
         bHTML += row('Change in WC', delta);
-        bHTML += row('Free Cash Flow', fcf, "highlight");
+        bHTML += row('Operating FCF', fcf, "highlight");
         
         tbody.innerHTML = bHTML;
     }
@@ -616,7 +748,6 @@
         const ctx = document.getElementById('wcChart').getContext('2d');
         if(myChart) myChart.destroy();
 
-        // Chart Config
         Chart.defaults.color = '#94a3b8';
         Chart.defaults.font.family = 'Inter';
 
@@ -626,17 +757,17 @@
                 labels: labels,
                 datasets: [
                     {
-                        label: 'Accounting Profit',
+                        label: 'Net Income (NOPAT)',
                         data: profitData,
-                        backgroundColor: '#00f2ea', // Cyan
+                        backgroundColor: '#00f2ea',
                         borderRadius: 3,
                         barPercentage: 0.6,
                         categoryPercentage: 0.7
                     },
                     {
-                        label: 'Real Cash Flow',
+                        label: 'Operating FCF',
                         data: fcfData,
-                        backgroundColor: '#b026ff', // Purple
+                        backgroundColor: '#b026ff',
                         borderRadius: 3,
                         barPercentage: 0.6,
                         categoryPercentage: 0.7
@@ -674,25 +805,95 @@
         });
     }
 
-    // --- Export CSV ---
-    function downloadCSV() {
-        let csv = [];
-        const rows = document.querySelectorAll("table tr");
+    // --- REPORT GENERATION (PRINT) ---
+    function printReport() {
+        const suggestions = getSuggestions(reportData.dso, reportData.dio, reportData.dpo, reportData.efficiency);
+        const dateStr = new Date().toLocaleDateString();
         
-        for (let i = 0; i < rows.length; i++) {
-            let row = [], cols = rows[i].querySelectorAll("td, th");
-            for (let j = 0; j < cols.length; j++) 
-                row.push(cols[j].innerText.replace(/,/g, '')); // Clean currency format
-            csv.push(row.join(","));        
-        }
+        let html = `
+            <h1>PB WorkCap Strategic Analysis</h1>
+            <p><strong>Date:</strong> ${dateStr}</p>
+            <p><strong>Currency:</strong> ${reportData.currency}</p>
+            
+            <div class="print-box">
+                <h2>Executive Summary</h2>
+                <p>The business is currently operating with a Cash Conversion Cycle (CCC) of <strong>${reportData.ccc} days</strong>. 
+                The efficiency ratio (FCF / Net Income) is <strong>${reportData.efficiency.toFixed(1)}%</strong>.</p>
+                <p>Total discounted Net Income (NPV) is <strong>${fmtMoney(reportData.totalNPVProfit)}</strong>, while the realized discounted Free Cash Flow is <strong>${fmtMoney(reportData.totalNPVFCF)}</strong>.</p>
+            </div>
 
-        const csvFile = new Blob([csv.join("\n")], {type: "text/csv"});
-        const downloadLink = document.createElement("a");
-        downloadLink.download = "WC_Simulation.csv";
-        downloadLink.href = window.URL.createObjectURL(csvFile);
-        downloadLink.style.display = "none";
-        document.body.appendChild(downloadLink);
-        downloadLink.click();
+            <h2>Strategic Recommendations</h2>
+            <ul>
+                ${suggestions.map(s => `<li>${s}</li>`).join('')}
+            </ul>
+
+            <h2>5-Year Financial Forecast</h2>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Metric</th>
+                        ${reportData.years.map(y => `<th>${y}</th>`).join('')}
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>Revenue</td>
+                        ${reportData.rev.map(v => `<td>${fmtMoney(v)}</td>`).join('')}
+                    </tr>
+                    <tr>
+                        <td>Net Income (NOPAT)</td>
+                        ${reportData.netIncome.map(v => `<td>${fmtMoney(v)}</td>`).join('')}
+                    </tr>
+                    <tr>
+                        <td>Net Working Capital</td>
+                        ${reportData.nwc.map(v => `<td>${fmtMoney(v)}</td>`).join('')}
+                    </tr>
+                    <tr>
+                        <td><strong>Operating FCF</strong></td>
+                        ${reportData.fcf.map(v => `<td><strong>${fmtMoney(v)}</strong></td>`).join('')}
+                    </tr>
+                </tbody>
+            </table>
+        `;
+        
+        document.getElementById('printable-report').innerHTML = html;
+        window.print();
+    }
+
+    // --- EXPORT CSV (With Suggestions) ---
+    function downloadCSV() {
+        const suggestions = getSuggestions(reportData.dso, reportData.dio, reportData.dpo, reportData.efficiency);
+        
+        let csvContent = "data:text/csv;charset=utf-8,";
+        
+        // Header Info
+        csvContent += "PB WorkCap Analysis Report\n";
+        csvContent += `Date,${new Date().toLocaleDateString()}\n`;
+        csvContent += `Currency,${reportData.currency}\n\n`;
+        
+        // Recommendations Section
+        csvContent += "Strategic Recommendations\n";
+        suggestions.forEach(s => csvContent += `"${s}"\n`);
+        csvContent += "\n";
+
+        // Table Data
+        csvContent += "Metric," + reportData.years.join(",") + "\n";
+        
+        // Helper to format row
+        const row = (name, arr) => `"${name}",` + arr.map(v => v.toFixed(2)).join(",");
+        
+        csvContent += row("Revenue", reportData.rev) + "\n";
+        csvContent += row("Net Income (NOPAT)", reportData.netIncome) + "\n";
+        csvContent += row("Net Working Capital", reportData.nwc) + "\n";
+        csvContent += row("Operating FCF", reportData.fcf) + "\n";
+
+        const encodedUri = encodeURI(csvContent);
+        const link = document.createElement("a");
+        link.setAttribute("href", encodedUri);
+        link.setAttribute("download", "PB_WorkCap_Report.csv");
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
     }
 
     // --- Init ---
