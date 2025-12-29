@@ -1,0 +1,705 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>PB WorkCap</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Phosphor Icons -->
+  <script src="https://unpkg.com/@phosphor-icons/web"></script>
+  <!-- Chart.js -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <style>
+    /* Theme: Ghost Purple (Deep Indigo & Neon Purple) */
+    :root {
+      --bg-dark: #0f0c29; /* Deep Indigo 950 */
+      --panel-dark: #1a1642; /* Lighter Indigo */
+      --accent: #b026ff; /* Neon Purple */
+      --secondary: #00f2ea; /* Neon Cyan */
+      --text-main: #e2e8f0; /* Slate 200 */
+      --text-muted: #94a3b8; /* Slate 400 */
+    }
+
+    ::-webkit-scrollbar { width: 6px; height: 6px; }
+    ::-webkit-scrollbar-track { background: var(--bg-dark); }
+    ::-webkit-scrollbar-thumb { background: #312e81; border-radius: 4px; }
+    ::-webkit-scrollbar-thumb:hover { background: #4338ca; }
+    
+    body { background-color: var(--bg-dark); color: var(--text-main); font-family: 'Inter', sans-serif; overflow: hidden; }
+
+    /* Inputs */
+    .input-field {
+        background: #131130; 
+        border: 1px solid #312e81;
+        color: white;
+        transition: all 0.2s;
+        font-family: monospace;
+        width: 100%;
+        padding: 0.5rem;
+        border-radius: 0.25rem;
+    }
+    .input-field:focus {
+        outline: none;
+        border-color: var(--accent);
+        box-shadow: 0 0 0 1px rgba(176, 38, 255, 0.3);
+    }
+
+    /* Range Slider (Purple) */
+    input[type=range] { -webkit-appearance: none; background: transparent; width: 100%; }
+    input[type=range]::-webkit-slider-thumb {
+      -webkit-appearance: none; height: 16px; width: 16px;
+      border-radius: 50%; background: var(--accent);
+      cursor: pointer; margin-top: -6px; 
+      box-shadow: 0 0 10px rgba(176, 38, 255, 0.5);
+    }
+    input[type=range]::-webkit-slider-runnable-track {
+      width: 100%; height: 4px; cursor: pointer;
+      background: #312e81; border-radius: 2px;
+    }
+    
+    /* Secondary Slider (Cyan) */
+    .slider-secondary::-webkit-slider-thumb { background: var(--secondary) !important; box-shadow: 0 0 10px rgba(0, 242, 234, 0.5) !important; }
+
+    /* Navigation */
+    .nav-item {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        padding: 0.75rem 1.5rem;
+        color: var(--text-muted);
+        transition: all 0.2s;
+        border-left: 3px solid transparent;
+        width: 100%;
+        text-align: left;
+    }
+    .nav-item:hover { background-color: rgba(255, 255, 255, 0.05); color: white; }
+    .nav-item.active {
+      background-color: rgba(176, 38, 255, 0.1);
+      border-left: 3px solid var(--accent);
+      color: var(--accent);
+    }
+
+    /* View Management */
+    .view-section { display: none; }
+    .view-section.active { display: block; animation: fadeIn 0.3s ease-out; }
+
+    @keyframes fadeIn {
+        from { opacity: 0; transform: translateY(5px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* Print Styles */
+    @media print {
+        aside, header, .no-print { display: none !important; }
+        body { background: white; color: black; overflow: visible; height: auto; }
+        main { overflow: visible; height: auto; }
+        .bg-zinc-900, .bg-\[\#18181b\], .bg-\[\#09090b\], .bg-\[\#0f0c29\], .bg-\[\#1a1642\] { background: white !important; border: 1px solid #ccc !important; color: black !important; box-shadow: none !important; }
+        .text-white { color: black !important; }
+        .input-field { border: 1px solid #ddd; color: black; background: white; }
+        canvas { border: 1px solid #eee; page-break-inside: avoid; }
+        table { width: 100%; border-collapse: collapse; font-size: 10px; }
+        th, td { border: 1px solid #ddd; padding: 4px; color: black !important; }
+    }
+  </style>
+</head>
+<body class="flex h-screen w-full">
+
+  <!-- SIDEBAR -->
+  <aside id="main-sidebar" class="w-64 bg-[#0f0c29] border-r border-[#312e81] flex flex-col shrink-0 z-20 transition-all duration-300 transform md:translate-x-0 -translate-x-full absolute md:relative h-full">
+    <div class="h-16 flex items-center px-6 border-b border-[#312e81] justify-between">
+      <div class="flex items-center gap-3">
+        <div class="w-8 h-8 rounded bg-gradient-to-br from-purple-600 to-cyan-400 flex items-center justify-center shadow-lg shadow-purple-900/40">
+          <i class="ph-bold ph-chart-polar text-white text-lg"></i>
+        </div>
+        <h1 class="font-bold text-lg tracking-wide text-slate-200">PB <span class="text-[#b026ff]">WorkCap</span></h1>
+      </div>
+      <!-- Mobile Close Button -->
+      <button onclick="toggleSidebar()" class="md:hidden text-slate-400 hover:text-white">
+        <i class="ph-bold ph-x"></i>
+      </button>
+    </div>
+    
+    <nav class="flex-1 py-6 space-y-1">
+      <div class="px-6 mb-2 text-[10px] uppercase font-bold text-slate-500 tracking-widest">Core</div>
+      
+      <button onclick="switchTab('simulator')" id="nav-simulator" class="nav-item active">
+        <i class="ph-bold ph-chart-line-up text-lg"></i>
+        <span>Simulator Output</span>
+      </button>
+
+      <button onclick="switchTab('inputs')" id="nav-inputs" class="nav-item">
+        <i class="ph-bold ph-sliders text-lg"></i>
+        <span>Inputs Configuration</span>
+      </button>
+
+      <button onclick="switchTab('documentation')" id="nav-documentation" class="nav-item">
+        <i class="ph-bold ph-book-open text-lg"></i>
+        <span>Documentation</span>
+      </button>
+      
+      <div class="mt-8 px-6 mb-2 text-[10px] uppercase font-bold text-slate-500 tracking-widest">Tools</div>
+      
+      <button onclick="downloadCSV()" class="nav-item hover:text-[#00f2ea]">
+        <i class="ph ph-download-simple text-lg"></i>
+        <span>Export CSV</span>
+      </button>
+      
+      <button onclick="window.print()" class="nav-item hover:text-[#00f2ea]">
+        <i class="ph ph-printer text-lg"></i>
+        <span>Print Report</span>
+      </button>
+    </nav>
+  </aside>
+
+  <!-- MAIN CONTENT -->
+  <main class="flex-1 flex flex-col h-full overflow-hidden bg-[#0f0c29] relative">
+    
+    <!-- Header -->
+    <header class="h-16 border-b border-[#312e81] flex items-center justify-between px-6 bg-[#0f0c29] shrink-0">
+      <div class="flex items-center gap-4">
+        <!-- Sidebar Toggle Button -->
+        <button onclick="toggleSidebar()" class="text-slate-300 hover:text-white p-2 rounded hover:bg-[#312e81]/50 transition">
+            <i class="ph ph-list text-2xl"></i>
+        </button>
+        <h2 class="text-lg font-semibold text-white" id="header-title">Simulator Output</h2>
+      </div>
+      
+      <!-- Scenarios (Visible in Inputs & Simulator) -->
+      <div id="scenario-controls" class="flex items-center gap-2">
+          <span class="text-xs text-slate-500 uppercase font-bold mr-2 hidden sm:block">Scenarios:</span>
+          <button onclick="setScenario('base')" class="px-3 py-1.5 rounded border border-[#312e81] text-xs text-slate-300 hover:bg-[#312e81] hover:text-[#b026ff] transition">Base</button>
+          <button onclick="setScenario('crunch')" class="px-3 py-1.5 rounded border border-[#312e81] text-xs text-slate-300 hover:bg-[#312e81] hover:text-red-400 transition">Crunch</button>
+          <button onclick="setScenario('optimized')" class="px-3 py-1.5 rounded border border-[#312e81] text-xs text-slate-300 hover:bg-[#312e81] hover:text-[#00f2ea] transition">Optim</button>
+      </div>
+    </header>
+
+    <!-- Scrollable Area -->
+    <div class="flex-1 overflow-y-auto p-8 scroll-smooth">
+      <div class="max-w-7xl mx-auto">
+
+        <!-- ==================== VIEW 1: SIMULATOR (Outputs Only) ==================== -->
+        <section id="view-simulator" class="view-section active">
+            <div class="flex flex-col gap-6">
+                
+                <!-- KPI Row -->
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    <!-- Net Cash Cycle -->
+                    <div class="bg-[#1a1642] border border-[#312e81] p-5 rounded-xl shadow-lg flex items-center gap-4">
+                         <div class="w-12 h-12 rounded-full bg-[#312e81]/50 flex items-center justify-center text-[#b026ff]">
+                            <i class="ph-fill ph-clock-countdown text-2xl"></i>
+                        </div>
+                        <div>
+                             <p class="text-xs text-slate-500 uppercase font-bold">Cash Conversion Cycle</p>
+                             <p class="text-2xl font-bold text-white mt-1"><span id="out-ccc">75</span> <span class="text-sm font-normal text-slate-500">days</span></p>
+                        </div>
+                    </div>
+
+                    <!-- NPV Profit -->
+                    <div class="bg-[#1a1642] border border-[#312e81] p-5 rounded-xl shadow-lg flex items-center gap-4">
+                         <div class="w-12 h-12 rounded-full bg-[#312e81]/50 flex items-center justify-center text-[#00f2ea]">
+                            <i class="ph-fill ph-coins text-2xl"></i>
+                        </div>
+                        <div>
+                             <p class="text-xs text-slate-500 uppercase font-bold">NPV (Accounting)</p>
+                             <p class="text-2xl font-bold text-[#00f2ea] mt-1" id="out-npv-profit">$0</p>
+                        </div>
+                    </div>
+
+                    <!-- NPV Cash Flow -->
+                    <div class="bg-[#1a1642] border border-[#312e81] p-5 rounded-xl shadow-lg flex items-center gap-4">
+                         <div class="w-12 h-12 rounded-full bg-[#312e81]/50 flex items-center justify-center text-[#b026ff]">
+                            <i class="ph-fill ph-lightning text-2xl"></i>
+                        </div>
+                        <div>
+                             <p class="text-xs text-slate-500 uppercase font-bold">NPV (Free Cash Flow)</p>
+                             <p class="text-2xl font-bold text-[#b026ff] mt-1" id="out-npv-fcf">$0</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Chart Container -->
+                <div class="bg-[#1a1642] border border-[#312e81] p-6 rounded-xl shadow-lg min-h-[350px]">
+                     <div class="flex justify-between items-start mb-4">
+                        <h4 class="text-sm font-bold text-slate-400 uppercase tracking-wider">Analysis: Profit vs. Cash Flow</h4>
+                        <div class="flex gap-4 text-xs">
+                            <span class="flex items-center gap-2 text-slate-400"><div class="w-3 h-3 rounded bg-[#00f2ea]"></div> Accounting Profit</span>
+                            <span class="flex items-center gap-2 text-slate-400"><div class="w-3 h-3 rounded bg-[#b026ff]"></div> Free Cash Flow</span>
+                        </div>
+                    </div>
+                    <div class="h-[300px] w-full">
+                        <canvas id="wcChart"></canvas>
+                    </div>
+                </div>
+
+                <!-- Detailed Table -->
+                <div class="bg-[#1a1642] border border-[#312e81] rounded-xl shadow-lg overflow-hidden">
+                    <div class="p-4 border-b border-[#312e81] flex justify-between items-center bg-[#131130]">
+                        <h3 class="font-bold text-slate-200 text-sm flex items-center gap-2">
+                            <i class="ph-fill ph-table text-[#b026ff]"></i> Detailed Breakdown
+                        </h3>
+                        <div class="text-[10px] text-slate-500 italic">Values in USD</div>
+                    </div>
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-sm text-left" id="dataTable">
+                            <thead class="text-xs text-slate-500 uppercase bg-[#0f0c29] border-b border-[#312e81] font-semibold">
+                                <tr id="table-header">
+                                    <!-- JS Injected -->
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-[#312e81]" id="table-body">
+                               <!-- JS Injected -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Summary / Insight Box -->
+                <div id="sim-summary-box" class="bg-[#1a1642] border border-[#312e81] rounded-xl p-5 flex items-start gap-4 shadow-lg">
+                    <div class="p-2 bg-[#312e81]/50 rounded-lg text-[#b026ff] mt-1 shrink-0">
+                        <i class="ph-fill ph-lightbulb text-xl"></i>
+                    </div>
+                    <div>
+                        <h4 class="text-sm font-bold text-white mb-2">Executive Summary</h4>
+                        <p id="sim-summary-text" class="text-sm text-slate-400 leading-relaxed">
+                            Loading analysis...
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ==================== VIEW 2: INPUTS (Forms Only) ==================== -->
+        <section id="view-inputs" class="view-section">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <!-- Operating Inputs -->
+                <div class="bg-[#1a1642] border border-[#312e81] p-6 rounded-xl shadow-lg h-fit">
+                    <h3 class="text-sm font-bold text-slate-500 uppercase mb-6 flex items-center gap-2 border-b border-[#312e81] pb-2">
+                        <i class="ph-fill ph-sliders text-[#b026ff]"></i> Operating Assumptions
+                    </h3>
+                    
+                    <div class="space-y-6">
+                        <div>
+                            <label class="text-xs text-slate-400 uppercase font-bold block mb-2">Year 1 Revenue ($)</label>
+                            <input type="number" id="inp-rev" value="1000000" class="input-field focus:ring-1 focus:ring-purple-500" oninput="updateCalc()">
+                        </div>
+                        <div>
+                            <label class="text-xs text-slate-400 uppercase font-bold block mb-2">COGS Margin (%)</label>
+                            <div class="flex gap-4 items-center">
+                                <input type="range" min="10" max="90" value="60" class="flex-1 slider-secondary" oninput="document.getElementById('inp-cogs-pct').value=this.value; updateCalc()">
+                                <input type="number" id="inp-cogs-pct" value="60" class="input-field w-16 p-2 text-center text-sm" oninput="updateCalc()">
+                            </div>
+                        </div>
+                        <div>
+                            <label class="text-xs text-slate-400 uppercase font-bold block mb-2">Annual Growth (%)</label>
+                            <div class="flex gap-4 items-center">
+                                <input type="range" min="0" max="50" value="15" class="flex-1" oninput="document.getElementById('inp-growth').value=this.value; updateCalc()">
+                                <input type="number" id="inp-growth" value="15" class="input-field w-16 p-2 text-center text-sm" oninput="updateCalc()">
+                            </div>
+                        </div>
+                        <div class="pt-4 border-t border-[#312e81]">
+                             <label class="text-xs text-slate-400 uppercase font-bold block mb-2">Discount Rate (WACC %)</label>
+                             <div class="flex gap-4 items-center">
+                                <input type="range" min="5" max="25" value="10" class="flex-1 slider-secondary" oninput="document.getElementById('inp-wacc').value=this.value; updateCalc()">
+                                <input type="number" id="inp-wacc" value="10" class="input-field w-16 p-2 text-center text-sm text-[#00f2ea] font-bold" oninput="updateCalc()">
+                            </div>
+                            <p class="text-[10px] text-slate-600 mt-2">Used for NPV calculation.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Cycle Drivers -->
+                <div class="bg-[#1a1642] border border-[#312e81] p-6 rounded-xl shadow-lg h-fit">
+                    <h3 class="text-sm font-bold text-slate-500 uppercase mb-6 flex items-center gap-2 border-b border-[#312e81] pb-2">
+                        <i class="ph-fill ph-clock-countdown text-[#b026ff]"></i> Working Capital Drivers
+                    </h3>
+
+                    <div class="space-y-6">
+                        <!-- DIO -->
+                        <div>
+                            <div class="flex justify-between text-xs mb-2">
+                                <label class="text-slate-400 font-bold uppercase">Inventory (DIO)</label>
+                                <span class="text-[#b026ff] font-mono font-bold" id="disp-dio">60 Days</span>
+                            </div>
+                            <input type="range" id="inp-dio" min="0" max="180" value="60" class="w-full" oninput="updateCalc()">
+                            <p class="text-[10px] text-slate-500 mt-1">Days Inventory Outstanding</p>
+                        </div>
+
+                        <!-- DSO -->
+                        <div>
+                            <div class="flex justify-between text-xs mb-2">
+                                <label class="text-slate-400 font-bold uppercase">Receivables (DSO)</label>
+                                <span class="text-[#b026ff] font-mono font-bold" id="disp-dso">45 Days</span>
+                            </div>
+                            <input type="range" id="inp-dso" min="0" max="120" value="45" class="w-full" oninput="updateCalc()">
+                            <p class="text-[10px] text-slate-500 mt-1">Days Sales Outstanding</p>
+                        </div>
+
+                        <!-- DPO -->
+                        <div>
+                            <div class="flex justify-between text-xs mb-2">
+                                <label class="text-slate-400 font-bold uppercase">Payables (DPO)</label>
+                                <span class="text-[#b026ff] font-mono font-bold" id="disp-dpo">30 Days</span>
+                            </div>
+                            <input type="range" id="inp-dpo" min="0" max="120" value="30" class="w-full" oninput="updateCalc()">
+                            <p class="text-[10px] text-slate-500 mt-1">Days Payable Outstanding</p>
+                        </div>
+                    </div>
+                    
+                    <div class="mt-8 p-4 bg-[#131130] rounded border border-[#312e81] text-center">
+                        <p class="text-xs text-slate-500">Changes are automatically applied to the Simulator view.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ==================== VIEW 3: DOCUMENTATION ==================== -->
+        <section id="view-documentation" class="view-section space-y-8">
+            <div class="max-w-3xl mx-auto space-y-6">
+                
+                <div class="card bg-[#1a1642] p-6 rounded-xl border border-[#312e81]">
+                    <h3 class="text-lg font-bold text-white mb-2">What is Working Capital?</h3>
+                    <p class="text-sm text-slate-400 leading-relaxed">
+                        Net Working Capital (NWC) represents the liquidity available to a business for daily operations. 
+                        It is calculated as Current Assets minus Current Liabilities. 
+                        In this model, we focus on the operating cycle components: 
+                        Receivables + Inventory - Payables.
+                    </p>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    <div class="bg-[#1a1642] p-6 rounded-xl border-l-4 border-indigo-500">
+                        <h4 class="text-sm font-bold text-indigo-400">DSO</h4>
+                        <p class="text-xs text-slate-400 mt-2">Days Sales Outstanding. Avg days to collect payment.</p>
+                        <code class="text-[10px] bg-[#131130] px-2 py-1 rounded text-slate-300 mt-2 block w-fit">(Rev / 365) * DSO</code>
+                    </div>
+                    
+                    <div class="bg-[#1a1642] p-6 rounded-xl border-l-4 border-cyan-500">
+                        <h4 class="text-sm font-bold text-[#00f2ea]">DIO</h4>
+                        <p class="text-xs text-slate-400 mt-2">Days Inventory Outstanding. Avg days to sell inventory.</p>
+                        <code class="text-[10px] bg-[#131130] px-2 py-1 rounded text-slate-300 mt-2 block w-fit">(COGS / 365) * DIO</code>
+                    </div>
+
+                    <div class="bg-[#1a1642] p-6 rounded-xl border-l-4 border-purple-500">
+                        <h4 class="text-sm font-bold text-[#b026ff]">DPO</h4>
+                        <p class="text-xs text-slate-400 mt-2">Days Payable Outstanding. Avg days to pay suppliers.</p>
+                        <code class="text-[10px] bg-[#131130] px-2 py-1 rounded text-slate-300 mt-2 block w-fit">(COGS / 365) * DPO</code>
+                    </div>
+                </div>
+
+                <div class="bg-[#1a1642] p-6 rounded-xl border border-purple-900/30 bg-purple-900/10">
+                    <h3 class="text-sm font-bold text-purple-400 mb-2">Understanding NPV</h3>
+                    <p class="text-xs text-slate-300">
+                        This simulator calculates two NPVs. 
+                        <span class="text-[#00f2ea]">Accounting NPV</span> discounts the Operating Profit (EBIT).
+                        <span class="text-[#b026ff]">Free Cash Flow NPV</span> discounts the actual cash generated after adjusting for changes in Working Capital.
+                        A positive gap indicates efficient cash management.
+                    </p>
+                </div>
+            </div>
+        </section>
+
+      </div>
+    </div>
+  </main>
+
+  <script>
+    // --- Configuration & State ---
+    let myChart = null;
+
+    // --- Navigation Logic ---
+    function switchTab(tabId) {
+        // Update Sidebar UI
+        document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
+        document.getElementById(`nav-${tabId}`).classList.add('active');
+
+        // Update View Visibility
+        document.querySelectorAll('.view-section').forEach(el => el.classList.remove('active'));
+        document.getElementById(`view-${tabId}`).classList.add('active');
+
+        // Update Header Title
+        const titles = { 'simulator': 'Simulator Output', 'inputs': 'Inputs Configuration', 'documentation': 'Documentation' };
+        document.getElementById('header-title').textContent = titles[tabId];
+
+        // Toggle Scenarios Visibility
+        const scenarioControls = document.getElementById('scenario-controls');
+        // Show scenarios in both simulator and inputs tabs
+        if (tabId === 'simulator' || tabId === 'inputs') scenarioControls.classList.remove('hidden');
+        else scenarioControls.classList.add('hidden');
+        
+        // On mobile, close sidebar after click
+        if(window.innerWidth < 768) {
+             document.getElementById('main-sidebar').classList.remove('translate-x-0');
+             document.getElementById('main-sidebar').classList.add('-translate-x-full');
+        }
+    }
+
+    function toggleSidebar() {
+        const sidebar = document.getElementById('main-sidebar');
+        // Toggle transform classes
+        if (sidebar.classList.contains('-translate-x-full')) {
+            sidebar.classList.remove('-translate-x-full');
+            sidebar.classList.add('translate-x-0');
+        } else {
+            sidebar.classList.remove('translate-x-0');
+            sidebar.classList.add('-translate-x-full');
+        }
+    }
+
+    // --- Scenarios ---
+    const scenarios = {
+        base: { growth: 15, dio: 60, dso: 45, dpo: 30, wacc: 10 },
+        crunch: { growth: 40, dio: 90, dso: 60, dpo: 15, wacc: 12 },
+        optimized: { growth: 10, dio: 30, dso: 30, dpo: 60, wacc: 8 }
+    };
+
+    function setScenario(key) {
+        const s = scenarios[key];
+        document.getElementById('inp-growth').value = s.growth;
+        document.getElementById('inp-dio').value = s.dio;
+        document.getElementById('inp-dso').value = s.dso;
+        document.getElementById('inp-dpo').value = s.dpo;
+        document.getElementById('inp-wacc').value = s.wacc;
+        updateCalc();
+    }
+
+    // --- Formatters ---
+    const fmtMoney = (num) => {
+        if(Math.abs(num) >= 1000000) return '$' + (num/1000000).toFixed(2) + 'M';
+        if(Math.abs(num) >= 1000) return '$' + (num/1000).toFixed(0) + 'k';
+        return '$' + num.toFixed(0);
+    };
+
+    // --- Calculation Logic ---
+    function updateCalc() {
+        // 1. Get Inputs
+        const revY1 = parseFloat(document.getElementById('inp-rev').value) || 0;
+        const cogsPct = parseFloat(document.getElementById('inp-cogs-pct').value) / 100;
+        const growth = parseFloat(document.getElementById('inp-growth').value) / 100;
+        const wacc = parseFloat(document.getElementById('inp-wacc').value) / 100;
+        const years = 5; 
+        
+        const dio = parseInt(document.getElementById('inp-dio').value);
+        const dso = parseInt(document.getElementById('inp-dso').value);
+        const dpo = parseInt(document.getElementById('inp-dpo').value);
+        
+        // Update Slider Labels
+        document.getElementById('disp-dio').innerText = dio + ' Days';
+        document.getElementById('disp-dso').innerText = dso + ' Days';
+        document.getElementById('disp-dpo').innerText = dpo + ' Days';
+
+        // 2. Calculate CCC
+        const ccc = dio + dso - dpo;
+        document.getElementById('out-ccc').innerText = ccc;
+        document.getElementById('out-ccc').className = `text-2xl font-bold mt-1 ${ccc > 100 ? 'text-red-400' : 'text-[#b026ff]'}`;
+
+        // 3. Generate Projection Arrays
+        let arrYears = [];
+        let arrRev = [], arrProfit = [], arrInv = [], arrAR = [], arrAP = [];
+        let arrNWC = [], arrDeltaNWC = [], arrFCF = [];
+        let totalNPVProfit = 0;
+        let totalNPVFCF = 0;
+
+        let currRev = revY1;
+        let prevNWC = 0; 
+
+        for(let i=1; i<=years; i++) {
+            arrYears.push('Year ' + i);
+            
+            const currCOGS = currRev * cogsPct;
+            const opProfit = currRev - currCOGS; // Simplified EBIT
+            
+            // Components
+            const inv = (currCOGS / 365) * dio;
+            const ar = (currRev / 365) * dso;
+            const ap = (currCOGS / 365) * dpo;
+            
+            const nwc = inv + ar - ap;
+            const deltaNWC = nwc - prevNWC;
+            const fcf = opProfit - deltaNWC;
+
+            // Discounting
+            const df = 1 / Math.pow(1 + wacc, i);
+            totalNPVProfit += opProfit * df;
+            totalNPVFCF += fcf * df;
+
+            // Store Data
+            arrRev.push(currRev);
+            arrProfit.push(opProfit);
+            arrInv.push(inv);
+            arrAR.push(ar);
+            arrAP.push(ap);
+            arrNWC.push(nwc);
+            arrDeltaNWC.push(deltaNWC);
+            arrFCF.push(fcf);
+
+            // Next Year
+            prevNWC = nwc;
+            currRev = currRev * (1 + growth);
+        }
+
+        // 4. Update Summary Cards
+        document.getElementById('out-npv-profit').innerText = fmtMoney(totalNPVProfit);
+        document.getElementById('out-npv-fcf').innerText = fmtMoney(totalNPVFCF);
+        
+        // Color logic for NPV comparison
+        const fcfElem = document.getElementById('out-npv-fcf');
+        if(totalNPVFCF < totalNPVProfit * 0.5) fcfElem.className = "text-2xl font-bold text-red-400 mt-1";
+        else fcfElem.className = "text-2xl font-bold text-[#b026ff] mt-1";
+
+        // 5. Update Table & Chart
+        renderTable(arrYears, arrRev, arrProfit, arrInv, arrAR, arrAP, arrNWC, arrDeltaNWC, arrFCF);
+        renderChart(arrYears, arrProfit, arrFCF);
+
+        // 6. Update Text Summary
+        const summaryEl = document.getElementById('sim-summary-text');
+        let summaryHTML = '';
+
+        const efficiency = totalNPVProfit > 0 ? (totalNPVFCF / totalNPVProfit) * 100 : 0;
+        
+        if(efficiency > 90) {
+            summaryHTML = `Based on current assumptions, the business converts <span class="text-[#00f2ea] font-bold">${efficiency.toFixed(0)}%</span> of its accounting profit into real cash flow. This indicates a <span class="text-[#00f2ea] font-bold">highly efficient</span> capital cycle with a CCC of ${ccc} days.`;
+        } else if (efficiency > 70) {
+            summaryHTML = `The business generates <span class="text-white font-bold">${efficiency.toFixed(0)}%</span> of profit as free cash. While stable, optimizing Inventory (DIO: ${dio}) or Payables (DPO: ${dpo}) could unlock more liquidity.`;
+        } else {
+            summaryHTML = `Warning: Only <span class="text-red-400 font-bold">${efficiency.toFixed(0)}%</span> of profit realizes as cash. A long Cash Conversion Cycle (${ccc} days) is trapping significant liquidity in operations, potentially requiring external financing to support growth.`;
+        }
+
+        summaryEl.innerHTML = summaryHTML;
+    }
+
+    // --- Table Renderer ---
+    function renderTable(years, rev, profit, inv, ar, ap, nwc, delta, fcf) {
+        const thead = document.getElementById('table-header');
+        const tbody = document.getElementById('table-body');
+        
+        let hHTML = '<th class="px-4 py-3 text-slate-400 font-normal">Metric</th>';
+        years.forEach(y => hHTML += `<th class="px-4 py-3 text-right font-normal text-slate-300">${y}</th>`);
+        thead.innerHTML = hHTML;
+
+        const row = (name, data, styleType="normal") => {
+            let trClass = "hover:bg-[#131130] transition border-[#312e81]";
+            let nameClass = "text-slate-400";
+            let valClass = "text-slate-300 font-mono";
+
+            if(styleType === "sub") { nameClass = "text-slate-500 pl-8 text-xs italic"; valClass = "text-slate-500 text-xs"; }
+            if(styleType === "bold") { nameClass = "text-white font-bold"; valClass = "text-white font-bold"; trClass="bg-[#312e81]/30"; }
+            if(styleType === "highlight") { nameClass = "text-[#b026ff] font-bold"; valClass = "text-[#b026ff] font-bold"; trClass="bg-[#b026ff]/10 border-t border-[#b026ff]/30"; }
+            
+            let html = `<tr class="${trClass}"><td class="px-4 py-2 ${nameClass}">${name}</td>`;
+            
+            data.forEach(val => {
+                let displayVal = fmtMoney(val);
+                // Highlight negative cash flow impact (positive delta) as bad
+                if(name.includes("Change in WC")) {
+                    displayVal = `<span class="${val > 0 ? 'text-red-400' : 'text-[#b026ff]'}">${displayVal}</span>`;
+                }
+                html += `<td class="px-4 py-2 text-right ${valClass}">${displayVal}</td>`;
+            });
+            return html + '</tr>';
+        };
+
+        let bHTML = '';
+        bHTML += row('Revenue', rev);
+        bHTML += row('Operating Profit', profit, "bold");
+        bHTML += row('Inventory (Asset)', inv, "sub");
+        bHTML += row('Receivables (Asset)', ar, "sub");
+        bHTML += row('Payables (Liability)', ap, "sub");
+        bHTML += row('Net Working Capital', nwc);
+        bHTML += row('Change in WC', delta);
+        bHTML += row('Free Cash Flow', fcf, "highlight");
+        
+        tbody.innerHTML = bHTML;
+    }
+
+    // --- Chart Renderer ---
+    function renderChart(labels, profitData, fcfData) {
+        const ctx = document.getElementById('wcChart').getContext('2d');
+        if(myChart) myChart.destroy();
+
+        // Chart Config
+        Chart.defaults.color = '#94a3b8';
+        Chart.defaults.font.family = 'Inter';
+
+        myChart = new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: labels,
+                datasets: [
+                    {
+                        label: 'Accounting Profit',
+                        data: profitData,
+                        backgroundColor: '#00f2ea', // Cyan
+                        borderRadius: 3,
+                        barPercentage: 0.6,
+                        categoryPercentage: 0.7
+                    },
+                    {
+                        label: 'Real Cash Flow',
+                        data: fcfData,
+                        backgroundColor: '#b026ff', // Purple
+                        borderRadius: 3,
+                        barPercentage: 0.6,
+                        categoryPercentage: 0.7
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { display: false },
+                    tooltip: {
+                        backgroundColor: '#1a1642',
+                        titleColor: '#fff',
+                        bodyColor: '#e2e8f0',
+                        borderColor: '#312e81',
+                        borderWidth: 1,
+                        padding: 10,
+                        displayColors: true,
+                        callbacks: { label: (c) => ` ${c.dataset.label}: ${fmtMoney(c.raw)}` }
+                    }
+                },
+                scales: {
+                    y: {
+                        grid: { color: '#312e81' },
+                        ticks: { callback: (v) => fmtMoney(v) },
+                        border: { display: false }
+                    },
+                    x: {
+                        grid: { display: false },
+                        border: { display: false }
+                    }
+                }
+            }
+        });
+    }
+
+    // --- Export CSV ---
+    function downloadCSV() {
+        let csv = [];
+        const rows = document.querySelectorAll("table tr");
+        
+        for (let i = 0; i < rows.length; i++) {
+            let row = [], cols = rows[i].querySelectorAll("td, th");
+            for (let j = 0; j < cols.length; j++) 
+                row.push(cols[j].innerText.replace(/,/g, '')); // Clean currency format
+            csv.push(row.join(","));        
+        }
+
+        const csvFile = new Blob([csv.join("\n")], {type: "text/csv"});
+        const downloadLink = document.createElement("a");
+        downloadLink.download = "WC_Simulation.csv";
+        downloadLink.href = window.URL.createObjectURL(csvFile);
+        downloadLink.style.display = "none";
+        document.body.appendChild(downloadLink);
+        downloadLink.click();
+    }
+
+    // --- Init ---
+    window.addEventListener('DOMContentLoaded', () => {
+        updateCalc();
+    });
+
+  </script>
+</body>
+</html>
