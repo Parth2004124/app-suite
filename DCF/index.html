@@ -1,0 +1,817 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>PB ValuEight - Strategic Finance</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Phosphor Icons -->
+  <script src="https://unpkg.com/@phosphor-icons/web"></script>
+  <!-- Chart.js -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <style>
+    /* Theme: Stone & Emerald (Financial) */
+    :root {
+      --primary: #059669; /* Emerald 600 */
+      --primary-hover: #047857; /* Emerald 700 */
+      --accent: #10b981; /* Emerald 500 */
+      --bg-dark: #0c0a09; /* Stone 950 */
+      --panel-dark: #1c1917; /* Stone 900 */
+      --border-color: #292524; /* Stone 800 */
+    }
+
+    ::-webkit-scrollbar { width: 8px; height: 8px; }
+    ::-webkit-scrollbar-track { background: var(--bg-dark); }
+    ::-webkit-scrollbar-thumb { background: #44403c; border-radius: 4px; }
+    ::-webkit-scrollbar-thumb:hover { background: #57534e; }
+    
+    body { background-color: var(--bg-dark); color: #e7e5e4; }
+
+    .nav-item.active {
+      background-color: #1c1917; /* Stone 900 */
+      border-left: 3px solid var(--accent);
+      color: var(--accent);
+    }
+    .nav-item { border-left: 3px solid transparent; }
+
+    /* Range Slider Styling */
+    input[type=range] { -webkit-appearance: none; background: transparent; }
+    input[type=range]::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      height: 16px; width: 16px;
+      border-radius: 50%;
+      background: var(--accent);
+      cursor: pointer;
+      margin-top: -6px; 
+      box-shadow: 0 0 10px rgba(16, 185, 129, 0.5);
+    }
+    input[type=range]::-webkit-slider-runnable-track {
+      width: 100%; height: 4px;
+      cursor: pointer;
+      background: #44403c;
+      border-radius: 2px;
+    }
+
+    /* Table Sticky Headers */
+    .sticky-col { position: sticky; left: 0; background: var(--panel-dark); z-index: 10; }
+    .sticky-header { position: sticky; top: 0; background: var(--panel-dark); z-index: 20; }
+
+    /* Editable Input Styles */
+    .input-editable {
+        background: transparent;
+        border-bottom: 1px dashed #57534e;
+        color: #fff;
+        width: 100%;
+        text-align: right;
+        font-family: inherit;
+        transition: border 0.2s;
+    }
+    .input-editable:focus {
+        outline: none;
+        border-bottom: 1px solid var(--accent);
+        background: #292524;
+    }
+
+    /* Print Styles */
+    @media print {
+        aside, header, .no-print { display: none !important; }
+        body, main, #app { height: auto; overflow: visible; background: white; color: black; }
+        .bg-slate-900, .bg-stone-900, .bg-\[\#1c1917\], .bg-\[\#141210\] { background: white !important; border: 1px solid #ddd !important; color: black !important; }
+        .text-slate-400, .text-stone-400 { color: #666 !important; }
+        .text-white, .text-stone-200, .text-stone-300 { color: black !important; }
+        input[type=range] { display: none; }
+        .input-editable { border-bottom: none; text-align: right; color: black; }
+        canvas { max-height: 300px; }
+    }
+    
+    /* Docs Typography */
+    .doc-content h3 { color: var(--accent); margin-top: 1.5rem; font-size: 1.25rem; font-weight: 700; }
+    .doc-content p { margin-bottom: 1rem; line-height: 1.6; color: #a8a29e; }
+    .doc-content li { margin-bottom: 0.5rem; color: #d6d3d1; }
+    .doc-content strong { color: white; }
+  </style>
+</head>
+<body class="font-sans h-screen flex overflow-hidden selection:bg-emerald-500 selection:text-white">
+
+  <!-- SIDEBAR -->
+  <aside id="sidebar" class="w-64 bg-[#141210] border-r border-[#292524] flex flex-col hidden md:flex shrink-0 transition-all duration-300">
+    <div class="p-6 border-b border-[#292524] flex items-center gap-3">
+      <div class="w-8 h-8 rounded bg-gradient-to-br from-emerald-600 to-teal-500 flex items-center justify-center shadow-lg shadow-emerald-900/50">
+        <i class="ph-bold ph-chart-polar text-white text-lg"></i>
+      </div>
+      <h1 class="font-bold text-lg tracking-wide text-stone-200">PB <span class="text-emerald-500">ValuEight</span></h1>
+    </div>
+    
+    <nav class="flex-1 p-4 space-y-1 overflow-y-auto">
+      <button onclick="router('dashboard')" id="nav-dashboard" class="nav-item w-full flex items-center gap-3 px-4 py-3 text-sm font-medium text-stone-400 hover:bg-[#1c1917] hover:text-white transition-all rounded-r-lg group">
+        <i class="ph ph-squares-four text-lg group-hover:text-emerald-400 transition-colors"></i> Dashboard
+      </button>
+      
+      <div class="pt-6 pb-2 px-4 text-[10px] font-bold text-stone-600 uppercase tracking-widest">Analysis</div>
+      <button onclick="router('model')" id="nav-model" class="nav-item w-full flex items-center gap-3 px-4 py-3 text-sm font-medium text-stone-400 hover:bg-[#1c1917] hover:text-white transition-all rounded-r-lg group">
+        <i class="ph ph-table text-lg group-hover:text-emerald-400 transition-colors"></i> Financial Model
+      </button>
+      <button onclick="router('assumptions')" id="nav-assumptions" class="nav-item w-full flex items-center gap-3 px-4 py-3 text-sm font-medium text-stone-400 hover:bg-[#1c1917] hover:text-white transition-all rounded-r-lg group">
+        <i class="ph ph-sliders text-lg group-hover:text-emerald-400 transition-colors"></i> Scenarios & Drivers
+      </button>
+      <button onclick="router('sensitivity')" id="nav-sensitivity" class="nav-item w-full flex items-center gap-3 px-4 py-3 text-sm font-medium text-stone-400 hover:bg-[#1c1917] hover:text-white transition-all rounded-r-lg group">
+        <i class="ph ph-matrix-logo text-lg group-hover:text-emerald-400 transition-colors"></i> Sensitivity Matrix
+      </button>
+
+      <div class="pt-6 pb-2 px-4 text-[10px] font-bold text-stone-600 uppercase tracking-widest">Configuration</div>
+      <button onclick="router('settings')" id="nav-settings" class="nav-item w-full flex items-center gap-3 px-4 py-3 text-sm font-medium text-stone-400 hover:bg-[#1c1917] hover:text-white transition-all rounded-r-lg group">
+        <i class="ph ph-gear text-lg group-hover:text-emerald-400 transition-colors"></i> Global Settings
+      </button>
+      <button onclick="router('report')" id="nav-report" class="nav-item w-full flex items-center gap-3 px-4 py-3 text-sm font-medium text-stone-400 hover:bg-[#1c1917] hover:text-white transition-all rounded-r-lg group">
+        <i class="ph ph-printer text-lg group-hover:text-emerald-400 transition-colors"></i> Print / Export
+      </button>
+      <button onclick="router('docs')" id="nav-docs" class="nav-item w-full flex items-center gap-3 px-4 py-3 text-sm font-medium text-stone-400 hover:bg-[#1c1917] hover:text-white transition-all rounded-r-lg group">
+        <i class="ph ph-book-open text-lg group-hover:text-emerald-400 transition-colors"></i> User Guide
+      </button>
+    </nav>
+
+    <div class="p-4 border-t border-[#292524] bg-[#0f0e0d]">
+      <button onclick="resetData()" class="w-full text-xs text-red-400 hover:text-red-300 hover:bg-red-900/10 py-2 rounded flex items-center justify-center gap-2 transition-colors">
+        <i class="ph ph-arrow-counter-clockwise"></i> Reset Default
+      </button>
+    </div>
+  </aside>
+
+  <!-- MAIN CONTENT -->
+  <main class="flex-1 flex flex-col h-screen overflow-hidden relative">
+    <!-- Header -->
+    <header class="h-16 bg-[#141210] border-b border-[#292524] flex items-center justify-between px-6 shrink-0">
+      <div class="md:hidden flex items-center gap-2">
+         <button onclick="document.querySelector('aside').classList.toggle('hidden')" class="text-stone-300 p-2"><i class="ph ph-list text-2xl"></i></button>
+         <div class="font-bold text-stone-200">PB ValuEight</div>
+      </div>
+      <div class="ml-auto flex items-center gap-4">
+          <div class="flex items-center gap-2 px-3 py-1 bg-[#1c1917] rounded-full border border-[#292524]">
+             <div class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></div>
+             <span class="text-xs text-stone-300 font-mono tracking-tight" id="active-scenario-badge">Scenario: Base Case</span>
+          </div>
+      </div>
+    </header>
+
+    <!-- Content Container -->
+    <div id="app" class="flex-1 overflow-y-auto p-4 md:p-8 scroll-smooth">
+      <!-- Views injected here -->
+    </div>
+  </main>
+
+<script>
+/**
+ * ==========================================
+ * FINANCIAL ENGINE (DCF LOGIC)
+ * ==========================================
+ */
+const CURRENT_YEAR = new Date().getFullYear();
+
+const DEFAULT_DATA = {
+    // Config
+    companyName: 'Project Alpha',
+    currencySymbol: '$',
+    baseYear: CURRENT_YEAR - 1, // Default: Last year was actuals
+
+    currentScenario: 'Base Case',
+    scenarios: {
+        'Base Case': {
+            wacc: 10.5, terminalGrowth: 2.5, taxRate: 25.0,
+            revGrowth: [10, 10, 9, 7, 5],
+            ebitMargin: [12, 12.5, 13, 13.5, 14]
+        },
+        'Bull Case': {
+            wacc: 9.5, terminalGrowth: 3.5, taxRate: 25.0,
+            revGrowth: [15, 14, 12, 10, 8],
+            ebitMargin: [13, 14, 15, 16, 17]
+        },
+        'Bear Case': {
+            wacc: 12.0, terminalGrowth: 1.5, taxRate: 25.0,
+            revGrowth: [5, 4, 3, 2, 1],
+            ebitMargin: [10, 10, 9, 8, 8]
+        }
+    },
+    // Global Constants
+    debt: 12000, 
+    shares: 1000,
+    drivers: {
+        daPercent: 2.0, // % of Revenue
+        capexPercent: 2.5, // % of Revenue
+        nwcPercent: 1.5 // % of Revenue
+    },
+    // Historical Data (Placeholder defaults)
+    history: {
+        revenue: [152703, 166761, 195929],
+        cogs: [132886, 144939, 170684],
+        opex: [6356, 8861, 8958],
+        da: [2998, 2810, 3588],
+        capex: [2998, 2810, 3588],
+        nwcChange: [-2865, -3891, -3535]
+    }
+};
+
+let db = JSON.parse(localStorage.getItem('pb_valu8_v1')) || DEFAULT_DATA;
+
+function saveDB() {
+    localStorage.setItem('pb_valu8_v1', JSON.stringify(db));
+    calculateModel();
+    renderCurrentView();
+}
+
+function resetData() {
+    if(confirm("Reset entire model to factory settings (Current Year Defaults)?")) {
+        localStorage.removeItem('pb_valu8_v1');
+        location.reload();
+    }
+}
+
+// Formatters
+const money = (v) => {
+    return new Intl.NumberFormat('en-US', { 
+        style: 'currency', 
+        currency: 'USD', 
+        maximumFractionDigits: 0 
+    }).format(v).replace('$', db.currencySymbol || '$');
+};
+const num = (v) => new Intl.NumberFormat('en-US').format(v);
+
+// Global Calculation Results
+let model = {};
+
+function calculateModel() {
+    const s = db.scenarios[db.currentScenario];
+    const baseYear = parseInt(db.baseYear);
+    
+    // Dynamic Years
+    const histYears = [baseYear - 2, baseYear - 1, baseYear];
+    const projYears = [baseYear + 1, baseYear + 2, baseYear + 3, baseYear + 4, baseYear + 5];
+    
+    let projections = [];
+    let lastRev = db.history.revenue[2]; 
+
+    // 1. Build Projections
+    projYears.forEach((y, i) => {
+        const rev = lastRev * (1 + (s.revGrowth[i] / 100));
+        const ebit = rev * (s.ebitMargin[i] / 100);
+        const tax = ebit * (s.taxRate / 100);
+        const nopat = ebit - tax;
+        const da = rev * (db.drivers.daPercent / 100);
+        const capex = rev * (db.drivers.capexPercent / 100);
+        const nwc = rev * (db.drivers.nwcPercent / 100);
+        
+        const ufcf = nopat + da - capex - nwc;
+        
+        // Discount
+        const t = i + 0.5; // Mid-year
+        const df = 1 / Math.pow((1 + s.wacc/100), t);
+        const pv = ufcf * df;
+
+        projections.push({ year: y, revenue: rev, ebit, nopat, ufcf, pv, da, capex, nwc });
+        lastRev = rev;
+    });
+
+    // 2. Terminal Value
+    const lastFCF = projections[projections.length - 1].ufcf;
+    const tv = (lastFCF * (1 + s.terminalGrowth/100)) / ((s.wacc - s.terminalGrowth)/100);
+    const tvPV = tv / Math.pow((1 + s.wacc/100), 5);
+
+    // 3. Enterprise Value
+    const sumPV = projections.reduce((a, b) => a + b.pv, 0);
+    const enterpriseValue = sumPV + tvPV;
+    const equityValue = enterpriseValue - db.debt;
+    const sharePrice = equityValue / db.shares;
+
+    model = { histYears, projYears, projections, tv, tvPV, enterpriseValue, equityValue, sharePrice, sumPV };
+    
+    // Update Header Badge
+    const badge = document.getElementById('active-scenario-badge');
+    if(badge) badge.innerText = `Scenario: ${db.currentScenario}`;
+}
+
+/**
+ * ==========================================
+ * ROUTER
+ * ==========================================
+ */
+let currentView = 'dashboard';
+
+function router(view) {
+    currentView = view;
+    document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
+    const navEl = document.getElementById(`nav-${view}`);
+    if(navEl) navEl.classList.add('active');
+    
+    // Mobile close
+    if(window.innerWidth < 768) document.querySelector('aside').classList.add('hidden');
+    
+    renderCurrentView();
+}
+
+function renderCurrentView() {
+    const app = document.getElementById('app');
+    calculateModel(); 
+
+    if (currentView === 'dashboard') renderDashboard(app);
+    else if (currentView === 'model') renderModel(app);
+    else if (currentView === 'assumptions') renderAssumptions(app);
+    else if (currentView === 'sensitivity') renderSensitivity(app);
+    else if (currentView === 'settings') renderSettings(app);
+    else if (currentView === 'report') renderReport(app);
+    else if (currentView === 'docs') renderDocs(app);
+}
+
+/**
+ * ==========================================
+ * DASHBOARD
+ * ==========================================
+ */
+function renderDashboard(container) {
+    const s = db.scenarios[db.currentScenario];
+    container.innerHTML = `
+        <div class="mb-8 flex flex-col md:flex-row justify-between items-end gap-4">
+            <div>
+                <h2 class="text-3xl font-bold text-white mb-1">${db.companyName} Dashboard</h2>
+                <p class="text-stone-400">Valuation Date: Dec 31, ${db.baseYear} (Scenario: <span class="text-emerald-400 font-bold">${db.currentScenario}</span>)</p>
+            </div>
+            <div class="bg-[#1c1917] p-2 rounded-lg border border-[#292524] flex gap-2">
+                <button onclick="switchScenario('Base Case')" class="px-3 py-1 text-xs rounded ${db.currentScenario==='Base Case'?'bg-stone-700 text-white':'text-stone-500 hover:text-stone-300'}">Base</button>
+                <button onclick="switchScenario('Bull Case')" class="px-3 py-1 text-xs rounded ${db.currentScenario==='Bull Case'?'bg-emerald-900 text-emerald-400':'text-stone-500 hover:text-stone-300'}">Bull</button>
+                <button onclick="switchScenario('Bear Case')" class="px-3 py-1 text-xs rounded ${db.currentScenario==='Bear Case'?'bg-red-900 text-red-400':'text-stone-500 hover:text-stone-300'}">Bear</button>
+            </div>
+        </div>
+
+        <!-- KPI Cards -->
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+            <div class="bg-[#1c1917] border border-[#292524] p-6 rounded-xl relative overflow-hidden group hover:border-emerald-500/30 transition-colors">
+                <div class="absolute right-0 top-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity"><i class="ph-fill ph-money text-6xl text-emerald-500"></i></div>
+                <div class="text-stone-400 text-xs uppercase font-bold tracking-wider mb-1">Target Share Price</div>
+                <div class="text-4xl font-bold text-emerald-400">${money(model.sharePrice)}</div>
+                <div class="text-xs text-stone-500 mt-2">Equity Value / ${num(db.shares)}M Shares</div>
+            </div>
+            
+            <div class="bg-[#1c1917] border border-[#292524] p-6 rounded-xl">
+                <div class="text-stone-400 text-xs uppercase font-bold tracking-wider mb-1">Enterprise Value</div>
+                <div class="text-2xl font-bold text-white">${money(model.enterpriseValue)}</div>
+                <div class="w-full bg-stone-800 h-1.5 rounded-full mt-4 overflow-hidden flex">
+                    <div class="bg-emerald-500 h-full" style="width: ${(model.sumPV/model.enterpriseValue)*100}%"></div>
+                    <div class="bg-indigo-500 h-full" style="width: ${(model.tvPV/model.enterpriseValue)*100}%"></div>
+                </div>
+                <div class="flex justify-between mt-1 text-[10px] text-stone-500">
+                    <span>Cash Flows (${((model.sumPV/model.enterpriseValue)*100).toFixed(0)}%)</span>
+                    <span>Terminal (${((model.tvPV/model.enterpriseValue)*100).toFixed(0)}%)</span>
+                </div>
+            </div>
+
+            <div class="bg-[#1c1917] border border-[#292524] p-6 rounded-xl">
+                <div class="text-stone-400 text-xs uppercase font-bold tracking-wider mb-1">Terminal Value</div>
+                <div class="text-2xl font-bold text-stone-200">${money(model.tv)}</div>
+                <div class="text-xs text-stone-500 mt-2">Exit Multiple implied by <span class="text-emerald-400">${s.terminalGrowth}%</span> Growth</div>
+            </div>
+
+            <div class="bg-[#1c1917] border border-[#292524] p-6 rounded-xl">
+                <div class="text-stone-400 text-xs uppercase font-bold tracking-wider mb-1">Discount Rate (WACC)</div>
+                <div class="text-2xl font-bold text-amber-400">${s.wacc}%</div>
+                <input type="range" min="5" max="20" step="0.1" value="${s.wacc}" 
+                    class="w-full mt-2 h-1 appearance-none cursor-pointer"
+                    oninput="updateSetting('wacc', this.value)">
+            </div>
+        </div>
+
+        <!-- Charts Row -->
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <div class="bg-[#1c1917] border border-[#292524] p-6 rounded-xl">
+                <h3 class="font-bold mb-4 text-stone-200">Free Cash Flow Projection</h3>
+                <canvas id="fcfChart" height="250"></canvas>
+            </div>
+            <div class="bg-[#1c1917] border border-[#292524] p-6 rounded-xl">
+                <h3 class="font-bold mb-4 text-stone-200">Valuation Bridge</h3>
+                <canvas id="waterfallChart" height="250"></canvas>
+            </div>
+        </div>
+    `;
+
+    setTimeout(() => {
+        const commonOptions = {
+            plugins: { legend: { display: false } },
+            scales: { y: { grid: { color: '#292524' }, ticks: { color: '#78716c' } }, x: { grid: { display: false }, ticks: { color: '#78716c' } } }
+        };
+
+        new Chart(document.getElementById('fcfChart'), {
+            type: 'bar',
+            data: {
+                labels: model.projYears,
+                datasets: [{ label: 'UFCF', data: model.projections.map(p => p.ufcf), backgroundColor: '#10b981', borderRadius: 4 }]
+            },
+            options: commonOptions
+        });
+
+        new Chart(document.getElementById('waterfallChart'), {
+            type: 'bar',
+            data: {
+                labels: ['PV of Cash Flows', 'PV of Terminal Val', 'Enterprise Value', 'Less: Debt', 'Equity Value'],
+                datasets: [{
+                    data: [model.sumPV, model.tvPV, model.enterpriseValue, -db.debt, model.equityValue],
+                    backgroundColor: ['#10b981', '#6366f1', '#f59e0b', '#ef4444', '#3b82f6']
+                }]
+            },
+            options: { ...commonOptions, indexAxis: 'y' }
+        });
+    }, 100);
+}
+
+/**
+ * ==========================================
+ * MODEL TABLE
+ * ==========================================
+ */
+function renderModel(container) {
+    const s = db.scenarios[db.currentScenario];
+    const years = [...model.histYears, ...model.projYears];
+    
+    // Combine Data for Table
+    const revRow = [...db.history.revenue, ...model.projections.map(p => p.revenue)];
+    // Historical EBIT = Rev - COGS - Opex
+    const histEBIT = db.history.revenue.map((r, i) => r - db.history.cogs[i] - db.history.opex[i]);
+    const ebitRow = [...histEBIT, ...model.projections.map(p => p.ebit)];
+
+    container.innerHTML = `
+        <div class="flex justify-between items-center mb-6">
+            <h2 class="text-2xl font-bold text-white">Financial Model: ${db.currentScenario}</h2>
+            <div class="flex gap-2">
+                <div class="text-xs text-stone-500 py-2 px-3 border border-[#292524] rounded-lg">Blue underlines indicate editable history</div>
+                <button onclick="router('settings')" class="px-4 py-2 bg-[#292524] hover:bg-stone-700 text-white rounded-lg text-sm font-medium border border-stone-700">Change Years</button>
+            </div>
+        </div>
+
+        <div class="bg-[#1c1917] border border-[#292524] rounded-xl overflow-hidden shadow-xl">
+            <div class="overflow-x-auto">
+                <table class="w-full text-sm text-right font-mono">
+                    <thead class="bg-[#141210] text-stone-400 uppercase text-[10px] font-bold sticky-header font-sans">
+                        <tr>
+                            <th class="p-4 text-left sticky-col border-r border-[#292524]">Metric (Millions)</th>
+                            ${years.map((y, i) => `<th class="p-4 min-w-[100px] ${i > 2 ? 'text-emerald-500' : ''}">${y}</th>`).join('')}
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-[#292524] text-stone-300">
+                        <!-- Revenue -->
+                        <tr class="bg-stone-800/20 font-bold">
+                            <td class="p-4 text-left sticky-col bg-[#1c1917] border-r border-[#292524]">Revenue</td>
+                            ${revRow.map((v, i) => i < 3 
+                                ? `<td class="p-4 p-0"><input type="number" class="input-editable p-4" value="${v}" onchange="updateHistory('revenue', ${i}, this.value)"></td>` 
+                                : `<td class="p-4">${num(v)}</td>`).join('')}
+                        </tr>
+                        <!-- Growth -->
+                        <tr><td class="p-4 text-left sticky-col bg-[#1c1917] border-r border-[#292524] text-stone-500 pl-8 font-sans text-xs">% Growth</td>
+                             ${revRow.map((v, i, arr) => i===0 ? '<td class="p-4">-</td>' : `<td class="p-4 text-xs text-stone-500">${(((v - arr[i-1])/arr[i-1])*100).toFixed(1)}%</td>`).join('')}
+                        </tr>
+                        <!-- COGS -->
+                        <tr>
+                            <td class="p-4 text-left sticky-col bg-[#1c1917] border-r border-[#292524] text-stone-400">(-) COGS</td>
+                            ${db.history.cogs.map((v, i) => `<td class="p-4 p-0"><input type="number" class="input-editable p-4 text-red-300" value="${v}" onchange="updateHistory('cogs', ${i}, this.value)"></td>`).join('')}
+                            ${model.projections.map(p => `<td class="p-4 text-xs text-stone-600">-</td>`).join('')}
+                        </tr>
+                        <!-- EBIT -->
+                        <tr><td class="p-4 text-left sticky-col bg-[#1c1917] border-r border-[#292524]">EBIT</td>
+                             ${ebitRow.map(v => `<td class="p-4">${num(v)}</td>`).join('')}
+                        </tr>
+                        <tr><td class="p-4 text-left sticky-col bg-[#1c1917] border-r border-[#292524] font-sans text-xs text-stone-500 pl-8">% Margin</td>
+                             ${ebitRow.map((v, i) => `<td class="p-4 text-xs text-stone-500">${((v/revRow[i])*100).toFixed(1)}%</td>`).join('')}
+                        </tr>
+                        <tr><td class="p-4 text-left sticky-col bg-[#1c1917] border-r border-[#292524]">(-) Taxes</td>
+                             ${ebitRow.map(v => `<td class="p-4 text-red-400">(${num(v * (s.taxRate/100))})</td>`).join('')}
+                        </tr>
+                         <tr class="font-bold border-t border-stone-700"><td class="p-4 text-left sticky-col bg-[#1c1917] border-r border-[#292524]">NOPAT</td>
+                             ${ebitRow.map(v => `<td class="p-4">${num(v * (1-(s.taxRate/100)))}</td>`).join('')}
+                        </tr>
+                        <tr><td class="p-4 text-left sticky-col bg-[#1c1917] border-r border-[#292524]">(+) D&A</td>
+                             ${[...db.history.da, ...model.projections.map(p => p.da)].map(v => `<td class="p-4">${num(v)}</td>`).join('')}
+                        </tr>
+                         <tr><td class="p-4 text-left sticky-col bg-[#1c1917] border-r border-[#292524]">(-) CapEx</td>
+                             ${[...db.history.capex, ...model.projections.map(p => p.capex)].map(v => `<td class="p-4 text-red-400">(${num(v)})</td>`).join('')}
+                        </tr>
+                         <tr><td class="p-4 text-left sticky-col bg-[#1c1917] border-r border-[#292524]">(-) Change in NWC</td>
+                             ${[...db.history.nwcChange, ...model.projections.map(p => p.nwc)].map(v => `<td class="p-4 text-red-400">(${num(v)})</td>`).join('')}
+                        </tr>
+                        <tr class="bg-emerald-900/10 font-bold border-t-2 border-emerald-900/50">
+                            <td class="p-4 text-left sticky-col bg-[#1c1917] border-r border-[#292524] text-emerald-400">Unlevered Free Cash Flow</td>
+                            <td class="p-4" colspan="3"></td>
+                            ${model.projections.map(p => `<td class="p-4 text-emerald-400">${num(p.ufcf)}</td>`).join('')}
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    `;
+}
+
+function renderAssumptions(container) {
+    const s = db.scenarios[db.currentScenario];
+    container.innerHTML = `
+        <div class="flex justify-between items-center mb-6">
+            <h2 class="text-2xl font-bold text-white">Scenario Manager</h2>
+            <div class="flex gap-2">
+                <button onclick="saveAsNewScenario()" class="px-4 py-2 bg-emerald-600 hover:bg-emerald-500 text-white rounded-lg text-sm font-medium">Save As New Scenario</button>
+            </div>
+        </div>
+        
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+            <!-- Global Assumptions -->
+            <div class="bg-[#1c1917] border border-[#292524] p-6 rounded-xl space-y-6">
+                <h3 class="font-bold text-lg border-b border-[#292524] pb-2 text-stone-200">Valuation Inputs (${db.currentScenario})</h3>
+                
+                <div>
+                    <div class="flex justify-between mb-2">
+                        <label class="text-sm text-stone-400">WACC (Discount Rate)</label>
+                        <span class="font-bold text-amber-400">${s.wacc}%</span>
+                    </div>
+                    <input type="range" min="5" max="20" step="0.1" value="${s.wacc}" class="w-full" oninput="updateSetting('wacc', this.value)">
+                </div>
+
+                <div>
+                    <div class="flex justify-between mb-2">
+                        <label class="text-sm text-stone-400">Terminal Growth Rate</label>
+                        <span class="font-bold text-emerald-400">${s.terminalGrowth}%</span>
+                    </div>
+                    <input type="range" min="0" max="6" step="0.1" value="${s.terminalGrowth}" class="w-full" oninput="updateSetting('terminalGrowth', this.value)">
+                </div>
+
+                <div>
+                    <div class="flex justify-between mb-2">
+                        <label class="text-sm text-stone-400">Tax Rate</label>
+                        <span class="font-bold text-stone-200">${s.taxRate}%</span>
+                    </div>
+                    <input type="range" min="0" max="40" step="1" value="${s.taxRate}" class="w-full" oninput="updateSetting('taxRate', this.value)">
+                </div>
+            </div>
+
+            <!-- Operating Assumptions -->
+             <div class="bg-[#1c1917] border border-[#292524] p-6 rounded-xl">
+                <h3 class="font-bold text-lg border-b border-[#292524] pb-2 mb-4 text-stone-200">Operating Drivers</h3>
+                
+                <div class="mb-4 flex justify-between text-xs text-stone-500 uppercase font-bold">
+                    <span>Year</span><span>Revenue Growth</span>
+                </div>
+                <div class="space-y-4">
+                    ${s.revGrowth.map((g, i) => `
+                        <div class="grid grid-cols-4 items-center gap-4">
+                            <div class="text-sm font-bold text-stone-500">${model.projYears[i]}</div>
+                            <div class="col-span-2">
+                                <input type="range" min="-10" max="50" value="${g}" class="w-full" oninput="updateGrowth(${i}, this.value)">
+                            </div>
+                            <div class="text-right text-sm text-emerald-400">${g}%</div>
+                        </div>
+                    `).join('')}
+                </div>
+
+                 <h3 class="font-bold text-lg border-b border-[#292524] pb-2 mb-4 mt-8 text-stone-200">EBIT Margins</h3>
+                  <div class="space-y-4">
+                    ${s.ebitMargin.map((m, i) => `
+                        <div class="grid grid-cols-4 items-center gap-4">
+                            <div class="text-sm font-bold text-stone-500">${model.projYears[i]}</div>
+                            <div class="col-span-2">
+                                <input type="range" min="0" max="40" step="0.5" value="${m}" class="w-full" oninput="updateMargin(${i}, this.value)">
+                            </div>
+                            <div class="text-right text-sm text-indigo-400">${m}%</div>
+                        </div>
+                    `).join('')}
+                </div>
+            </div>
+        </div>
+    `;
+}
+
+function renderSettings(container) {
+    container.innerHTML = `
+        <div class="max-w-2xl mx-auto mt-8">
+            <h2 class="text-2xl font-bold text-white mb-6">Global Configuration</h2>
+            
+            <div class="bg-[#1c1917] border border-[#292524] p-6 rounded-xl space-y-6">
+                
+                <div>
+                    <label class="block text-sm text-stone-400 mb-2">Company Name</label>
+                    <input type="text" value="${db.companyName}" onchange="updateGlobal('companyName', this.value)" 
+                        class="w-full bg-[#141210] border border-[#292524] rounded-lg px-4 py-2 text-white focus:border-emerald-500 outline-none transition-colors">
+                </div>
+
+                <div class="grid grid-cols-2 gap-6">
+                    <div>
+                        <label class="block text-sm text-stone-400 mb-2">Last Actuals Year (History)</label>
+                        <input type="number" value="${db.baseYear}" onchange="updateGlobal('baseYear', this.value)" 
+                            class="w-full bg-[#141210] border border-[#292524] rounded-lg px-4 py-2 text-white focus:border-emerald-500 outline-none transition-colors">
+                        <p class="text-xs text-stone-500 mt-1">This sets the "Base Year" for projections.</p>
+                    </div>
+                    <div>
+                        <label class="block text-sm text-stone-400 mb-2">Currency Symbol</label>
+                        <input type="text" value="${db.currencySymbol}" onchange="updateGlobal('currencySymbol', this.value)" 
+                            class="w-full bg-[#141210] border border-[#292524] rounded-lg px-4 py-2 text-white focus:border-emerald-500 outline-none transition-colors">
+                    </div>
+                </div>
+
+                <div class="pt-6 border-t border-[#292524]">
+                    <h3 class="text-sm font-bold text-stone-200 mb-4">Danger Zone</h3>
+                    <button onclick="resetData()" class="px-4 py-2 bg-red-900/20 hover:bg-red-900/40 text-red-400 rounded-lg text-sm border border-red-900/30">
+                        Reset All Data to Defaults
+                    </button>
+                </div>
+
+            </div>
+        </div>
+    `;
+}
+
+function renderSensitivity(container) {
+    const s = db.scenarios[db.currentScenario];
+    const waccSteps = [-1, -0.5, 0, 0.5, 1];
+    const growthSteps = [-0.5, -0.25, 0, 0.25, 0.5];
+    
+    let html = `
+        <h2 class="text-2xl font-bold text-white mb-6">Sensitivity Matrix</h2>
+        <p class="text-stone-400 mb-6">Impact of WACC and Terminal Growth on Enterprise Value (Millions).</p>
+        
+        <div class="overflow-x-auto rounded-xl border border-[#292524]">
+            <table class="w-full text-center border-collapse">
+                <thead>
+                    <tr>
+                        <th class="p-4 bg-[#141210]"></th>
+                        <th colspan="5" class="p-2 text-xs text-stone-400 font-bold uppercase tracking-wider bg-[#1c1917] border border-[#292524]">Terminal Growth Rate</th>
+                    </tr>
+                    <tr>
+                        <th class="p-2 text-xs text-stone-400 font-bold uppercase tracking-wider bg-[#1c1917] border-r border-[#292524]">WACC</th>
+                        ${growthSteps.map(g => `<th class="p-3 bg-[#1c1917] border border-[#292524] font-mono text-emerald-400">${(s.terminalGrowth + g).toFixed(2)}%</th>`).join('')}
+                    </tr>
+                </thead>
+                <tbody>
+    `;
+
+    waccSteps.forEach(w => {
+        html += `<tr><th class="p-3 bg-[#1c1917] border border-[#292524] font-mono text-amber-400">${(s.wacc + w).toFixed(2)}%</th>`;
+        
+        growthSteps.forEach(g => {
+            const tempWacc = s.wacc + w;
+            const tempG = s.terminalGrowth + g;
+            const lastFCF = model.projections[4].ufcf;
+            const tv = (lastFCF * (1 + tempG/100)) / ((tempWacc - tempG)/100);
+            const tvPV = tv / Math.pow((1 + tempWacc/100), 5);
+            
+            let sumPV = 0;
+            model.projections.forEach((p, i) => { sumPV += p.ufcf / Math.pow((1 + tempWacc/100), i + 0.5); });
+            
+            const val = sumPV + tvPV;
+            const isBase = (w === 0 && g === 0);
+            const color = val > model.enterpriseValue ? 'text-emerald-400 bg-emerald-900/10' : (val < model.enterpriseValue ? 'text-red-400 bg-red-900/10' : 'text-white bg-[#292524]');
+            
+            html += `<td class="p-4 border border-[#292524] font-mono font-bold ${color} ${isBase ? 'ring-2 ring-emerald-500 inset-0' : ''}">${money(val)}</td>`;
+        });
+        html += `</tr>`;
+    });
+
+    html += `</tbody></table></div>`;
+    container.innerHTML = html;
+}
+
+function renderReport(container) {
+    container.innerHTML = `
+        <div class="max-w-3xl mx-auto mt-8">
+            <div class="text-center mb-12 no-print">
+                <h2 class="text-2xl font-bold text-white mb-2">Export Valuation Report</h2>
+                <p class="text-stone-400 mb-6">Create a professional output of your analysis.</p>
+                <div class="flex gap-4 justify-center">
+                    <button onclick="window.print()" class="px-6 py-3 bg-stone-700 hover:bg-stone-600 text-white rounded-lg font-bold flex items-center gap-2">
+                        <i class="ph-bold ph-printer"></i> Print / PDF
+                    </button>
+                    <button onclick="downloadJSON()" class="px-6 py-3 bg-emerald-600 hover:bg-emerald-500 text-white rounded-lg font-bold flex items-center gap-2">
+                        <i class="ph-bold ph-download-simple"></i> Download JSON
+                    </button>
+                </div>
+            </div>
+
+            <!-- Print Preview Area -->
+            <div class="bg-white text-black p-8 rounded shadow-xl print-only-container">
+                <div class="flex justify-between items-end border-b-2 border-black pb-4 mb-8">
+                    <div>
+                        <h1 class="text-3xl font-bold">${db.companyName} Valuation</h1>
+                        <p class="text-gray-600">Scenario: ${db.currentScenario}</p>
+                    </div>
+                    <div class="text-right">
+                        <div class="text-4xl font-bold text-emerald-700">${money(model.sharePrice)}</div>
+                        <div class="text-sm text-gray-500">Implied Share Price</div>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-2 gap-8 mb-8">
+                    <div>
+                        <h3 class="font-bold border-b border-gray-300 mb-2">Key Assumptions</h3>
+                        <div class="flex justify-between mb-1"><span>WACC:</span> <span>${db.scenarios[db.currentScenario].wacc}%</span></div>
+                        <div class="flex justify-between mb-1"><span>Terminal Growth:</span> <span>${db.scenarios[db.currentScenario].terminalGrowth}%</span></div>
+                        <div class="flex justify-between mb-1"><span>Tax Rate:</span> <span>${db.scenarios[db.currentScenario].taxRate}%</span></div>
+                    </div>
+                    <div>
+                        <h3 class="font-bold border-b border-gray-300 mb-2">Valuation Output</h3>
+                        <div class="flex justify-between mb-1"><span>Enterprise Value:</span> <span>${money(model.enterpriseValue)}</span></div>
+                        <div class="flex justify-between mb-1"><span>Equity Value:</span> <span>${money(model.equityValue)}</span></div>
+                        <div class="flex justify-between mb-1"><span>PV of FCF (5yr):</span> <span>${money(model.sumPV)}</span></div>
+                    </div>
+                </div>
+
+                <h3 class="font-bold border-b border-gray-300 mb-4">Projected Cash Flows (Millions)</h3>
+                <table class="w-full text-sm text-right mb-8">
+                    <thead>
+                        <tr class="bg-gray-100">
+                            <th class="text-left p-2">Metric</th>
+                            ${model.projYears.map(y => `<th class="p-2">${y}</th>`).join('')}
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr><td class="text-left p-2">Revenue</td>${model.projections.map(p => `<td class="p-2">${num(p.revenue)}</td>`).join('')}</tr>
+                        <tr><td class="text-left p-2">EBIT</td>${model.projections.map(p => `<td class="p-2">${num(p.ebit)}</td>`).join('')}</tr>
+                        <tr class="font-bold"><td class="text-left p-2">UFCF</td>${model.projections.map(p => `<td class="p-2">${num(p.ufcf)}</td>`).join('')}</tr>
+                    </tbody>
+                </table>
+                
+                <div class="text-center text-xs text-gray-400 mt-12">
+                    Generated by ValuEight on ${new Date().toLocaleDateString()}
+                </div>
+            </div>
+        </div>
+    `;
+}
+
+function renderDocs(container) {
+    container.innerHTML = `
+        <div class="max-w-3xl mx-auto doc-content pb-12">
+            <h2 class="text-3xl font-bold text-white mb-2">User Guide</h2>
+            <p class="text-stone-400 mb-8 border-b border-[#292524] pb-4">Understanding the ValuEight Strategy Engine.</p>
+
+            <h3>1. Configuration & Setup</h3>
+            <p>Use the <strong>Global Settings</strong> tab to configure your model for the specific company you are valuing. You can set the "Last Actuals Year" (e.g., 2021) which automatically shifts the entire timeline of the model.</p>
+
+            <h3>2. What is a DCF?</h3>
+            <p>A <strong>Discounted Cash Flow (DCF)</strong> valuation estimates the value of an investment based on its expected future cash flows. The analysis projects how much money the company will generate in the future and then discounts it back to today's value using a required rate of return (WACC).</p>
+
+            <h3>3. Managing Scenarios</h3>
+            <p>You don't have to rely on just one number. Use the <strong>Scenario Manager</strong> (top of Assumptions tab) to create different versions of the future:</p>
+            <ul>
+                <li><strong>Base Case:</strong> Your most realistic expectation.</li>
+                <li><strong>Bull Case:</strong> Optimistic view (High Growth, Margin Expansion).</li>
+                <li><strong>Bear Case:</strong> Pessimistic view (Recession, Margin compression).</li>
+            </ul>
+            <p>Switch between them on the Dashboard to instantly see the impact on Share Price.</p>
+        </div>
+    `;
+}
+
+// Logic Actions
+function switchScenario(name) {
+    db.currentScenario = name;
+    saveDB();
+}
+
+function saveAsNewScenario() {
+    const name = prompt("Enter Name for New Scenario (e.g., 'Merger Case'):");
+    if(name && !db.scenarios[name]) {
+        db.scenarios[name] = JSON.parse(JSON.stringify(db.scenarios[db.currentScenario]));
+        db.currentScenario = name;
+        saveDB();
+    }
+}
+
+function updateSetting(key, val) {
+    db.scenarios[db.currentScenario][key] = parseFloat(val);
+    saveDB();
+}
+function updateGrowth(idx, val) {
+    db.scenarios[db.currentScenario].revGrowth[idx] = parseFloat(val);
+    saveDB();
+}
+function updateMargin(idx, val) {
+    db.scenarios[db.currentScenario].ebitMargin[idx] = parseFloat(val);
+    saveDB();
+}
+
+function updateHistory(metric, index, value) {
+    db.history[metric][index] = parseFloat(value);
+    saveDB();
+}
+
+function updateGlobal(key, val) {
+    db[key] = val;
+    saveDB();
+}
+
+function downloadJSON() {
+    const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(db, null, 2));
+    const a = document.createElement('a');
+    a.href = dataStr;
+    a.download = "valu8_dcf_model.json";
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+}
+
+// Init
+calculateModel();
+router('dashboard');
+
+</script>
+</body>
+</html>
