@@ -227,27 +227,38 @@ function resetData() {
 
 // Formatters
 const money = (v) => {
+    if (v === undefined || isNaN(v)) return '-';
     return new Intl.NumberFormat('en-US', { 
         style: 'currency', 
         currency: 'USD', 
         maximumFractionDigits: 0 
     }).format(v).replace('$', db.currencySymbol || '$');
 };
-const num = (v) => new Intl.NumberFormat('en-US').format(v);
+const num = (v) => {
+    if (v === undefined || isNaN(v)) return '-';
+    return new Intl.NumberFormat('en-US').format(v);
+}
 
 // Global Calculation Results
 let model = {};
 
 function calculateModel() {
+    // Robust check for scenario existence
+    if (!db.scenarios || !db.scenarios[db.currentScenario]) {
+        db.currentScenario = 'Base Case';
+        if(!db.scenarios) db.scenarios = DEFAULT_DATA.scenarios;
+    }
+    
     const s = db.scenarios[db.currentScenario];
-    const baseYear = parseInt(db.baseYear);
+    const baseYear = parseInt(db.baseYear) || (CURRENT_YEAR - 1);
     
     // Dynamic Years
     const histYears = [baseYear - 2, baseYear - 1, baseYear];
     const projYears = [baseYear + 1, baseYear + 2, baseYear + 3, baseYear + 4, baseYear + 5];
     
     let projections = [];
-    let lastRev = db.history.revenue[2]; 
+    // Defensive check for history array
+    let lastRev = (db.history && db.history.revenue && db.history.revenue[2]) ? db.history.revenue[2] : 100000; 
 
     // 1. Build Projections
     projYears.forEach((y, i) => {
@@ -278,10 +289,13 @@ function calculateModel() {
     // 3. Enterprise Value
     const sumPV = projections.reduce((a, b) => a + b.pv, 0);
     const enterpriseValue = sumPV + tvPV;
-    const equityValue = enterpriseValue - db.debt;
-    const sharePrice = equityValue / db.shares;
+    // Fallback for debt if undefined
+    const debt = (db.debt !== undefined) ? db.debt : 0;
+    const equityValue = enterpriseValue - debt;
+    const shares = db.shares || 1000;
+    const sharePrice = equityValue / shares;
 
-    model = { histYears, projYears, projections, tv, tvPV, enterpriseValue, equityValue, sharePrice, sumPV };
+    model = { histYears, projYears, projections, tv, tvPV, enterpriseValue, equityValue, sharePrice, sumPV, debt };
     
     // Update Header Badge
     const badge = document.getElementById('active-scenario-badge');
@@ -327,6 +341,11 @@ function renderCurrentView() {
  */
 function renderDashboard(container) {
     const s = db.scenarios[db.currentScenario];
+    
+    // Safe calculation for progress bar width
+    const cashFlowPct = model.enterpriseValue > 0 ? (model.sumPV/model.enterpriseValue)*100 : 0;
+    const terminalPct = model.enterpriseValue > 0 ? (model.tvPV/model.enterpriseValue)*100 : 0;
+
     container.innerHTML = `
         <div class="mb-8 flex flex-col md:flex-row justify-between items-end gap-4">
             <div>
@@ -353,12 +372,12 @@ function renderDashboard(container) {
                 <div class="text-stone-400 text-xs uppercase font-bold tracking-wider mb-1">Enterprise Value</div>
                 <div class="text-2xl font-bold text-white">${money(model.enterpriseValue)}</div>
                 <div class="w-full bg-stone-800 h-1.5 rounded-full mt-4 overflow-hidden flex">
-                    <div class="bg-emerald-500 h-full" style="width: ${(model.sumPV/model.enterpriseValue)*100}%"></div>
-                    <div class="bg-indigo-500 h-full" style="width: ${(model.tvPV/model.enterpriseValue)*100}%"></div>
+                    <div class="bg-emerald-500 h-full" style="width: ${cashFlowPct}%"></div>
+                    <div class="bg-indigo-500 h-full" style="width: ${terminalPct}%"></div>
                 </div>
                 <div class="flex justify-between mt-1 text-[10px] text-stone-500">
-                    <span>Cash Flows (${((model.sumPV/model.enterpriseValue)*100).toFixed(0)}%)</span>
-                    <span>Terminal (${((model.tvPV/model.enterpriseValue)*100).toFixed(0)}%)</span>
+                    <span>Cash Flows (${cashFlowPct.toFixed(0)}%)</span>
+                    <span>Terminal (${terminalPct.toFixed(0)}%)</span>
                 </div>
             </div>
 
@@ -396,27 +415,40 @@ function renderDashboard(container) {
             scales: { y: { grid: { color: '#292524' }, ticks: { color: '#78716c' } }, x: { grid: { display: false }, ticks: { color: '#78716c' } } }
         };
 
-        new Chart(document.getElementById('fcfChart'), {
-            type: 'bar',
-            data: {
-                labels: model.projYears,
-                datasets: [{ label: 'UFCF', data: model.projections.map(p => p.ufcf), backgroundColor: '#10b981', borderRadius: 4 }]
-            },
-            options: commonOptions
-        });
+        const fcfCanvas = document.getElementById('fcfChart');
+        if (fcfCanvas) {
+            new Chart(fcfCanvas, {
+                type: 'bar',
+                data: {
+                    labels: model.projYears,
+                    datasets: [{ label: 'UFCF', data: model.projections.map(p => p.ufcf), backgroundColor: '#10b981', borderRadius: 4 }]
+                },
+                options: commonOptions
+            });
+        }
 
-        new Chart(document.getElementById('waterfallChart'), {
-            type: 'bar',
-            data: {
-                labels: ['PV of Cash Flows', 'PV of Terminal Val', 'Enterprise Value', 'Less: Debt', 'Equity Value'],
-                datasets: [{
-                    data: [model.sumPV, model.tvPV, model.enterpriseValue, -db.debt, model.equityValue],
-                    backgroundColor: ['#10b981', '#6366f1', '#f59e0b', '#ef4444', '#3b82f6']
-                }]
-            },
-            options: { ...commonOptions, indexAxis: 'y' }
-        });
-    }, 100);
+        const waterfallCanvas = document.getElementById('waterfallChart');
+        if (waterfallCanvas) {
+            new Chart(waterfallCanvas, {
+                type: 'bar',
+                data: {
+                    labels: ['PV of Cash Flows', 'PV of Terminal Val', 'Enterprise Value', 'Less: Debt', 'Equity Value'],
+                    datasets: [{
+                        data: [model.sumPV, model.tvPV, model.enterpriseValue, -model.debt, model.equityValue],
+                        backgroundColor: ['#10b981', '#6366f1', '#f59e0b', '#ef4444', '#3b82f6']
+                    }]
+                },
+                options: { 
+                    ...commonOptions, 
+                    indexAxis: 'y',
+                    scales: { 
+                        y: { grid: { color: '#292524' }, ticks: { color: '#a8a29e', font: { weight: 'bold' } } }, 
+                        x: { grid: { display: false }, ticks: { display: false } } 
+                    }
+                }
+            });
+        }
+    }, 200);
 }
 
 /**
