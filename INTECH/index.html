@@ -1,0 +1,1035 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>InsureFlow Enterprise | Cognitive Policy Administration</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- FontAwesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+    
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        brand: { 950: '#020617', 900: '#0f172a', 800: '#1e293b', 700: '#334155', 600: '#2563eb', 500: '#3b82f6', 400: '#60a5fa' }
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                        mono: ['JetBrains Mono', 'monospace'],
+                    },
+                    animation: {
+                        'fade-in': 'fadeIn 0.4s ease-out',
+                        'slide-up': 'slideUp 0.5s cubic-bezier(0.16, 1, 0.3, 1)',
+                        'pulse-slow': 'pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+                    },
+                    keyframes: {
+                        fadeIn: { '0%': { opacity: '0' }, '100%': { opacity: '1' } },
+                        slideUp: { '0%': { transform: 'translateY(20px)', opacity: '0' }, '100%': { transform: 'translateY(0)', opacity: '1' } }
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        /* --- CORE SYSTEM STYLES --- */
+        body { font-family: 'Inter', sans-serif; background-color: #f1f5f9; color: #334155; }
+        
+        /* Custom Scrollbar */
+        .custom-scroll::-webkit-scrollbar { width: 6px; height: 6px; }
+        .custom-scroll::-webkit-scrollbar-track { background: transparent; }
+        .custom-scroll::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
+        .custom-scroll::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+
+        /* View Transitions */
+        .tab-content { display: none; opacity: 0; transition: opacity 0.2s ease-in-out; }
+        .tab-content.active { display: block; opacity: 1; animation: fadeIn 0.3s forwards; }
+
+        /* Enterprise Data Tables */
+        .data-table { width: 100%; border-collapse: separate; border-spacing: 0; font-size: 0.85rem; }
+        .data-table th { 
+            font-size: 0.7rem; 
+            text-transform: uppercase; 
+            letter-spacing: 0.05em; 
+            font-weight: 700; 
+            color: #64748b; 
+            background-color: #f8fafc; 
+            border-bottom: 1px solid #e2e8f0; 
+            padding: 12px 16px; 
+            text-align: left; 
+            position: sticky; top: 0; z-index: 10; 
+        }
+        .data-table td { border-bottom: 1px solid #f1f5f9; padding: 12px 16px; transition: background-color 0.1s; }
+        .data-table tr:hover td { background-color: #f8fafc; }
+
+        /* Navigation Tabs */
+        .nav-tab { border-bottom: 2px solid transparent; color: #64748b; transition: all 0.2s; position: relative; }
+        .nav-tab:hover { color: #1e293b; background-color: #f1f5f9; }
+        .nav-tab.active { border-bottom-color: #2563eb; color: #2563eb; font-weight: 600; background-color: #eff6ff; }
+
+        /* Wizard & Status Components */
+        .step-indicator { width: 2rem; height: 2rem; border-radius: 50%; border: 2px solid #e2e8f0; color: #94a3b8; font-weight: 600; background: white; display: flex; align-items: center; justify-content: center; z-index: 1; }
+        .step-indicator.active { border-color: #2563eb; color: #2563eb; }
+        .step-indicator.completed { background-color: #2563eb; border-color: #2563eb; color: white; }
+        .step-line { flex: 1; height: 2px; background-color: #e2e8f0; margin: 0 8px; }
+        .step-line.completed { background-color: #2563eb; }
+
+        .badge { display: inline-flex; align-items: center; padding: 2px 8px; border-radius: 9999px; font-size: 0.7rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; border: 1px solid transparent; }
+
+        /* Technical Panel (Dark Mode for Algo) */
+        .tech-panel { background: #0f172a; color: #38bdf8; font-family: 'JetBrains Mono', monospace; border: 1px solid #1e293b; }
+        .tech-glow { box-shadow: 0 0 15px rgba(56, 189, 248, 0.1); }
+
+        /* Documentation Styling */
+        .doc-section { background: white; padding: 2rem; border-radius: 0.75rem; border: 1px solid #e2e8f0; margin-bottom: 2rem; box-shadow: 0 1px 2px rgba(0,0,0,0.05); }
+        .doc-title { font-size: 1.5rem; font-weight: 700; color: #1e293b; margin-bottom: 1rem; padding-bottom: 0.5rem; border-bottom: 2px solid #f1f5f9; }
+        .doc-subtitle { font-size: 1.1rem; font-weight: 600; color: #334155; margin-top: 1.5rem; margin-bottom: 0.75rem; }
+        .doc-text { color: #475569; line-height: 1.7; margin-bottom: 1rem; font-size: 0.95rem; }
+        .doc-code { background: #f8fafc; padding: 1rem; border-radius: 0.5rem; border: 1px solid #e2e8f0; font-family: 'JetBrains Mono', monospace; font-size: 0.85rem; color: #0f172a; overflow-x: auto; margin: 1rem 0; }
+        .doc-list { list-style-type: disc; padding-left: 1.5rem; color: #475569; margin-bottom: 1rem; }
+        .doc-list li { margin-bottom: 0.5rem; }
+    </style>
+</head>
+<body class="h-screen flex flex-col overflow-hidden text-slate-800 selection:bg-blue-100 selection:text-blue-900">
+
+    <!-- ========================================== -->
+    <!--            1. LOGIN OVERLAY                -->
+    <!-- ========================================== -->
+    <div id="login-screen" class="fixed inset-0 bg-slate-900 z-[100] flex items-center justify-center bg-[url('https://images.unsplash.com/photo-1550751827-4bd374c3f58b?auto=format&fit=crop&q=80')] bg-cover bg-center">
+        <div class="absolute inset-0 bg-slate-900/90 backdrop-blur-sm"></div>
+        <div class="bg-white w-full max-w-md p-10 rounded-2xl shadow-2xl relative z-10 animate-slide-up border border-slate-200/20">
+            <div class="flex flex-col items-center mb-8">
+                <div class="w-20 h-20 bg-gradient-to-br from-blue-600 to-indigo-700 rounded-2xl flex items-center justify-center text-white text-4xl shadow-xl mb-4 transform rotate-3 hover:rotate-0 transition-transform duration-500">
+                    <i class="fa-solid fa-layer-group"></i>
+                </div>
+                <h1 class="text-3xl font-bold text-slate-900 tracking-tight">InsureFlow <span class="text-blue-600">Pro</span></h1>
+                <p class="text-slate-500 text-sm mt-2 font-medium">Enterprise Policy Administration</p>
+            </div>
+            
+            <form onsubmit="Auth.login(event)" class="space-y-6">
+                <div>
+                    <label class="block text-xs font-bold text-slate-500 uppercase mb-2 tracking-wider">Employee ID</label>
+                    <div class="relative group">
+                        <i class="fa-solid fa-id-card absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-blue-600 transition-colors"></i>
+                        <input type="text" value="ADMIN-PB01" class="w-full pl-12 pr-4 py-3.5 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all font-mono text-sm" placeholder="Enter ID">
+                    </div>
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-slate-500 uppercase mb-2 tracking-wider">Secure Access Token</label>
+                    <div class="relative group">
+                        <i class="fa-solid fa-fingerprint absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-blue-600 transition-colors"></i>
+                        <input type="password" value="password123" class="w-full pl-12 pr-4 py-3.5 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all font-mono text-sm" placeholder="••••••••">
+                    </div>
+                </div>
+                <button type="submit" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-4 rounded-xl shadow-lg hover:shadow-blue-500/30 transition-all duration-200 transform hover:-translate-y-0.5 flex items-center justify-center gap-2">
+                    <span>Initialize Session</span>
+                    <i class="fa-solid fa-arrow-right"></i>
+                </button>
+            </form>
+            <div class="mt-8 pt-6 border-t border-slate-100 text-center">
+                <p class="text-[10px] text-slate-400 uppercase tracking-widest">Secured by 256-bit AES Encryption • v4.2.0-stable</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- ========================================== -->
+    <!--            2. APP HEADER                   -->
+    <!-- ========================================== -->
+    <header class="bg-brand-950 text-white flex-none z-30 shadow-md transition-all duration-300 relative">
+        <!-- Top Gradient Line -->
+        <div class="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-blue-500 via-indigo-500 to-purple-500"></div>
+        
+        <div class="px-6 h-16 flex items-center justify-between">
+            <!-- Brand Identity -->
+            <div class="flex items-center gap-4">
+                <div class="w-10 h-10 bg-gradient-to-br from-blue-600 to-indigo-600 rounded-lg flex items-center justify-center text-white font-bold shadow-lg cursor-pointer hover:scale-105 transition-transform" onclick="router.navigate('dashboard')">
+                    <i class="fa-solid fa-layer-group text-xl"></i>
+                </div>
+                <div>
+                    <h1 class="text-xl font-bold tracking-tight leading-none">InsureFlow <span class="opacity-60 font-light text-blue-200">Enterprise</span></h1>
+                    <div class="text-[10px] text-slate-400 uppercase tracking-[0.2em] font-bold mt-1">Parth Bhosale • Admin</div>
+                </div>
+            </div>
+
+            <!-- Global Actions -->
+            <div class="flex items-center gap-6">
+                <!-- AI Status Pill -->
+                <div class="hidden lg:flex items-center gap-3 px-4 py-1.5 bg-slate-900 rounded-full border border-slate-800 shadow-inner">
+                    <span class="relative flex h-2 w-2">
+                      <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                      <span class="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+                    </span>
+                    <span class="text-[11px] font-mono text-emerald-400 tracking-wide">AI ENGINE: <span class="font-bold">ONLINE</span></span>
+                </div>
+
+                <div class="h-8 w-px bg-slate-800"></div>
+
+                <!-- Notifications -->
+                <div class="relative group" id="notification-container">
+                    <button onclick="Notifications.toggle()" class="w-10 h-10 rounded-lg hover:bg-slate-800 flex items-center justify-center text-slate-400 hover:text-white transition-all relative">
+                        <i class="fa-solid fa-bell text-lg"></i>
+                        <span id="notif-badge" class="absolute top-2 right-2 w-2.5 h-2.5 bg-red-500 rounded-full border-2 border-brand-950 hidden animate-pulse"></span>
+                    </button>
+                    <!-- Dropdown -->
+                    <div id="notif-dropdown" class="absolute right-0 top-full mt-3 w-96 bg-white rounded-xl shadow-2xl border border-slate-200 hidden overflow-hidden text-slate-800 origin-top-right transition-transform z-50">
+                        <div class="px-5 py-4 border-b border-slate-100 bg-slate-50 flex justify-between items-center">
+                            <h4 class="font-bold text-sm text-slate-700">System Notifications</h4>
+                            <button onclick="Notifications.clearAll()" class="text-xs text-blue-600 hover:text-blue-800 font-medium">Clear All</button>
+                        </div>
+                        <div id="notif-list" class="max-h-80 overflow-y-auto custom-scroll bg-white"></div>
+                    </div>
+                </div>
+
+                <!-- Settings/Reset -->
+                <button onclick="app.resetData()" title="Factory Reset" class="w-10 h-10 rounded-lg hover:bg-slate-800 flex items-center justify-center text-slate-400 hover:text-red-400 transition-all">
+                    <i class="fa-solid fa-power-off text-lg"></i>
+                </button>
+                
+                <!-- Profile -->
+                <div class="flex items-center gap-3 pl-2 cursor-pointer group">
+                     <div class="w-9 h-9 bg-gradient-to-r from-blue-500 to-cyan-500 rounded-full flex items-center justify-center text-xs font-bold border-2 border-slate-800 shadow-sm relative group-hover:border-slate-600 transition-colors">
+                        PB
+                        <span class="absolute bottom-0 right-0 w-2.5 h-2.5 bg-green-500 border-2 border-brand-950 rounded-full"></span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- ========================================== -->
+    <!--            3. NAVIGATION BAR               -->
+    <!-- ========================================== -->
+    <nav class="bg-white border-b border-slate-200 shadow-sm flex-none z-20 sticky top-0">
+        <div class="px-6 flex items-center gap-2 overflow-x-auto no-scrollbar">
+            <button onclick="router.navigate('dashboard')" id="nav-dashboard" class="nav-tab px-4 py-3.5 text-sm flex items-center gap-2.5 active font-medium transition-all"><i class="fa-solid fa-chart-pie w-4"></i> Overview</button>
+            <button onclick="router.navigate('policies')" id="nav-policies" class="nav-tab px-4 py-3.5 text-sm flex items-center gap-2.5 font-medium transition-all"><i class="fa-solid fa-file-contract w-4"></i> Policy Admin</button>
+            <button onclick="router.navigate('clients')" id="nav-clients" class="nav-tab px-4 py-3.5 text-sm flex items-center gap-2.5 font-medium transition-all"><i class="fa-solid fa-users-viewfinder w-4"></i> Clients & Segments</button>
+            <button onclick="router.navigate('claims')" id="nav-claims" class="nav-tab px-4 py-3.5 text-sm flex items-center gap-2.5 font-medium transition-all"><i class="fa-solid fa-robot w-4"></i> Smart Claims</button>
+            <button onclick="router.navigate('underwriting')" id="nav-underwriting" class="nav-tab px-4 py-3.5 text-sm flex items-center gap-2.5 font-medium transition-all"><i class="fa-solid fa-scale-balanced w-4"></i> Underwriting Lab</button>
+            <button onclick="router.navigate('finance')" id="nav-finance" class="nav-tab px-4 py-3.5 text-sm flex items-center gap-2.5 font-medium transition-all"><i class="fa-solid fa-coins w-4"></i> Finance</button>
+            <button onclick="router.navigate('audit')" id="nav-audit" class="nav-tab px-4 py-3.5 text-sm flex items-center gap-2.5 font-medium transition-all"><i class="fa-solid fa-list-check w-4"></i> Audit Logs</button>
+            <button onclick="router.navigate('docs')" id="nav-docs" class="nav-tab px-4 py-3.5 text-sm flex items-center gap-2.5 font-bold text-brand-600 ml-auto border-l border-slate-100 hover:bg-blue-50"><i class="fa-solid fa-book-open w-4"></i> System Docs</button>
+        </div>
+    </nav>
+
+    <!-- ========================================== -->
+    <!--            4. MAIN VIEWPORT                -->
+    <!-- ========================================== -->
+    <main id="workspace" class="flex-1 overflow-hidden relative bg-slate-50/50">
+        <!-- Dashboard -->
+        <div id="view-dashboard" class="tab-content h-full overflow-y-auto custom-scroll p-8 active"></div>
+        <!-- Modules -->
+        <div id="view-policies" class="tab-content h-full overflow-y-auto custom-scroll p-8"></div>
+        <div id="view-clients" class="tab-content h-full overflow-y-auto custom-scroll p-8"></div>
+        <div id="view-claims" class="tab-content h-full overflow-y-auto custom-scroll p-8"></div>
+        <div id="view-underwriting" class="tab-content h-full overflow-y-auto custom-scroll p-8"></div>
+        <div id="view-finance" class="tab-content h-full overflow-y-auto custom-scroll p-8"></div>
+        <div id="view-audit" class="tab-content h-full overflow-y-auto custom-scroll p-8"></div>
+        <!-- Documentation -->
+        <div id="view-docs" class="tab-content h-full overflow-y-auto custom-scroll p-8 bg-slate-100"></div>
+    </main>
+
+    <!-- ========================================== -->
+    <!--            5. STATUS FOOTER                -->
+    <!-- ========================================== -->
+    <footer class="bg-white border-t border-slate-200 h-9 flex-none flex items-center justify-between px-6 text-[11px] text-slate-500 font-medium z-30">
+        <div class="flex items-center gap-6">
+            <span class="flex items-center text-emerald-600"><span class="w-1.5 h-1.5 rounded-full bg-emerald-500 mr-2 animate-pulse"></span> SYSTEM OPERATIONAL</span>
+            <span class="flex items-center text-slate-400"><i class="fa-solid fa-database mr-1.5"></i> <span id="storage-usage">DB: Checking...</span></span>
+            <span class="flex items-center text-slate-400"><i class="fa-solid fa-stopwatch mr-1.5"></i> Latency: 24ms</span>
+        </div>
+        <div class="flex items-center gap-4">
+            <span class="text-blue-600 font-bold">INSUREFLOW ENTERPRISE v4.2.0</span>
+            <span class="text-slate-300">|</span>
+            <span>© 2025 Parth Bhosale</span>
+        </div>
+    </footer>
+
+    <!-- ========================================== -->
+    <!--            6. MODALS & TOASTS              -->
+    <!-- ========================================== -->
+
+    <!-- Shared Modal Container -->
+    <div id="modal-backdrop" class="fixed inset-0 bg-slate-900/60 backdrop-blur-md z-[60] hidden flex items-center justify-center opacity-0 transition-opacity duration-300">
+        <div id="modal-panel" class="bg-white rounded-xl shadow-2xl w-full max-w-2xl mx-4 transform scale-95 transition-all duration-300 flex flex-col max-h-[90vh] border border-slate-200">
+            <!-- Modal Header -->
+            <div class="px-6 py-5 border-b border-slate-100 flex justify-between items-center bg-slate-50 rounded-t-xl">
+                <div>
+                    <h3 id="modal-title" class="font-bold text-slate-800 text-lg">Title</h3>
+                    <p class="text-xs text-slate-500 mt-0.5">Enter details below</p>
+                </div>
+                <button onclick="ui.closeModal()" class="w-8 h-8 rounded-full bg-white border border-slate-200 text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition-colors flex items-center justify-center shadow-sm">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+            <!-- Modal Content -->
+            <div id="modal-content" class="p-8 overflow-y-auto custom-scroll"></div>
+        </div>
+    </div>
+
+    <!-- Toast Notification -->
+    <div id="toast" class="fixed top-24 right-8 bg-white border-l-4 border-blue-600 text-slate-800 px-6 py-4 rounded-lg shadow-2xl transform translate-x-full transition-all duration-500 z-[70] flex items-start gap-4 max-w-sm ring-1 ring-slate-900/5">
+        <div class="mt-0.5"><i id="toast-icon" class="fa-solid fa-circle-check text-blue-600 text-xl"></i></div>
+        <div>
+            <h4 id="toast-title" class="font-bold text-sm text-slate-900">Success</h4>
+            <p id="toast-message" class="text-xs text-slate-500 mt-1 leading-relaxed">Operation completed successfully.</p>
+        </div>
+        <button onclick="document.getElementById('toast').classList.add('translate-x-full')" class="text-slate-300 hover:text-slate-500 ml-auto"><i class="fa-solid fa-times"></i></button>
+    </div>
+
+    <!-- ========================================== -->
+    <!--            7. JAVASCRIPT LOGIC             -->
+    <!-- ========================================== -->
+    <script>
+        /**
+         * InsureFlow Enterprise Core
+         * Version: 4.2.0-stable
+         * Author: Parth Bhosale
+         * Description: Advanced Policy Admin System with AI Module
+         */
+
+        // --- CORE UTILITIES ---
+        const Utils = {
+            id: (p) => `${p}-${Math.floor(Math.random()*1000000).toString(16).toUpperCase()}`,
+            currency: (n) => new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR', maximumFractionDigits: 0 }).format(n),
+            date: (d) => new Date(d).toLocaleDateString('en-GB'),
+            dateTime: (d) => new Date(d).toLocaleString('en-GB', { hour: '2-digit', minute:'2-digit', day:'numeric', month:'short' }),
+            pick: (a) => a[Math.floor(Math.random() * a.length)],
+            sleep: (ms) => new Promise(r => setTimeout(r, ms)),
+            randInt: (min, max) => Math.floor(Math.random() * (max - min + 1)) + min
+        };
+
+        // --- AUTHENTICATION ---
+        const Auth = {
+            isAuthenticated: false,
+            login(e) {
+                e.preventDefault();
+                const btn = e.target.querySelector('button');
+                const originalHtml = btn.innerHTML;
+                btn.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i> Establishing Secure Handshake...';
+                btn.classList.add('opacity-75', 'cursor-not-allowed');
+                
+                setTimeout(() => {
+                    document.getElementById('login-screen').classList.add('opacity-0', 'pointer-events-none');
+                    this.isAuthenticated = true;
+                    setTimeout(() => document.getElementById('login-screen').remove(), 500);
+                    Notifications.add('Secure Session Established. AI Engine Initialized.', 'success');
+                }, 1500);
+            }
+        };
+
+        // --- INSURTECH ALGORITHMS (The Brain) ---
+        const InsurTech = {
+            // "Black Box" Underwriting Algorithm
+            underwrite: (inputs) => {
+                // Variables: Asset Value, Credit Score (300-900), Location Risk (1-10), Age
+                let baseRisk = 50;
+                baseRisk += (inputs.age * 1.5); // Older assets = higher risk
+                baseRisk += (inputs.locationRisk * 4.5); // Location multiplier
+                baseRisk -= ((inputs.creditScore - 600) / 8); // Credit worthiness
+                
+                // Normalization
+                let score = Math.max(10, Math.min(99, Math.floor(baseRisk)));
+                
+                // Decision Logic
+                let decision = 'Refer to Underwriter';
+                if (score < 35) decision = 'Auto-Accept (Low Risk)';
+                else if (score > 85) decision = 'Auto-Decline (High Risk)';
+                
+                // Pricing Model
+                let baseRate = 0.005; // 0.5% base rate
+                let riskMultiplier = 1 + (score / 100);
+                let premium = Math.floor(inputs.value * baseRate * riskMultiplier);
+
+                return { score, decision, premium };
+            },
+
+            // Client Segmentation (K-Means Logic Mock)
+            classifyClient: (policies) => {
+                const totalVal = policies.reduce((s, p) => s + p.premium, 0);
+                const count = policies.length;
+                const riskAvg = policies.reduce((s, p) => s + p.riskScore, 0) / (count || 1);
+                
+                if (totalVal > 1000000 && riskAvg < 40) return 'Platinum'; // High Value, Low Risk
+                if (totalVal > 300000) return 'Gold'; // Mid Value
+                if (riskAvg > 80) return 'High Risk'; // Watchlist
+                return 'Silver'; // Standard
+            },
+
+            // Parametric Claims Bot
+            processClaim: (claim, policy) => {
+                const rules = [
+                    { name: 'Policy Status Active', pass: policy.status === 'Active' },
+                    { name: 'Claim Amount < Coverage Limit', pass: claim.amount < (policy.premium * 50) },
+                    { name: 'Policy Risk Score < 70', pass: policy.riskScore < 70 },
+                    { name: 'Fraud AI Check', pass: Math.random() > 0.05 } // 5% random flag
+                ];
+                
+                const approved = rules.every(r => r.pass);
+                return { 
+                    approved, 
+                    log: rules.map(r => `<span class="${r.pass ? 'text-green-600' : 'text-red-600'}">${r.name}: ${r.pass ? 'PASS' : 'FAIL'}</span>`).join('<br>')
+                };
+            }
+        };
+
+        // --- DATA STORE (Persistence Layer) ---
+        const Store = {
+            key: 'insureflow_v4_master_db',
+            data: { clients: [], policies: [], claims: [], logs: [], notifications: [] },
+            
+            init() {
+                const d = localStorage.getItem(this.key);
+                if(d) {
+                    try { this.data = JSON.parse(d); } catch(e) { this.seed(); }
+                } else {
+                    this.seed();
+                }
+                this.updateSegments();
+                this.updateMeta();
+            },
+
+            save() {
+                localStorage.setItem(this.key, JSON.stringify(this.data));
+                this.updateMeta();
+            },
+
+            log(action, module, details) {
+                this.data.logs.unshift({ 
+                    id: Utils.id('LOG'), 
+                    time: new Date(), 
+                    user: 'Admin', 
+                    action, 
+                    module, 
+                    details 
+                });
+                if(this.data.logs.length > 200) this.data.logs.pop();
+                this.save();
+            },
+
+            updateSegments() {
+                this.data.clients.forEach(c => {
+                    const pols = this.data.policies.filter(p => p.clientId === c.id);
+                    c.tier = InsurTech.classifyClient(pols);
+                });
+                this.save();
+            },
+
+            updateMeta() {
+                const bytes = new Blob([JSON.stringify(this.data)]).size;
+                const kb = (bytes / 1024).toFixed(2);
+                document.getElementById('storage-usage').innerText = `DB: ${kb} KB`;
+            },
+
+            seed() {
+                console.log("Initializing Massive Data Seed...");
+                // 1. Clients (Indian Context)
+                const fNames = ['Aarav', 'Vivaan', 'Aditya', 'Vihaan', 'Arjun', 'Sai', 'Reyansh', 'Ayaan', 'Krishna', 'Ishaan', 'Diya', 'Saanvi', 'Ananya', 'Aadhya', 'Pari', 'Kiara', 'Myra', 'Riya', 'Rohan', 'Vikram', 'Neha', 'Pooja', 'Rahul', 'Suresh'];
+                const lNames = ['Patel', 'Sharma', 'Singh', 'Kumar', 'Das', 'Gupta', 'Bhosale', 'Deshmukh', 'Joshi', 'Mehta', 'Shah', 'Reddy', 'Nair', 'Verma', 'Chopra', 'Malhotra', 'Iyer', 'Kulkarni'];
+                const corps = ['Reliance', 'Tata', 'Bajaj', 'Adani', 'Mahindra', 'Birla', 'Godrej', 'Wipro', 'Infosys', 'HDFC', 'L&T', 'Sun Pharma', 'Maruti', 'Asian Paints'];
+                
+                this.data.clients = Array.from({length: 50}, (_, i) => {
+                    const isCorp = Math.random() > 0.6;
+                    return {
+                        id: Utils.id('CL'),
+                        name: isCorp ? `${Utils.pick(corps)} ${Utils.pick(['Ind.', 'Ltd.', 'Ventures', 'Global'])}` : `${Utils.pick(fNames)} ${Utils.pick(lNames)}`,
+                        type: isCorp ? 'Corporate' : 'Individual',
+                        contact: `+91 9${Utils.randInt(100000000, 999999999)}`,
+                        email: `contact.${i}@${isCorp ? 'corp.in' : 'mail.com'}`,
+                        tier: 'Silver', // auto-calc later
+                        status: Utils.pick(['Active', 'Active', 'Active', 'Pending'])
+                    };
+                });
+
+                // 2. Policies
+                const types = ['Commercial Property', 'Cyber Liability', 'Workers Comp', 'Group Health', 'Fleet Auto', 'Parametric Flood', 'Directors & Officers'];
+                this.data.policies = Array.from({length: 120}, () => {
+                    const start = new Date();
+                    start.setMonth(start.getMonth() - Utils.randInt(1, 24));
+                    return {
+                        id: Utils.id('POL'),
+                        clientId: Utils.pick(this.data.clients).id,
+                        type: Utils.pick(types),
+                        premium: Utils.randInt(15000, 800000),
+                        riskScore: Utils.randInt(10, 95),
+                        status: Math.random() > 0.85 ? 'Expired' : 'Active',
+                        start: start.toISOString()
+                    };
+                });
+
+                // 3. Claims
+                this.data.claims = Array.from({length: 25}, () => {
+                    const p = Utils.pick(this.data.policies);
+                    return {
+                        id: Utils.id('CLM'),
+                        policyId: p.id,
+                        amount: Utils.randInt(5000, 150000),
+                        status: Utils.pick(['Submitted', 'Review', 'Approved', 'Settled']),
+                        date: new Date().toISOString()
+                    };
+                });
+
+                // 4. Initial Logs
+                this.data.logs.push({id: Utils.id('LOG'), time: new Date(), user: 'System', action: 'INIT', module: 'Core', details: 'Database seeded successfully'});
+                
+                this.save();
+            }
+        };
+
+        // --- UI HELPER ---
+        const ui = {
+            toast(msg, type='info') {
+                const t = document.getElementById('toast');
+                document.getElementById('toast-message').textContent = msg;
+                document.getElementById('toast-title').textContent = type === 'error' ? 'Error' : 'Notification';
+                document.getElementById('toast-title').className = `font-bold text-sm ${type==='error'?'text-red-600':'text-slate-900'}`;
+                document.getElementById('toast-icon').className = `fa-solid ${type==='error'?'fa-circle-xmark text-red-500':'fa-circle-check text-blue-600'} text-xl`;
+                
+                t.classList.remove('translate-x-full');
+                setTimeout(() => t.classList.add('translate-x-full'), 4000);
+            },
+            
+            badge(text) {
+                const map = {
+                    'Active': 'bg-emerald-100 text-emerald-700', 'Approved': 'bg-emerald-100 text-emerald-700', 'Auto-Approved': 'bg-indigo-100 text-indigo-700',
+                    'Platinum': 'bg-slate-900 text-white', 'Gold': 'bg-amber-100 text-amber-800', 'Silver': 'bg-slate-100 text-slate-600',
+                    'Expired': 'bg-red-50 text-red-600', 'Submitted': 'bg-blue-50 text-blue-600', 'Corporate': 'bg-purple-50 text-purple-700'
+                };
+                return `<span class="badge ${map[text] || 'bg-slate-100 text-slate-500'}">${text}</span>`;
+            },
+
+            table(headers, rows) {
+                if(!rows.length) return `<div class="p-12 text-center border-2 border-dashed border-slate-200 rounded-xl"><p class="text-slate-400">No records found in database.</p></div>`;
+                return `
+                <div class="bg-white border border-slate-200 rounded-xl shadow-sm overflow-hidden">
+                    <table class="data-table">
+                        <thead><tr>${headers.map(h => `<th>${h}</th>`).join('')}</tr></thead>
+                        <tbody>${rows.map(r => `<tr class="group hover:bg-slate-50 cursor-default">${r.map(c => `<td>${c}</td>`).join('')}</tr>`).join('')}</tbody>
+                    </table>
+                </div>`;
+            },
+
+            openModal(title, content) {
+                document.getElementById('modal-title').textContent = title;
+                document.getElementById('modal-content').innerHTML = content;
+                const backdrop = document.getElementById('modal-backdrop');
+                const panel = document.getElementById('modal-panel');
+                backdrop.classList.remove('hidden');
+                setTimeout(() => {
+                    backdrop.classList.remove('opacity-0');
+                    panel.classList.remove('scale-95');
+                    panel.classList.add('scale-100');
+                }, 10);
+            },
+
+            closeModal() {
+                const backdrop = document.getElementById('modal-backdrop');
+                const panel = document.getElementById('modal-panel');
+                backdrop.classList.add('opacity-0');
+                panel.classList.remove('scale-100');
+                setTimeout(() => backdrop.classList.add('hidden'), 300);
+            }
+        };
+
+        // --- NOTIFICATIONS ---
+        const Notifications = {
+            add(msg, type='info') {
+                Store.data.notifications.unshift({ msg, type, read: false, time: new Date() });
+                this.render();
+                ui.toast(msg, type);
+            },
+            toggle() { document.getElementById('notif-dropdown').classList.toggle('hidden'); },
+            clearAll() { Store.data.notifications = []; this.render(); Store.save(); },
+            render() {
+                const list = document.getElementById('notif-list');
+                const badge = document.getElementById('notif-badge');
+                if(!list) return;
+                
+                const unread = Store.data.notifications.filter(n => !n.read).length;
+                unread > 0 ? badge.classList.remove('hidden') : badge.classList.add('hidden');
+                
+                list.innerHTML = Store.data.notifications.length === 0 
+                    ? `<div class="p-8 text-center"><i class="fa-regular fa-bell-slash text-slate-300 text-2xl mb-2"></i><p class="text-xs text-slate-400">No new notifications</p></div>` 
+                    : Store.data.notifications.map(n => `
+                        <div class="px-5 py-3 border-b border-slate-50 hover:bg-slate-50 transition-colors">
+                            <p class="text-xs font-medium text-slate-700 leading-snug">${n.msg}</p>
+                            <p class="text-[10px] text-slate-400 mt-1">${Utils.dateTime(n.time)}</p>
+                        </div>`).join('');
+            }
+        };
+
+        // --- CONTROLLERS ---
+        const Controllers = {
+            // New Policy Wizard
+            newPolicy() {
+                const clients = Store.data.clients.map(c => `<option value="${c.id}">${c.name}</option>`).join('');
+                const step1 = `
+                    <div class="animate-fade-in space-y-4">
+                        <div class="bg-blue-50 border border-blue-100 p-4 rounded-lg flex gap-3">
+                            <div class="text-blue-600"><i class="fa-solid fa-info-circle"></i></div>
+                            <p class="text-xs text-blue-800 leading-relaxed">This wizard will calculate risk and premium automatically based on the selected product and coverage limits.</p>
+                        </div>
+                        <div><label class="block text-xs font-bold text-slate-500 mb-1">Entity</label><select id="np-client" class="w-full border border-slate-300 p-2.5 rounded-lg text-sm bg-white">${clients}</select></div>
+                        <div><label class="block text-xs font-bold text-slate-500 mb-1">Product Line</label><select id="np-type" class="w-full border border-slate-300 p-2.5 rounded-lg text-sm bg-white"><option>Cyber Liability</option><option>Motor Fleet</option><option>Parametric Flood</option></select></div>
+                    </div>`;
+                
+                const footer = `
+                    <div class="flex justify-between items-center mt-8 pt-4 border-t border-slate-100">
+                        <div class="flex items-center gap-2">
+                             <div class="step-indicator active">1</div><div class="step-line"></div><div class="step-indicator">2</div>
+                        </div>
+                        <button onclick="Controllers.finishPolicy()" class="px-6 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-sm font-bold shadow-lg shadow-blue-200 transition-all">Bind & Issue</button>
+                    </div>`;
+                ui.openModal('New Policy Wizard', step1 + footer);
+            },
+            
+            finishPolicy() {
+                const cid = document.getElementById('np-client').value;
+                Store.data.policies.unshift({
+                    id: Utils.id('POL'), clientId: cid, type: document.getElementById('np-type').value,
+                    premium: Utils.randInt(25000, 100000), riskScore: Utils.randInt(20, 80), status: 'Active', start: new Date().toISOString()
+                });
+                Store.log('CREATE', 'Policy', 'Policy bound via Wizard');
+                Store.updateSegments();
+                ui.closeModal();
+                ui.toast('Policy Bound Successfully', 'success');
+                router.navigate('policies');
+            },
+
+            // Underwriting Calc
+            calcRisk() {
+                const f = document.getElementById('uw-form');
+                if(!f) return;
+                const ins = { 
+                    value: Number(f.querySelector('[name=val]').value), 
+                    creditScore: Number(f.querySelector('[name=cred]').value),
+                    locationRisk: Number(f.querySelector('[name=loc]').value),
+                    age: Number(f.querySelector('[name=age]').value)
+                };
+                // Updates UI elements
+                document.getElementById('disp-val').innerText = (ins.value/100000).toFixed(1) + 'L';
+                
+                const res = InsurTech.underwrite(ins);
+                const scoreEl = document.getElementById('uw-score');
+                scoreEl.innerText = res.score;
+                scoreEl.className = `text-5xl font-mono font-bold tracking-tighter ${res.score>50?'text-red-500':'text-emerald-400'}`;
+                
+                document.getElementById('uw-decision').innerText = res.decision;
+                document.getElementById('uw-decision').className = `text-xl font-bold font-mono ${res.decision.includes('Accept')?'text-emerald-400':res.decision.includes('Decline')?'text-red-500':'text-amber-400'}`;
+                
+                document.getElementById('uw-prem').innerText = Utils.currency(res.premium);
+                document.getElementById('uw-log').innerHTML = `<p>> Risk Factors Ingested...</p><p>> Score Calc: ${res.score}</p><p class="text-emerald-400">> COMPLETE</p>`;
+            },
+
+            // Claims Bot
+            async runClaimsBot() {
+                const pending = Store.data.claims.filter(c => c.status === 'Submitted');
+                if(!pending.length) return ui.toast('Queue Empty', 'info');
+                
+                ui.toast(`Processing ${pending.length} items...`, 'info');
+                const btn = document.getElementById('btn-run-bot');
+                btn.innerHTML = `<i class="fa-solid fa-circle-notch fa-spin"></i> Processing...`;
+                
+                for(const c of pending) {
+                    await Utils.sleep(400); // simulate work
+                    const pol = Store.data.policies.find(p => p.id === c.policyId);
+                    const res = InsurTech.processClaim(c, pol);
+                    if(res.approved) {
+                        c.status = 'Auto-Approved';
+                        Store.log('AUTO-APPROVE', 'Bot', `Claim ${c.id} settled by AI`);
+                    }
+                }
+                Store.save();
+                btn.innerHTML = `<i class="fa-solid fa-robot"></i> Execute Batch`;
+                ui.toast('Batch Complete', 'success');
+                router.navigate('claims');
+            }
+        };
+
+        // --- VIEWS (PAGES) ---
+        const Views = {
+            dashboard() {
+                const s = Store.data;
+                const gwp = s.policies.reduce((a,b)=>a+b.premium,0);
+                const claimsVal = s.claims.reduce((a,b)=>a+b.amount,0);
+                const autoRate = s.claims.length ? ((s.claims.filter(c=>c.status==='Auto-Approved').length / s.claims.length)*100).toFixed(0) : 0;
+
+                return `
+                <div class="space-y-8 animate-fade-in max-w-7xl mx-auto">
+                    <!-- Hero -->
+                    <div class="bg-gradient-to-r from-brand-900 to-brand-800 rounded-2xl p-8 text-white shadow-2xl relative overflow-hidden border border-brand-700">
+                        <div class="relative z-10 max-w-2xl">
+                            <h2 class="text-3xl font-bold tracking-tight mb-2">InsurTech Command Center</h2>
+                            <p class="text-blue-200">Real-time telemetry, algorithmic performance metrics, and system health.</p>
+                        </div>
+                        <i class="fa-solid fa-network-wired absolute -right-10 -bottom-10 text-[10rem] text-white opacity-5"></i>
+                    </div>
+
+                    <!-- KPI Cards -->
+                    <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
+                        <div class="bg-white p-6 rounded-xl border border-slate-200 shadow-sm hover:shadow-md transition-shadow">
+                            <div class="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-2">Gross Written Premium</div>
+                            <div class="text-3xl font-bold text-slate-800 tracking-tight">${Utils.currency(gwp)}</div>
+                            <div class="text-xs text-emerald-600 font-bold mt-2 flex items-center gap-1"><i class="fa-solid fa-arrow-trend-up"></i> 14.2% YoY</div>
+                        </div>
+                        <div class="bg-white p-6 rounded-xl border border-slate-200 shadow-sm hover:shadow-md transition-shadow">
+                            <div class="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-2">Bot Settlement Rate</div>
+                            <div class="text-3xl font-bold text-indigo-600 tracking-tight">${autoRate}%</div>
+                            <div class="text-xs text-slate-400 font-medium mt-2">Target: >40%</div>
+                        </div>
+                         <div class="bg-white p-6 rounded-xl border border-slate-200 shadow-sm hover:shadow-md transition-shadow">
+                            <div class="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-2">Active Policies</div>
+                            <div class="text-3xl font-bold text-slate-800 tracking-tight">${s.policies.filter(p=>p.status==='Active').length}</div>
+                            <div class="text-xs text-blue-600 font-bold mt-2">Total Exposure</div>
+                        </div>
+                         <div class="bg-white p-6 rounded-xl border border-slate-200 shadow-sm hover:shadow-md transition-shadow">
+                            <div class="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-2">High Value Clients</div>
+                            <div class="text-3xl font-bold text-slate-800 tracking-tight">${s.clients.filter(c=>c.tier==='Platinum').length}</div>
+                            <div class="text-xs text-slate-400 font-medium mt-2">Platinum Tier</div>
+                        </div>
+                    </div>
+
+                    <!-- Feed -->
+                    <div class="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
+                        <div class="px-6 py-4 border-b border-slate-100 flex justify-between items-center bg-slate-50/50">
+                            <h3 class="font-bold text-sm text-slate-700">Live System Feed</h3>
+                            <span class="flex items-center gap-2 text-[10px] font-bold text-emerald-600 bg-emerald-50 px-2 py-1 rounded-full"><span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span> LIVE</span>
+                        </div>
+                        <div class="divide-y divide-slate-50 max-h-80 overflow-y-auto custom-scroll">
+                            ${s.logs.slice(0, 10).map(l => `
+                                <div class="px-6 py-3 flex items-center justify-between hover:bg-slate-50 transition-colors group">
+                                    <div class="flex items-center gap-4">
+                                        <div class="w-8 h-8 rounded-full bg-slate-100 text-slate-500 flex items-center justify-center text-xs font-mono group-hover:bg-blue-100 group-hover:text-blue-600 transition-colors">
+                                            <i class="fa-solid fa-terminal"></i>
+                                        </div>
+                                        <div>
+                                            <p class="text-xs font-semibold text-slate-700">${l.action} <span class="text-slate-400 font-normal">in</span> ${l.module}</p>
+                                            <p class="text-[10px] text-slate-400">${l.details}</p>
+                                        </div>
+                                    </div>
+                                    <div class="text-[10px] text-slate-400 font-mono">${Utils.dateTime(l.time)}</div>
+                                </div>
+                            `).join('')}
+                        </div>
+                    </div>
+                </div>`;
+            },
+
+            underwriting() {
+                return `
+                <div class="max-w-7xl mx-auto animate-fade-in space-y-6">
+                    <div class="flex justify-between items-end">
+                        <div>
+                            <h2 class="text-2xl font-bold text-slate-800">Underwriting Sandbox</h2>
+                            <p class="text-slate-500 text-sm">Simulate the AI Risk Pricing Algorithm.</p>
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+                        <!-- Inputs -->
+                        <div class="lg:col-span-4 bg-white p-6 rounded-xl border border-slate-200 shadow-sm">
+                            <h4 class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-6">Input Variables</h4>
+                            <form id="uw-form" oninput="Controllers.calcRisk()" class="space-y-6">
+                                <div>
+                                    <label class="flex justify-between text-xs font-bold text-slate-700 mb-2">Asset Value <span id="disp-val" class="text-blue-600">50L</span></label>
+                                    <input type="range" name="val" min="100000" max="10000000" step="100000" value="5000000" class="w-full h-2 bg-slate-200 rounded-lg appearance-none cursor-pointer">
+                                </div>
+                                <div>
+                                    <label class="block text-xs font-bold text-slate-700 mb-2">Credit Score</label>
+                                    <input type="range" name="cred" min="300" max="900" value="750" class="w-full h-2 bg-slate-200 rounded-lg appearance-none cursor-pointer">
+                                    <div class="flex justify-between text-[10px] text-slate-400 mt-1"><span>300</span><span>900</span></div>
+                                </div>
+                                <div>
+                                    <label class="block text-xs font-bold text-slate-700 mb-2">Geospatial Risk Index</label>
+                                    <input type="range" name="loc" min="1" max="10" value="3" class="w-full h-2 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-red-500">
+                                    <div class="flex justify-between text-[10px] text-slate-400 mt-1"><span>Low</span><span>High</span></div>
+                                </div>
+                                <div>
+                                    <label class="block text-xs font-bold text-slate-700 mb-2">Asset Age (Years)</label>
+                                    <input type="number" name="age" value="5" class="w-full border border-slate-300 rounded-lg p-2 text-sm">
+                                </div>
+                            </form>
+                        </div>
+
+                        <!-- Black Box Output -->
+                        <div class="lg:col-span-8 tech-panel p-8 rounded-xl shadow-2xl relative overflow-hidden flex flex-col justify-between">
+                            <!-- Matrix BG -->
+                            <div class="absolute inset-0 opacity-10 bg-[url('https://media.istockphoto.com/id/1156828859/vector/binary-code-background.jpg?s=612x612&w=0&k=20&c=0sBqYj6e8S6lXj8f8Y8b8q8q8q8q8q8q8q8q8q8q8q8=')]"></div>
+                            
+                            <div class="relative z-10 flex justify-between items-start">
+                                <div>
+                                    <h4 class="text-emerald-400 font-mono text-sm tracking-widest mb-4">>> ALGORITHM_OUTPUT_STREAM</h4>
+                                    <div id="uw-log" class="font-mono text-xs text-slate-400 space-y-2">
+                                        <p>> Initializing Neural Net...</p>
+                                        <p>> Loading Risk Maps...</p>
+                                        <p class="animate-pulse">> Awaiting Data Stream...</p>
+                                    </div>
+                                </div>
+                                <div class="text-right">
+                                    <div class="text-xs text-slate-500 uppercase font-mono mb-1">Risk Score</div>
+                                    <div id="uw-score" class="text-6xl font-bold text-white font-mono tracking-tighter">--</div>
+                                </div>
+                            </div>
+
+                            <div class="relative z-10 mt-12 pt-8 border-t border-slate-700/50 grid grid-cols-2 gap-8">
+                                <div>
+                                    <div class="text-xs text-slate-500 uppercase font-mono mb-1">AI Decision</div>
+                                    <div id="uw-decision" class="text-2xl font-bold text-white font-mono">PENDING</div>
+                                </div>
+                                <div class="text-right">
+                                    <div class="text-xs text-slate-500 uppercase font-mono mb-1">Premium Quote</div>
+                                    <div id="uw-prem" class="text-3xl font-bold text-emerald-400 font-mono">₹0</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>`;
+            },
+
+            claims() {
+                const pending = Store.data.claims.filter(c => c.status === 'Submitted');
+                return `
+                <div class="max-w-7xl mx-auto animate-fade-in space-y-6">
+                    <div class="bg-indigo-50 border border-indigo-100 rounded-xl p-6 flex justify-between items-center shadow-sm">
+                        <div class="flex gap-4 items-center">
+                            <div class="w-12 h-12 bg-indigo-100 rounded-lg flex items-center justify-center text-indigo-600 text-2xl">
+                                <i class="fa-solid fa-robot"></i>
+                            </div>
+                            <div>
+                                <h2 class="text-lg font-bold text-indigo-900">Smart Settlement Bot</h2>
+                                <p class="text-sm text-indigo-700">Queue: <strong>${pending.length}</strong> claims awaiting analysis.</p>
+                            </div>
+                        </div>
+                        <button id="btn-run-bot" onclick="Controllers.runClaimsBot()" class="bg-indigo-600 hover:bg-indigo-700 text-white px-6 py-3 rounded-lg font-bold shadow-lg shadow-indigo-200 transition-all flex items-center gap-2">
+                            <i class="fa-solid fa-bolt"></i> Execute Batch
+                        </button>
+                    </div>
+
+                    ${ui.table(['Claim ID', 'Policy ID', 'Amount', 'Status', 'Timestamp'], 
+                        Store.data.claims.map(c => [
+                            `<span class="font-mono text-xs font-bold">${c.id}</span>`,
+                            c.policyId,
+                            Utils.currency(c.amount),
+                            ui.badge(c.status),
+                            `<span class="text-xs text-slate-400 font-mono">${Utils.dateTime(c.date)}</span>`
+                        ])
+                    )}
+                </div>`;
+            },
+
+            policies() {
+                return `
+                <div class="max-w-7xl mx-auto animate-fade-in space-y-6">
+                    <div class="flex justify-between items-center">
+                        <div>
+                            <h2 class="text-2xl font-bold text-slate-800">Policy Administration</h2>
+                            <p class="text-sm text-slate-500">Registry of ${Store.data.policies.length} active contracts.</p>
+                        </div>
+                        <button onclick="Controllers.newPolicy()" class="bg-brand-600 hover:bg-brand-700 text-white px-5 py-2.5 rounded-lg text-sm font-bold shadow-md transition-all"><i class="fa-solid fa-plus mr-2"></i>New Policy</button>
+                    </div>
+                    ${ui.table(['ID', 'Product', 'Premium', 'Risk', 'Status', 'Start Date'], 
+                        Store.data.policies.map(p => [
+                            `<span class="font-mono text-xs font-bold text-slate-600">${p.id}</span>`,
+                            p.type,
+                            Utils.currency(p.premium),
+                            `<span class="font-bold ${p.riskScore>50?'text-red-500':'text-emerald-500'}">${p.riskScore}</span>`,
+                            ui.badge(p.status),
+                            `<span class="text-xs text-slate-400">${Utils.date(p.start)}</span>`
+                        ])
+                    )}
+                </div>`;
+            },
+
+            clients() {
+                return `
+                <div class="max-w-7xl mx-auto animate-fade-in space-y-6">
+                    <div class="flex justify-between items-center">
+                        <h2 class="text-2xl font-bold text-slate-800">Client Intelligence</h2>
+                    </div>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <div class="bg-slate-900 text-white p-5 rounded-xl border border-slate-700 shadow flex justify-between items-center">
+                            <div><div class="text-xs text-slate-400 uppercase font-bold">Platinum Tier</div><div class="text-sm text-slate-500">High Value (>10L)</div></div>
+                            <div class="text-3xl font-bold">${Store.data.clients.filter(c=>c.tier==='Platinum').length}</div>
+                        </div>
+                        <div class="bg-amber-50 text-amber-900 p-5 rounded-xl border border-amber-100 shadow flex justify-between items-center">
+                            <div><div class="text-xs text-amber-700 uppercase font-bold">Gold Tier</div><div class="text-sm text-amber-600/70">Mid Value</div></div>
+                            <div class="text-3xl font-bold">${Store.data.clients.filter(c=>c.tier==='Gold').length}</div>
+                        </div>
+                         <div class="bg-white text-slate-700 p-5 rounded-xl border border-slate-200 shadow flex justify-between items-center">
+                            <div><div class="text-xs text-slate-400 uppercase font-bold">Silver Tier</div><div class="text-sm text-slate-400">Standard</div></div>
+                            <div class="text-3xl font-bold">${Store.data.clients.filter(c=>c.tier==='Silver').length}</div>
+                        </div>
+                    </div>
+
+                    ${ui.table(['Name', 'ID', 'Type', 'AI Segment', 'Contact', 'Status'], 
+                        Store.data.clients.map(c => [
+                            `<span class="font-bold text-slate-700">${c.name}</span>`,
+                            `<span class="font-mono text-xs text-slate-400">${c.id}</span>`,
+                            c.type,
+                            ui.badge(c.tier),
+                            c.contact,
+                            ui.badge(c.status)
+                        ])
+                    )}
+                </div>`;
+            },
+            
+            finance() {
+                const txns = Store.data.policies.map(p => ({ desc: `Premium: ${p.id}`, amt: p.premium, type: 'in', date: p.start }))
+                    .concat(Store.data.claims.filter(c=>c.status!=='Submitted').map(c => ({ desc: `Claim Payout: ${c.id}`, amt: -c.amount, type: 'out', date: c.date })))
+                    .sort((a,b) => new Date(b.date) - new Date(a.date));
+
+                return `
+                <div class="max-w-7xl mx-auto animate-fade-in space-y-6">
+                    <h2 class="text-2xl font-bold text-slate-800">Financial Ledger</h2>
+                    ${ui.table(['Date', 'Description', 'Amount', 'Type'], 
+                        txns.slice(0, 50).map(t => [
+                            Utils.date(t.date), 
+                            t.desc, 
+                            `<span class="font-mono font-bold ${t.type==='in'?'text-emerald-600':'text-red-600'}">${t.type==='in'?'+':''}${Utils.currency(t.amt)}</span>`, 
+                            ui.badge(t.type === 'in' ? 'Credit' : 'Debit')
+                        ])
+                    )}
+                </div>`;
+            },
+
+            audit() {
+                return `
+                <div class="max-w-7xl mx-auto animate-fade-in space-y-6">
+                    <h2 class="text-2xl font-bold text-slate-800">System Audit Logs</h2>
+                    ${ui.table(['Timestamp', 'User', 'Action', 'Module', 'Details'], 
+                        Store.data.logs.map(l => [Utils.dateTime(l.time), `<span class="font-bold">${l.user}</span>`, l.action, l.module, l.details])
+                    )}
+                </div>`;
+            },
+
+            docs() {
+                return `
+                <div class="max-w-5xl mx-auto animate-fade-in pb-20">
+                    <div class="bg-white p-10 rounded-xl border border-slate-200 shadow-sm">
+                        
+                        <!-- Header -->
+                        <div class="border-b border-slate-100 pb-8 mb-8">
+                            <h1 class="text-4xl font-bold text-slate-900 mb-3">SaaS Transition Roadmap</h1>
+                            <div class="flex items-center gap-4 text-sm text-slate-500">
+                                <span><i class="fa-solid fa-shield-halved mr-2 text-blue-600"></i>InsureFlow Enterprise</span>
+                                <span><i class="fa-solid fa-code-branch mr-2"></i>v4.0 Spec</span>
+                                <span class="bg-blue-100 text-blue-700 px-2 py-0.5 rounded text-xs font-bold">CONFIDENTIAL</span>
+                            </div>
+                        </div>
+                        
+                        <!-- Content -->
+                        <div class="prose max-w-none">
+                            <div class="doc-section">
+                                <div class="doc-title">1. Executive Summary</div>
+                                <p class="doc-text">This document serves as the technical blueprint for migrating InsureFlow from a single-tenant prototype into a multi-tenant, cloud-native SaaS platform. The system is designed to handle high-volume policy administration with integrated AI decisioning.</p>
+                            </div>
+
+                            <div class="doc-section">
+                                <div class="doc-title">2. Architecture Evolution</div>
+                                <div class="doc-subtitle">Current State (Monolith Prototype)</div>
+                                <p class="doc-text">Currently runs entirely in the browser using the DOM for rendering and LocalStorage for persistence. Logic is tightly coupled with UI.</p>
+                                
+                                <div class="doc-subtitle">Target State (Microservices SaaS)</div>
+                                <p class="doc-text">We will adopt a headless architecture to separate the AI Logic from the Core CRUD operations.</p>
+                                <ul class="doc-list">
+                                    <li><strong>Frontend:</strong> React.js + TypeScript + Tailwind (Deployed on Vercel).</li>
+                                    <li><strong>Core API:</strong> Node.js (NestJS) for Policy/Client management.</li>
+                                    <li><strong>AI Engine:</strong> Python (FastAPI) running PyTorch models for risk scoring.</li>
+                                    <li><strong>Database:</strong> PostgreSQL (Relational) + MongoDB (Logs) + Redis (Cache).</li>
+                                </ul>
+                            </div>
+
+                            <div class="doc-section">
+                                <div class="doc-title">3. Algorithmic Modules</div>
+                                
+                                <div class="doc-subtitle">A. The "Black Box" Underwriter</div>
+                                <p class="doc-text">The linear weighting logic in <code>InsurTech.underwrite()</code> will be replaced by an XGBoost model trained on historical claim data.</p>
+                                <div class="doc-code">
+                                    POST /api/v1/risk/predict <br>
+                                    { <br>
+                                      "asset_value": 5000000, <br>
+                                      "credit_score": 750, <br>
+                                      "geo_risk": 3, <br>
+                                      "iot_telemetry": { "avg_speed": 65, "braking_events": 2 } <br>
+                                    } <br>
+                                    >> Returns: { "score": 42, "premium_loading": 1.05 }
+                                </div>
+
+                                <div class="doc-subtitle">B. Parametric Smart Contracts</div>
+                                <p class="doc-text">Claims settlement will move to a Smart Contract model on a private Hyperledger Fabric network for auditability.</p>
+                                <ul class="doc-list">
+                                    <li><strong>Oracle:</strong> Fetches weather/flight data.</li>
+                                    <li><strong>Contract:</strong> If <code>Rainfall > 50mm</code> THEN <code>Payout()</code>.</li>
+                                </ul>
+                            </div>
+
+                            <div class="doc-section">
+                                <div class="doc-title">4. Database Schema (PostgreSQL)</div>
+                                <div class="doc-code">
+                                    TABLE tenants (id UUID, name VARCHAR, api_key VARCHAR); <br>
+                                    TABLE policies ( <br>
+                                      id UUID PK, <br>
+                                      tenant_id UUID FK, <br>
+                                      risk_score INT, <br>
+                                      premium DECIMAL(10,2), <br>
+                                      status VARCHAR <br>
+                                    ); <br>
+                                    TABLE claims ( <br>
+                                      id UUID PK, <br>
+                                      policy_id UUID FK, <br>
+                                      ai_verdict JSONB <br>
+                                    );
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>`;
+            }
+        };
+
+        const router = {
+            navigate(route) {
+                document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
+                document.querySelectorAll('.nav-tab').forEach(el => el.classList.remove('active', 'border-blue-600', 'text-blue-600', 'bg-blue-50'));
+                
+                const view = document.getElementById(`view-${route}`);
+                const btn = document.getElementById(`nav-${route}`);
+                
+                if(view) {
+                    view.classList.add('active');
+                    if(Views[route]) view.innerHTML = Views[route]();
+                    // Init logic for specific views
+                    if(route === 'underwriting') setTimeout(Controllers.calcRisk, 100);
+                }
+                if(btn) btn.classList.add('active', 'border-blue-600', 'text-blue-600', 'bg-blue-50');
+            }
+        };
+
+        const app = {
+            init() {
+                Store.init();
+                // Check auth
+                if(!Auth.isAuthenticated) { /* Login screen active */ }
+                router.navigate('dashboard');
+                Notifications.render();
+            },
+            resetData() { 
+                if(confirm('MASTER RESET: This will wipe all database records and restore factory defaults. Continue?')) { 
+                    localStorage.removeItem(Store.key); 
+                    location.reload(); 
+                } 
+            }
+        };
+
+        window.onload = app.init;
+    </script>
+</body>
+</html>
