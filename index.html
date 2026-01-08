@@ -5,69 +5,91 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>FinTech App Suite</title>
   <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            diplomat: '#5a1f28',
+            diplomatDark: '#3f151b',
+            parchment: '#f7f5f2'
+          }
+        }
+      }
+    }
+  </script>
 </head>
-<body class="bg-slate-950 text-slate-100 min-h-screen">
+<body class="bg-parchment text-slate-800 min-h-screen">
 
-  <div class="max-w-5xl mx-auto px-6 py-16">
+  <div class="max-w-6xl mx-auto px-6 py-16">
 
-    <header class="mb-14">
-      <h1 class="text-4xl font-bold tracking-tight">FinTech App Suite</h1>
-      <span class="inline-block mt-3 rounded-full bg-slate-800 px-4 py-1 text-xs uppercase tracking-widest text-slate-300">Systems • Valuation • Liquidity • Insurance</span>
-      <p class="mt-4 text-slate-400 max-w-2xl">
-        A growing collection of browser-based financial tools built to convert analytical models into usable decision systems.
+    <header class="mb-20 border-b border-slate-300 pb-10">
+      <h1 class="text-4xl font-semibold tracking-tight text-diplomat">FinTech App Suite</h1>
+      <p class="mt-4 text-slate-600 max-w-3xl">
+        A curated suite of financial-technology systems translating academic models into structured, decision-ready applications.
       </p>
-      <div class="mt-6 text-sm text-slate-400">
-        <span class="font-medium text-slate-300">Parth Rahul Bhosale</span> · B.Com (Financial Technology) · India
+      <div class="mt-6 text-sm text-slate-500">
+        <span class="font-medium text-slate-700">Parth Rahul Bhosale</span> · B.Com (Financial Technology) · India
+      </div>
+      <div class="mt-6 text-xs uppercase tracking-widest text-diplomat">
+        Systems · Valuation · Liquidity · Insurance · Banking · Tax
       </div>
     </header>
 
-    <section class="space-y-6">
+    <section class="grid gap-8 md:grid-cols-2">
 
-      <a href="https://parth2004124.github.io/app-suite/ERP/" class="block rounded-xl border border-slate-800 p-6 hover:border-slate-600 transition">
-        <h2 class="text-xl font-semibold">Enterprise Resource Planning (ERP)</h2>
-        <p class="text-slate-400 mt-2">
-          Prototype ERP system demonstrating how core business processes can be structured, linked, and visualized through a unified interface.
+      <a href="https://parth2004124.github.io/app-suite/ERP/" class="group block rounded-xl border border-slate-300 bg-white p-7 hover:border-diplomat transition">
+        <h2 class="text-lg font-semibold text-diplomat">Enterprise Resource Planning (ERP)</h2>
+        <p class="text-slate-600 mt-3">
+          Structured representation of core business processes unified through a single operational interface.
         </p>
       </a>
 
-      <a href="https://parth2004124.github.io/Personal-Projects/" class="block rounded-xl border border-slate-800 p-6 hover:border-slate-600 transition">
-        <h2 class="text-xl font-semibold">Project Feasibility Analyzer</h2>
-        <p class="text-slate-400 mt-2">
-          Interactive tool to evaluate project viability using NPV, IRR, and payback under dynamic assumptions.
+      <a href="https://parth2004124.github.io/Personal-Projects/" class="group block rounded-xl border border-slate-300 bg-white p-7 hover:border-diplomat transition">
+        <h2 class="text-lg font-semibold text-diplomat">Project Feasibility Analyzer</h2>
+        <p class="text-slate-600 mt-3">
+          Decision-support system evaluating project viability using capital budgeting frameworks.
         </p>
       </a>
 
-      <a href="https://parth2004124.github.io/app-suite/DCF/" class="block rounded-xl border border-slate-800 p-6 hover:border-slate-600 transition">
-        <h2 class="text-xl font-semibold">DCF Valuation Tool</h2>
-        <p class="text-slate-400 mt-2">
-          A clean, interactive DCF tool that converts future cash-flow assumptions into intrinsic valuation outputs.
+      <a href="https://parth2004124.github.io/app-suite/DCF/" class="group block rounded-xl border border-slate-300 bg-white p-7 hover:border-diplomat transition">
+        <h2 class="text-lg font-semibold text-diplomat">DCF Valuation Tool</h2>
+        <p class="text-slate-600 mt-3">
+          Intrinsic valuation engine converting forward cash-flow assumptions into present value outcomes.
         </p>
       </a>
 
-      <a href="https://parth2004124.github.io/app-suite/WC/" class="block rounded-xl border border-slate-800 p-6 hover:border-slate-600 transition">
-        <h2 class="text-xl font-semibold">Working Capital Simulator</h2>
-        <p class="text-slate-400 mt-2">
-          A focused tool that models receivables, inventory, and payables to reveal cash-cycle pressure and liquidity impact.
+      <a href="https://parth2004124.github.io/app-suite/WC/" class="group block rounded-xl border border-slate-300 bg-white p-7 hover:border-diplomat transition">
+        <h2 class="text-lg font-semibold text-diplomat">Working Capital Simulator</h2>
+        <p class="text-slate-600 mt-3">
+          Liquidity-focused model mapping receivables, inventory, and payables across the cash cycle.
         </p>
       </a>
 
-      <a href="https://parth2004124.github.io/app-suite/INTECH/" class="block rounded-xl border border-indigo-500/30 bg-gradient-to-br from-slate-900 to-slate-950 p-6 hover:border-indigo-400 transition">
-        <h2 class="text-xl font-semibold">InsureFlow</h2>
-        <p class="text-slate-400 mt-2">
-          An InsurTech platform prototype designed to model end-to-end insurance operations, from policy issuance to risk-aware workflow management.
+      <a href="https://parth2004124.github.io/app-suite/INTECH/" class="group block rounded-xl border border-diplomat/40 bg-white p-7 hover:border-diplomat transition">
+        <h2 class="text-lg font-semibold text-diplomat">InsureFlow</h2>
+        <p class="text-slate-600 mt-3">
+          Insurance-technology prototype modeling policy administration, risk flows, and operational structure.
         </p>
       </a>
 
-      <a href="https://parth2004124.github.io/app-suite/BKTECH/" class="block rounded-xl border border-emerald-500/30 bg-gradient-to-br from-slate-900 to-slate-950 p-6 hover:border-emerald-400 transition">
-        <h2 class="text-xl font-semibold">Fincore</h2>
-        <p class="text-slate-400 mt-2">
-          A banking-technology platform prototype focused on core banking logic, transaction flows, and foundational financial system operations.
+      <a href="https://parth2004124.github.io/app-suite/BKTECH/" class="group block rounded-xl border border-diplomat/40 bg-white p-7 hover:border-diplomat transition">
+        <h2 class="text-lg font-semibold text-diplomat">Fincore</h2>
+        <p class="text-slate-600 mt-3">
+          Core banking systems prototype illustrating transaction logic and foundational financial operations.
+        </p>
+      </a>
+
+      <a href="https://parth2004124.github.io/app-suite/TAX/" class="group block rounded-xl border border-diplomat/40 bg-white p-7 hover:border-diplomat transition">
+        <h2 class="text-lg font-semibold text-diplomat">TDS & Tax Engine</h2>
+        <p class="text-slate-600 mt-3">
+          Tax-technology module analyzing TDS impact, deductions, and post-tax income structure.
         </p>
       </a>
 
     </section>
 
-    <footer class="mt-20 text-sm text-slate-500">
+    <footer class="mt-28 text-xs text-slate-500">
       © Parth Rahul Bhosale · Financial models rendered as web applications
     </footer>
 
