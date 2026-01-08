@@ -1,0 +1,1060 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>India Tax Suite - TDS, GST, Custom Duty</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+        
+        /* Custom Scrollbar for Dark Mode */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #0f172a; 
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #334155; 
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #475569; 
+        }
+
+        /* Hide number input arrows */
+        input[type=number]::-webkit-inner-spin-button, 
+        input[type=number]::-webkit-outer-spin-button { 
+            -webkit-appearance: none; 
+            margin: 0; 
+        }
+        .fade-in {
+            animation: fadeIn 0.3s ease-in-out;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        /* Date picker custom styles for dark mode integration */
+        ::-webkit-calendar-picker-indicator {
+            filter: invert(1);
+            opacity: 0.6;
+            cursor: pointer;
+        }
+    </style>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        slate: {
+                            850: '#151e2e',
+                            900: '#0f172a',
+                            950: '#020617',
+                        },
+                        emerald: {
+                            450: '#10b981', 
+                        },
+                        blue: {
+                            450: '#3b82f6',
+                        },
+                        purple: {
+                            450: '#a855f7',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+</head>
+<body class="bg-slate-950 text-slate-100 h-screen overflow-hidden flex selection:bg-emerald-500 selection:text-white">
+
+    <!-- Mobile Header -->
+    <div class="md:hidden fixed w-full top-0 z-50 bg-slate-900 border-b border-slate-800 p-4 flex justify-between items-center">
+        <h1 class="text-xl font-bold text-emerald-400">Tax<span class="text-white">Suite</span></h1>
+        <button id="menu-btn" class="text-slate-300 hover:text-white">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16m-7 6h7" />
+            </svg>
+        </button>
+    </div>
+
+    <!-- Sidebar -->
+    <aside id="sidebar" class="fixed inset-y-0 left-0 w-64 bg-slate-900 border-r border-slate-800 transform -translate-x-full md:relative md:translate-x-0 transition duration-200 ease-in-out z-40 flex flex-col">
+        <div class="p-6 border-b border-slate-800 hidden md:block">
+            <h1 class="text-2xl font-bold text-emerald-400 tracking-tight">Tax<span class="text-white">Suite</span><span class="text-xs text-slate-500 font-normal ml-1">India</span></h1>
+            <p class="text-xs text-slate-500 mt-1">All-in-One Finance Tool</p>
+        </div>
+
+        <nav class="flex-1 p-4 space-y-2 mt-14 md:mt-0 overflow-y-auto">
+            <div class="px-4 pb-2 text-xs font-semibold text-slate-500 uppercase tracking-wider">TDS Module</div>
+            <button onclick="showTab('dashboard')" class="nav-btn w-full flex items-center space-x-3 px-4 py-2 rounded-lg text-slate-400 hover:bg-slate-800 hover:text-emerald-400 transition-all active-tab" id="nav-dashboard">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"></path></svg>
+                <span>TDS Dashboard</span>
+            </button>
+            <button onclick="showTab('calculator')" class="nav-btn w-full flex items-center space-x-3 px-4 py-2 rounded-lg text-slate-400 hover:bg-slate-800 hover:text-emerald-400 transition-all" id="nav-calculator">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z"></path></svg>
+                <span>TDS Calculator</span>
+            </button>
+            <button onclick="showTab('register')" class="nav-btn w-full flex items-center space-x-3 px-4 py-2 rounded-lg text-slate-400 hover:bg-slate-800 hover:text-emerald-400 transition-all" id="nav-register">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"></path></svg>
+                <span>TDS Register</span>
+            </button>
+            <button onclick="showTab('reports')" class="nav-btn w-full flex items-center space-x-3 px-4 py-2 rounded-lg text-slate-400 hover:bg-slate-800 hover:text-emerald-400 transition-all" id="nav-reports">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 3.055A9.001 9.001 0 1020.945 13H11V3.055z" /><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.488 9H15V3.512A9.025 9.025 0 0120.488 9z" /></svg>
+                <span>Reports & Totals</span>
+            </button>
+
+            <div class="mt-4 px-4 pb-2 text-xs font-semibold text-slate-500 uppercase tracking-wider">Other Tools</div>
+            
+            <!-- GST Link -->
+            <button onclick="showTab('gst')" class="nav-btn w-full flex items-center space-x-3 px-4 py-2 rounded-lg text-slate-400 hover:bg-slate-800 hover:text-blue-400 transition-all" id="nav-gst">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>
+                <span>GST Calculator</span>
+            </button>
+
+            <!-- Import Duty Link -->
+            <button onclick="showTab('import')" class="nav-btn w-full flex items-center space-x-3 px-4 py-2 rounded-lg text-slate-400 hover:bg-slate-800 hover:text-purple-400 transition-all" id="nav-import">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3.055 11H5a2 2 0 012 2v1a2 2 0 002 2 2 2 0 012 2v2.945M8 3.935V5.5A2.5 2.5 0 0010.5 8h.5a2 2 0 012 2 2 2 0 104 0 2 2 0 012-2h1.064M15 20.488V18a2 2 0 012-2h3.064M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                <span>Import Duty</span>
+            </button>
+
+            <div class="mt-4 px-4 pb-2 text-xs font-semibold text-slate-500 uppercase tracking-wider">Reference</div>
+            <button onclick="showTab('rates')" class="nav-btn w-full flex items-center space-x-3 px-4 py-2 rounded-lg text-slate-400 hover:bg-slate-800 hover:text-emerald-400 transition-all" id="nav-rates">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M3 14h18m-9-4v8m-7 0h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"></path></svg>
+                <span>TDS Rates</span>
+            </button>
+            <button onclick="showTab('docs')" class="nav-btn w-full flex items-center space-x-3 px-4 py-2 rounded-lg text-slate-400 hover:bg-slate-800 hover:text-emerald-400 transition-all" id="nav-docs">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"></path></svg>
+                <span>Documentation</span>
+            </button>
+        </nav>
+        
+        <div class="p-6 border-t border-slate-800 text-xs text-slate-500">
+            <p>&copy; 2026 India Tax Suite</p>
+            <p class="mt-1">Educational Tool.</p>
+        </div>
+    </aside>
+
+    <!-- Overlay for mobile -->
+    <div id="overlay" class="fixed inset-0 bg-black bg-opacity-50 z-30 hidden md:hidden" onclick="toggleSidebar()"></div>
+
+    <!-- Main Content -->
+    <main class="flex-1 overflow-y-auto p-4 md:p-8 mt-16 md:mt-0 relative">
+        
+        <!-- TDS DASHBOARD TAB -->
+        <div id="dashboard" class="tab-content fade-in max-w-5xl mx-auto">
+            <header class="mb-8">
+                <h2 class="text-3xl font-bold text-white">TDS Dashboard</h2>
+                <p class="text-slate-400 mt-2">Overview of your last TDS calculation</p>
+            </header>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+                <!-- Card 1 -->
+                <div class="bg-slate-800/50 border border-slate-700 p-6 rounded-2xl backdrop-blur-sm">
+                    <p class="text-slate-400 text-sm font-medium uppercase tracking-wider">Gross Amount</p>
+                    <h3 class="text-2xl font-bold text-white mt-2" id="dash-gross">₹0</h3>
+                </div>
+                <!-- Card 2 -->
+                <div class="bg-slate-800/50 border border-slate-700 p-6 rounded-2xl backdrop-blur-sm">
+                    <p class="text-slate-400 text-sm font-medium uppercase tracking-wider">TDS Rate</p>
+                    <h3 class="text-2xl font-bold text-emerald-400 mt-2" id="dash-rate">0%</h3>
+                    <p class="text-xs text-slate-500 mt-1" id="dash-section">No Section</p>
+                </div>
+                <!-- Card 3 -->
+                <div class="bg-slate-800/50 border border-slate-700 p-6 rounded-2xl backdrop-blur-sm">
+                    <p class="text-slate-400 text-sm font-medium uppercase tracking-wider">TDS Deducted</p>
+                    <h3 class="text-2xl font-bold text-red-400 mt-2" id="dash-tds">₹0</h3>
+                </div>
+                <!-- Card 4 -->
+                <div class="bg-slate-800/50 border border-slate-700 p-6 rounded-2xl backdrop-blur-sm">
+                    <p class="text-slate-400 text-sm font-medium uppercase tracking-wider">Net Payable</p>
+                    <h3 class="text-2xl font-bold text-blue-400 mt-2" id="dash-net">₹0</h3>
+                </div>
+            </div>
+
+            <!-- Dashboard Summary Block -->
+            <div class="bg-slate-900 border border-slate-800 rounded-2xl p-6 md:p-8">
+                <div class="flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
+                    <div class="flex items-start space-x-4">
+                        <div class="bg-emerald-500/10 p-3 rounded-full text-emerald-500 hidden md:block">
+                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"></path></svg>
+                        </div>
+                        <div>
+                            <h4 class="text-lg font-semibold text-white">TDS Register Status</h4>
+                            <p class="text-slate-400 mt-2 leading-relaxed">
+                                You have <span id="dash-count" class="text-white font-bold">0</span> entries in your current session register. 
+                                <br>Total TDS Liability: <span id="dash-total-tds" class="text-red-400 font-mono">₹0</span>
+                            </p>
+                        </div>
+                    </div>
+                    <div class="flex space-x-3 w-full md:w-auto">
+                         <button onclick="showTab('gst')" class="flex-1 md:flex-none justify-center flex items-center space-x-2 px-4 py-2 bg-blue-600/10 border border-blue-600/30 text-blue-400 hover:bg-blue-600/20 rounded-lg text-sm font-medium transition">
+                            <span>Go to GST</span>
+                        </button>
+                        <button onclick="showTab('import')" class="flex-1 md:flex-none justify-center flex items-center space-x-2 px-4 py-2 bg-purple-600/10 border border-purple-600/30 text-purple-400 hover:bg-purple-600/20 rounded-lg text-sm font-medium transition">
+                            <span>Import Duty</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- TDS CALCULATOR TAB -->
+        <div id="calculator" class="tab-content hidden fade-in max-w-4xl mx-auto">
+            <header class="mb-8 flex justify-between items-end">
+                <div>
+                    <h2 class="text-3xl font-bold text-white">TDS Calculator</h2>
+                    <p class="text-slate-400 mt-2">Compute and add to register</p>
+                </div>
+            </header>
+
+            <div class="bg-slate-900 border border-slate-800 rounded-2xl p-6 md:p-8 shadow-xl">
+                <!-- Form Grid -->
+                <div class="grid grid-cols-1 md:grid-cols-12 gap-6 mb-8">
+                    
+                    <!-- Date & Deductee Name (Row 1) -->
+                    <div class="md:col-span-4">
+                        <label class="block text-sm font-medium text-slate-400 mb-2">Date</label>
+                        <input type="date" id="entryDate" class="w-full bg-slate-800 border border-slate-700 text-white rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition">
+                    </div>
+                    <div class="md:col-span-8">
+                        <label class="block text-sm font-medium text-slate-400 mb-2">Deductee Name / Entity</label>
+                        <input type="text" id="deducteeName" placeholder="e.g. John Doe / ABC Pvt Ltd" class="w-full bg-slate-800 border border-slate-700 text-white rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition">
+                    </div>
+
+                    <!-- Payment Type (Row 2) -->
+                    <div class="md:col-span-8">
+                        <label class="block text-sm font-medium text-slate-400 mb-2">Nature of Payment</label>
+                        <select id="paymentType" class="w-full bg-slate-800 border border-slate-700 text-white rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition">
+                            <option value="" disabled selected>Select payment type</option>
+                            <!-- Options populated by JS -->
+                        </select>
+                    </div>
+                    <div class="md:col-span-4">
+                        <label class="block text-sm font-medium text-slate-400 mb-2">Applicable Section</label>
+                        <input type="text" id="sectionCode" readonly class="w-full bg-slate-800/50 border border-slate-700 text-slate-400 rounded-lg px-4 py-3 cursor-not-allowed">
+                    </div>
+
+                    <!-- Gross Amount (Row 3) -->
+                    <div class="md:col-span-6">
+                        <label class="block text-sm font-medium text-slate-400 mb-2">Gross Amount (₹)</label>
+                        <div class="relative">
+                            <span class="absolute left-4 top-3 text-slate-500">₹</span>
+                            <input type="number" id="grossAmount" placeholder="0" class="w-full bg-slate-800 border border-slate-700 text-white rounded-lg pl-8 pr-4 py-3 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition">
+                        </div>
+                        <!-- Threshold Warning -->
+                        <div id="threshold-warning" class="hidden mt-2 p-2 bg-yellow-900/30 border border-yellow-700/50 rounded flex items-center space-x-2">
+                            <svg class="w-4 h-4 text-yellow-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path></svg>
+                            <span class="text-xs text-yellow-200">Amount is below section threshold (<span id="threshold-val"></span>). TDS may not apply.</span>
+                        </div>
+                    </div>
+
+                    <!-- PAN & Rate (Row 4) -->
+                    <div class="md:col-span-6 flex flex-col justify-end">
+                         <div class="grid grid-cols-2 gap-4">
+                            <!-- PAN Toggle -->
+                            <div class="bg-slate-800 border border-slate-700 rounded-lg px-4 py-3 flex items-center justify-between h-[50px]">
+                                <span class="text-xs font-medium text-slate-300">PAN Available?</span>
+                                <div class="relative inline-block w-10 mr-1 align-middle select-none">
+                                    <input type="checkbox" name="toggle" id="panToggle" checked class="toggle-checkbox absolute block w-5 h-5 rounded-full bg-white border-4 appearance-none cursor-pointer translate-x-5"/>
+                                    <label for="panToggle" class="toggle-label block overflow-hidden h-5 rounded-full bg-emerald-500 cursor-pointer"></label>
+                                </div>
+                            </div>
+                            
+                            <!-- TDS Rate -->
+                            <div class="relative h-[50px]">
+                                <input type="number" id="tdsRate" placeholder="0" step="0.01" class="w-full h-full bg-slate-800 border border-slate-700 text-white rounded-lg px-4 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition">
+                                <span class="absolute right-4 top-3 text-slate-500">%</span>
+                            </div>
+                         </div>
+                         <p id="rate-warning" class="text-xs text-orange-400 mt-1 hidden text-right">Rate increased (No PAN)</p>
+                    </div>
+                </div>
+
+                <!-- Results Area -->
+                <div class="bg-slate-950 rounded-xl p-6 border border-slate-800 space-y-4 relative overflow-hidden">
+                    <div class="absolute top-0 right-0 p-4 opacity-10 pointer-events-none">
+                        <svg class="w-32 h-32 text-emerald-500" fill="currentColor" viewBox="0 0 24 24"><path d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z"></path></svg>
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-8 relative z-10">
+                        <div>
+                            <p class="text-slate-400 text-sm mb-1">TDS Amount</p>
+                            <span class="text-3xl font-bold text-red-400 tracking-tight" id="res-tds">₹0.00</span>
+                        </div>
+                        <div>
+                            <p class="text-slate-400 text-sm mb-1">Net Payable</p>
+                            <span class="text-3xl font-bold text-emerald-400 tracking-tight" id="res-net">₹0.00</span>
+                        </div>
+                    </div>
+                    
+                    <div class="border-t border-slate-800 pt-4 mt-4 flex justify-end">
+                        <button onclick="addToRegister()" class="flex items-center space-x-2 bg-emerald-600 hover:bg-emerald-500 text-white px-6 py-2 rounded-lg font-medium transition shadow-lg shadow-emerald-900/20">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path></svg>
+                            <span>Add to Register</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- TDS REGISTER TAB -->
+        <div id="register" class="tab-content hidden fade-in max-w-6xl mx-auto">
+            <header class="mb-8 flex flex-col md:flex-row justify-between items-start md:items-end">
+                <div>
+                    <h2 class="text-3xl font-bold text-white">TDS Register</h2>
+                    <p class="text-slate-400 mt-2">Manage multiple entries and export data</p>
+                </div>
+                <button onclick="exportToCSV()" class="mt-4 md:mt-0 flex items-center space-x-2 bg-slate-800 border border-slate-700 hover:bg-slate-700 text-emerald-400 px-4 py-2 rounded-lg text-sm font-medium transition">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
+                    <span>Export to Excel (CSV)</span>
+                </button>
+            </header>
+
+            <div class="bg-slate-900 border border-slate-800 rounded-2xl overflow-hidden shadow-lg mb-8">
+                <div class="overflow-x-auto max-h-[500px]">
+                    <table class="w-full text-left border-collapse">
+                        <thead class="bg-slate-800 sticky top-0 z-10">
+                            <tr class="text-slate-300 text-xs uppercase tracking-wider">
+                                <th class="p-4 font-semibold border-b border-slate-700">Date</th>
+                                <th class="p-4 font-semibold border-b border-slate-700">Name</th>
+                                <th class="p-4 font-semibold border-b border-slate-700">Section</th>
+                                <th class="p-4 font-semibold border-b border-slate-700 text-right">Gross (₹)</th>
+                                <th class="p-4 font-semibold border-b border-slate-700 text-right">Rate</th>
+                                <th class="p-4 font-semibold border-b border-slate-700 text-right">TDS (₹)</th>
+                                <th class="p-4 font-semibold border-b border-slate-700 text-right">Net (₹)</th>
+                                <th class="p-4 font-semibold border-b border-slate-700 text-center">Action</th>
+                            </tr>
+                        </thead>
+                        <tbody id="register-body" class="text-sm text-slate-300 divide-y divide-slate-800">
+                            <!-- Populated by JS -->
+                            <tr class="text-center text-slate-500 italic">
+                                <td colspan="8" class="p-8">No entries yet. Calculate and click "Add to Register".</td>
+                            </tr>
+                        </tbody>
+                        <tfoot class="bg-slate-850 font-bold text-white sticky bottom-0 z-10 border-t border-emerald-900/30">
+                            <tr>
+                                <td colspan="3" class="p-4 text-right">Total:</td>
+                                <td class="p-4 text-right" id="total-gross">₹0</td>
+                                <td class="p-4"></td>
+                                <td class="p-4 text-right text-red-400" id="total-tds">₹0</td>
+                                <td class="p-4 text-right text-emerald-400" id="total-net">₹0</td>
+                                <td class="p-4"></td>
+                            </tr>
+                        </tfoot>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- NEW REPORTS TAB -->
+        <div id="reports" class="tab-content hidden fade-in max-w-6xl mx-auto">
+            <header class="mb-8">
+                <h2 class="text-3xl font-bold text-white">Reports & Analysis</h2>
+                <p class="text-slate-400 mt-2">Breakdown of Total TDS Liability</p>
+            </header>
+
+            <!-- Big Aggregate Cards -->
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+                <div class="bg-gradient-to-br from-slate-900 to-slate-800 border border-slate-700 p-6 rounded-2xl relative overflow-hidden">
+                    <p class="text-slate-400 text-sm font-medium uppercase tracking-wider relative z-10">Total Gross Value</p>
+                    <h3 class="text-3xl font-bold text-white mt-2 relative z-10" id="report-total-gross">₹0</h3>
+                    <div class="absolute right-0 bottom-0 p-4 opacity-5">
+                         <svg class="w-24 h-24" fill="currentColor" viewBox="0 0 20 20"><path d="M4 4a2 2 0 00-2 2v4a2 2 0 002 2V6h10a2 2 0 00-2-2H4zm2 6a2 2 0 012-2h8a2 2 0 012 2v4a2 2 0 01-2 2H8a2 2 0 01-2-2v-4zm6 4a1 1 0 100-2 1 1 0 000 2z"/></svg>
+                    </div>
+                </div>
+
+                <div class="bg-gradient-to-br from-red-900/40 to-slate-900 border border-red-900/30 p-6 rounded-2xl relative overflow-hidden">
+                    <p class="text-red-300 text-sm font-medium uppercase tracking-wider relative z-10">Total TDS Liability</p>
+                    <h3 class="text-3xl font-bold text-red-400 mt-2 relative z-10" id="report-total-tds">₹0</h3>
+                    <div class="absolute right-0 bottom-0 p-4 opacity-10">
+                        <svg class="w-24 h-24 text-red-500" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/></svg>
+                    </div>
+                </div>
+
+                <div class="bg-gradient-to-br from-emerald-900/40 to-slate-900 border border-emerald-900/30 p-6 rounded-2xl relative overflow-hidden">
+                    <p class="text-emerald-300 text-sm font-medium uppercase tracking-wider relative z-10">Total Net Payable</p>
+                    <h3 class="text-3xl font-bold text-emerald-400 mt-2 relative z-10" id="report-total-net">₹0</h3>
+                    <div class="absolute right-0 bottom-0 p-4 opacity-10">
+                         <svg class="w-24 h-24 text-emerald-500" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/></svg>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Section Breakdown -->
+            <div class="bg-slate-900 border border-slate-800 rounded-2xl p-6 md:p-8">
+                <h3 class="text-xl font-bold text-white mb-6">TDS Breakdown by Section</h3>
+                <div id="reports-breakdown" class="space-y-4">
+                    <p class="text-slate-500 text-sm italic">No data to display. Add entries to the register.</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- NEW: GST CALCULATOR TAB -->
+        <div id="gst" class="tab-content hidden fade-in max-w-4xl mx-auto">
+            <header class="mb-8">
+                <h2 class="text-3xl font-bold text-white">GST Calculator</h2>
+                <p class="text-slate-400 mt-2">Goods and Services Tax with Cess Support</p>
+            </header>
+
+            <div class="bg-slate-900 border border-slate-800 rounded-2xl p-6 md:p-8 shadow-xl">
+                <!-- Mode Toggle -->
+                <div class="flex bg-slate-800 p-1 rounded-lg mb-8 max-w-sm">
+                    <button onclick="setGstMode('exclusive')" id="btn-exclusive" class="flex-1 py-2 text-sm font-medium rounded-md text-white bg-slate-700 shadow-sm transition-all">Add GST (Exclusive)</button>
+                    <button onclick="setGstMode('inclusive')" id="btn-inclusive" class="flex-1 py-2 text-sm font-medium rounded-md text-slate-400 hover:text-white transition-all">Remove GST (Inclusive)</button>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+                    <!-- Amount -->
+                    <div>
+                        <label class="block text-sm font-medium text-slate-400 mb-2">Amount (₹)</label>
+                        <input type="number" id="gstAmount" placeholder="0" class="w-full bg-slate-800 border border-slate-700 text-white rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-blue-400 focus:border-transparent transition">
+                    </div>
+
+                    <!-- Cess -->
+                    <div>
+                        <label class="block text-sm font-medium text-slate-400 mb-2">Compensation Cess (%)</label>
+                        <input type="number" id="gstCess" placeholder="0" class="w-full bg-slate-800 border border-slate-700 text-white rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-blue-400 focus:border-transparent transition">
+                    </div>
+
+                    <!-- GST Rate Presets -->
+                    <div class="col-span-1 md:col-span-2">
+                        <label class="block text-sm font-medium text-slate-400 mb-2">GST Rate (%)</label>
+                        <div class="flex space-x-2">
+                            <button onclick="setGstRate(5)" class="gst-rate-btn flex-1 bg-slate-800 border border-slate-700 hover:bg-slate-700 text-white py-2 rounded-lg transition" data-rate="5">5%</button>
+                            <button onclick="setGstRate(12)" class="gst-rate-btn flex-1 bg-slate-800 border border-slate-700 hover:bg-slate-700 text-white py-2 rounded-lg transition" data-rate="12">12%</button>
+                            <button onclick="setGstRate(18)" class="gst-rate-btn flex-1 bg-blue-600 border border-blue-500 text-white py-2 rounded-lg transition" data-rate="18">18%</button>
+                            <button onclick="setGstRate(28)" class="gst-rate-btn flex-1 bg-slate-800 border border-slate-700 hover:bg-slate-700 text-white py-2 rounded-lg transition" data-rate="28">28%</button>
+                            <div class="relative w-24">
+                                <input type="number" id="customGstRate" placeholder="Custom" class="w-full h-full bg-slate-800 border border-slate-700 text-white rounded-lg px-3 text-center focus:outline-none focus:ring-2 focus:ring-blue-400 focus:border-transparent transition">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- GST Results -->
+                <div class="bg-slate-950 rounded-xl p-6 border border-slate-800 space-y-3">
+                    <div class="flex justify-between text-slate-400 text-sm">
+                        <span>Net Amount</span>
+                        <span id="gst-res-net">₹0</span>
+                    </div>
+                    <div class="flex justify-between text-blue-400 text-sm">
+                        <span>CGST + SGST / IGST</span>
+                        <span id="gst-res-tax">₹0</span>
+                    </div>
+                    <div class="flex justify-between text-purple-400 text-sm border-b border-slate-800 pb-3">
+                        <span>Total Cess</span>
+                        <span id="gst-res-cess">₹0</span>
+                    </div>
+                    <div class="flex justify-between items-center pt-2">
+                        <span class="text-white font-medium">Total Amount</span>
+                        <span class="text-2xl font-bold text-white" id="gst-res-total">₹0</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- NEW: IMPORT DUTY TAB -->
+        <div id="import" class="tab-content hidden fade-in max-w-4xl mx-auto">
+            <header class="mb-8">
+                <h2 class="text-3xl font-bold text-white">Import Duty Calculator</h2>
+                <p class="text-slate-400 mt-2">Customs, SWS & IGST on Imported Goods</p>
+            </header>
+
+            <div class="bg-slate-900 border border-slate-800 rounded-2xl p-6 md:p-8 shadow-xl">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+                    <!-- CIF Value -->
+                    <div class="col-span-1 md:col-span-2">
+                        <label class="block text-sm font-medium text-slate-400 mb-2">Assessable Value (CIF in ₹)</label>
+                        <div class="relative">
+                            <span class="absolute left-4 top-3 text-slate-500">₹</span>
+                            <input type="number" id="importValue" placeholder="0" class="w-full bg-slate-800 border border-slate-700 text-white rounded-lg pl-8 pr-4 py-3 focus:outline-none focus:ring-2 focus:ring-purple-400 focus:border-transparent transition">
+                        </div>
+                        <p class="text-xs text-slate-500 mt-1">Convert foreign currency to INR before entering.</p>
+                    </div>
+
+                    <!-- BCD -->
+                    <div>
+                        <label class="block text-sm font-medium text-slate-400 mb-2">Basic Customs Duty (BCD %)</label>
+                        <input type="number" id="importBCD" value="10" class="w-full bg-slate-800 border border-slate-700 text-white rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-purple-400 focus:border-transparent transition">
+                    </div>
+
+                    <!-- SWS -->
+                    <div>
+                        <label class="block text-sm font-medium text-slate-400 mb-2">Social Welfare Surcharge (% of BCD)</label>
+                        <input type="number" id="importSWS" value="10" class="w-full bg-slate-800 border border-slate-700 text-white rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-purple-400 focus:border-transparent transition">
+                    </div>
+
+                    <!-- IGST -->
+                    <div class="col-span-1 md:col-span-2">
+                        <label class="block text-sm font-medium text-slate-400 mb-2">IGST Rate (%)</label>
+                        <input type="number" id="importIGST" value="18" class="w-full bg-slate-800 border border-slate-700 text-white rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-purple-400 focus:border-transparent transition">
+                    </div>
+                </div>
+
+                <!-- Import Results -->
+                <div class="bg-slate-950 rounded-xl p-6 border border-slate-800 space-y-3">
+                    <div class="flex justify-between text-slate-400 text-sm">
+                        <span>Basic Customs Duty (BCD)</span>
+                        <span id="res-bcd">₹0</span>
+                    </div>
+                    <div class="flex justify-between text-slate-400 text-sm border-b border-slate-800 pb-3">
+                        <span>Social Welfare Surcharge (SWS)</span>
+                        <span id="res-sws">₹0</span>
+                    </div>
+                    
+                    <div class="flex justify-between text-slate-300 text-sm pt-1">
+                        <span>Value for IGST Calculation</span>
+                        <span id="res-val-igst">₹0</span>
+                    </div>
+                    <div class="flex justify-between text-purple-400 text-sm border-b border-slate-800 pb-3">
+                        <span>IGST Amount</span>
+                        <span id="res-igst">₹0</span>
+                    </div>
+
+                    <div class="flex justify-between items-center pt-2">
+                        <span class="text-white font-medium">Total Import Duty</span>
+                        <span class="text-xl font-bold text-purple-400" id="res-total-duty">₹0</span>
+                    </div>
+                    <div class="flex justify-between items-center pt-2 border-t border-slate-800 mt-2">
+                        <span class="text-white font-medium">Total Landed Cost</span>
+                        <span class="text-2xl font-bold text-white" id="res-landed-cost">₹0</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- RATES TAB -->
+        <div id="rates" class="tab-content hidden fade-in max-w-5xl mx-auto">
+            <header class="mb-8">
+                <h2 class="text-3xl font-bold text-white">TDS Sections & Rates</h2>
+                <p class="text-slate-400 mt-2">Reference chart for FY 2024-25</p>
+            </header>
+
+            <div class="bg-slate-900 border border-slate-800 rounded-2xl overflow-hidden shadow-lg">
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left border-collapse">
+                        <thead>
+                            <tr class="bg-slate-800 text-slate-300 text-sm uppercase tracking-wider">
+                                <th class="p-4 font-semibold border-b border-slate-700">Section</th>
+                                <th class="p-4 font-semibold border-b border-slate-700">Nature of Payment</th>
+                                <th class="p-4 font-semibold border-b border-slate-700 text-right">Threshold (₹)</th>
+                                <th class="p-4 font-semibold border-b border-slate-700 text-right">Indiv/HUF %</th>
+                                <th class="p-4 font-semibold border-b border-slate-700 text-right">Other %</th>
+                            </tr>
+                        </thead>
+                        <tbody id="rates-table-body" class="text-sm text-slate-300 divide-y divide-slate-800">
+                            <!-- Populated by JS -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            <p class="text-xs text-slate-500 mt-4">* Rates provided are standard rates. Surcharge and cess may apply in specific high-value cases. Salary (192) is based on income slabs.</p>
+        </div>
+
+        <!-- DOCS TAB -->
+        <div id="docs" class="tab-content hidden fade-in max-w-3xl mx-auto">
+            <header class="mb-8">
+                <h2 class="text-3xl font-bold text-white">Documentation</h2>
+                <p class="text-slate-400 mt-2">Understanding Tax Deducted at Source</p>
+            </header>
+
+            <div class="space-y-8">
+                <section class="bg-slate-900 border border-slate-800 p-6 rounded-2xl">
+                    <h3 class="text-xl font-bold text-emerald-400 mb-3">What is TDS?</h3>
+                    <p class="text-slate-300 leading-relaxed">
+                        Tax Deducted at Source (TDS) is a mechanism introduced by the Income Tax Department where the person (deductor) making specific payments (like salary, commission, rent, interest, etc.) is required to deduct a certain percentage of tax before making the payment to the receiver (deductee).
+                    </p>
+                </section>
+
+                <section class="bg-slate-900 border border-slate-800 p-6 rounded-2xl">
+                    <h3 class="text-xl font-bold text-emerald-400 mb-3">TDS Limits & Thresholds</h3>
+                    <p class="text-slate-300 leading-relaxed">
+                        TDS is not deducted if the total payment to a single person in a financial year is below a certain limit (threshold). For example, no TDS on rent if it is below ₹2,40,000 annually.
+                        <br><br>
+                        <span class="text-yellow-400 text-sm bg-yellow-900/30 px-2 py-1 rounded">New Feature:</span> This calculator now warns you if your entered amount is below the section threshold.
+                    </p>
+                </section>
+
+                <section class="bg-slate-900 border border-slate-800 p-6 rounded-2xl">
+                    <h3 class="text-xl font-bold text-blue-400 mb-3">GST & Import Duty</h3>
+                    <p class="text-slate-300 leading-relaxed mb-4">
+                        <strong>GST (Goods & Services Tax):</strong> An indirect tax applicable on the supply of goods and services. Our calculator supports both "Exclusive" (Add tax to base amount) and "Inclusive" (Extract tax from total) calculations.
+                    </p>
+                    <p class="text-slate-300 leading-relaxed">
+                        <strong>Import Duty:</strong> Calculated on the CIF (Cost, Insurance, and Freight) value. It typically includes Basic Customs Duty (BCD), Social Welfare Surcharge (SWS @ 10% of BCD), and IGST.
+                    </p>
+                </section>
+            </div>
+        </div>
+
+    </main>
+
+    <script>
+        // --- DATA & CONFIG ---
+        const tdsData = [
+            { id: "192", label: "Salary Payment", section: "192", rate: 0, desc: "Based on Slabs", threshold: 250000 },
+            { id: "194C_indiv", label: "Contractor (Indiv/HUF)", section: "194C", rate: 1, desc: "Single: 30k / Agg: 1L", threshold: 30000 },
+            { id: "194C_other", label: "Contractor (Other)", section: "194C", rate: 2, desc: "Single: 30k / Agg: 1L", threshold: 30000 },
+            { id: "194J_tech", label: "Professional Fees (Technical)", section: "194J", rate: 2, desc: "Fees > 30k", threshold: 30000 },
+            { id: "194J_prof", label: "Professional Fees (Other)", section: "194J", rate: 10, desc: "Fees > 30k", threshold: 30000 },
+            { id: "194I_plant", label: "Rent (Plant & Machinery)", section: "194I", rate: 2, desc: "Rent > 2.4L p.a.", threshold: 240000 },
+            { id: "194I_land", label: "Rent (Land/Building)", section: "194I", rate: 10, desc: "Rent > 2.4L p.a.", threshold: 240000 },
+            { id: "194H", label: "Commission / Brokerage", section: "194H", rate: 5, desc: "Amount > 15k", threshold: 15000 },
+            { id: "194A", label: "Interest (Non-Bank)", section: "194A", rate: 10, desc: "Interest > 5k", threshold: 5000 }
+        ];
+
+        let registerEntries = [];
+
+        // Formatters
+        const formatCurrency = (num) => {
+            return new Intl.NumberFormat('en-IN', {
+                style: 'currency',
+                currency: 'INR',
+                maximumFractionDigits: 0
+            }).format(num);
+        };
+
+        const formatDate = (dateString) => {
+            if(!dateString) return "-";
+            const date = new Date(dateString);
+            return date.toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' });
+        };
+
+        // --- DOM ELEMENTS (TDS) ---
+        const paymentSelect = document.getElementById('paymentType');
+        const grossInput = document.getElementById('grossAmount');
+        const rateInput = document.getElementById('tdsRate');
+        const sectionInput = document.getElementById('sectionCode');
+        const panToggle = document.getElementById('panToggle');
+        const resTds = document.getElementById('res-tds');
+        const resNet = document.getElementById('res-net');
+        const rateWarning = document.getElementById('rate-warning');
+        const thresholdWarning = document.getElementById('threshold-warning');
+        const thresholdVal = document.getElementById('threshold-val');
+        const entryDateInput = document.getElementById('entryDate');
+        const deducteeNameInput = document.getElementById('deducteeName');
+
+        // Dashboard Elements
+        const dashboardGross = document.getElementById('dash-gross');
+        const dashboardRate = document.getElementById('dash-rate');
+        const dashboardTds = document.getElementById('dash-tds');
+        const dashboardNet = document.getElementById('dash-net');
+        const dashboardSection = document.getElementById('dash-section');
+        const dashCount = document.getElementById('dash-count');
+        const dashTotalTds = document.getElementById('dash-total-tds');
+
+        // --- GST ELEMENTS ---
+        const gstAmountInput = document.getElementById('gstAmount');
+        const gstCessInput = document.getElementById('gstCess');
+        const customGstRateInput = document.getElementById('customGstRate');
+        const gstResNet = document.getElementById('gst-res-net');
+        const gstResTax = document.getElementById('gst-res-tax');
+        const gstResCess = document.getElementById('gst-res-cess');
+        const gstResTotal = document.getElementById('gst-res-total');
+        let currentGstRate = 18;
+        let isGstExclusive = true;
+
+        // --- IMPORT ELEMENTS ---
+        const importValueInput = document.getElementById('importValue');
+        const importBCDInput = document.getElementById('importBCD');
+        const importSWSInput = document.getElementById('importSWS');
+        const importIGSTInput = document.getElementById('importIGST');
+        const resBCD = document.getElementById('res-bcd');
+        const resSWS = document.getElementById('res-sws');
+        const resValIGST = document.getElementById('res-val-igst');
+        const resIGST = document.getElementById('res-igst');
+        const resTotalDuty = document.getElementById('res-total-duty');
+        const resLandedCost = document.getElementById('res-landed-cost');
+
+
+        // --- INITIALIZATION ---
+        function init() {
+            entryDateInput.valueAsDate = new Date();
+
+            tdsData.forEach(item => {
+                const option = document.createElement('option');
+                option.value = item.id;
+                option.textContent = `${item.label} (u/s ${item.section})`;
+                paymentSelect.appendChild(option);
+            });
+
+            const ratesBody = document.getElementById('rates-table-body');
+            tdsData.forEach(item => {
+                const tr = document.createElement('tr');
+                tr.className = "hover:bg-slate-800 transition";
+                tr.innerHTML = `
+                    <td class="p-4 border-b border-slate-800 font-medium text-emerald-400">${item.section}</td>
+                    <td class="p-4 border-b border-slate-800">${item.label}</td>
+                    <td class="p-4 border-b border-slate-800 text-right text-slate-400">₹${item.threshold.toLocaleString('en-IN')}</td>
+                    <td class="p-4 border-b border-slate-800 text-right font-mono">${item.rate}%</td>
+                    <td class="p-4 border-b border-slate-800 text-right font-mono">${item.section === '194C' ? '2%' : item.rate + '%'}</td>
+                `;
+                ratesBody.appendChild(tr);
+            });
+
+            // TDS Listeners
+            paymentSelect.addEventListener('change', handleTypeChange);
+            grossInput.addEventListener('input', calculateTDS);
+            rateInput.addEventListener('input', calculateTDS);
+            panToggle.addEventListener('change', handlePanChange);
+
+            // GST Listeners
+            gstAmountInput.addEventListener('input', calculateGST);
+            gstCessInput.addEventListener('input', calculateGST);
+            customGstRateInput.addEventListener('input', () => {
+                const val = parseFloat(customGstRateInput.value);
+                if (!isNaN(val)) setGstRate(val, true);
+            });
+
+            // Import Listeners
+            importValueInput.addEventListener('input', calculateImport);
+            importBCDInput.addEventListener('input', calculateImport);
+            importSWSInput.addEventListener('input', calculateImport);
+            importIGSTInput.addEventListener('input', calculateImport);
+
+            updateDashboard(0, 0, 0, 0, 'No Section');
+        }
+
+        // --- NAVIGATION LOGIC ---
+        function showTab(tabId) {
+            document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
+            document.getElementById(tabId).classList.remove('hidden');
+            
+            document.querySelectorAll('.nav-btn').forEach(btn => {
+                btn.classList.remove('text-emerald-400', 'text-blue-400', 'text-purple-400', 'bg-slate-800');
+                btn.classList.add('text-slate-400');
+            });
+            const activeBtn = document.getElementById(`nav-${tabId}`);
+            if(activeBtn) {
+                // Color logic based on tab type
+                let activeColor = 'text-emerald-400';
+                if(tabId === 'gst') activeColor = 'text-blue-400';
+                if(tabId === 'import') activeColor = 'text-purple-400';
+                
+                activeBtn.classList.add(activeColor, 'bg-slate-800');
+                activeBtn.classList.remove('text-slate-400');
+            }
+
+            const sidebar = document.getElementById('sidebar');
+            const overlay = document.getElementById('overlay');
+            if (!sidebar.classList.contains('-translate-x-full') && window.innerWidth < 768) {
+                toggleSidebar();
+            }
+
+            if (tabId === 'reports') {
+                renderReports();
+            }
+        }
+
+        function toggleSidebar() {
+            const sidebar = document.getElementById('sidebar');
+            const overlay = document.getElementById('overlay');
+            sidebar.classList.toggle('-translate-x-full');
+            
+            if (sidebar.classList.contains('-translate-x-full')) {
+                overlay.classList.add('hidden');
+            } else {
+                overlay.classList.remove('hidden');
+            }
+        }
+
+        document.getElementById('menu-btn').addEventListener('click', toggleSidebar);
+
+        // --- TDS LOGIC ---
+        let currentStandardRate = 0;
+        let currentThreshold = 0;
+
+        function handleTypeChange() {
+            const selectedId = paymentSelect.value;
+            const item = tdsData.find(d => d.id === selectedId);
+            
+            if (item) {
+                sectionInput.value = item.section;
+                currentStandardRate = item.rate;
+                currentThreshold = item.threshold;
+                applyRateLogic();
+            }
+        }
+
+        function handlePanChange() {
+            applyRateLogic();
+        }
+
+        function applyRateLogic() {
+            const hasPan = panToggle.checked;
+            let finalRate = currentStandardRate;
+
+            if (!hasPan) {
+                finalRate = Math.max(currentStandardRate, 20);
+                rateWarning.classList.remove('hidden');
+            } else {
+                rateWarning.classList.add('hidden');
+            }
+
+            rateInput.value = finalRate;
+            calculateTDS();
+        }
+
+        function calculateTDS() {
+            const gross = parseFloat(grossInput.value) || 0;
+            const rate = parseFloat(rateInput.value) || 0;
+            
+            if (currentThreshold > 0 && gross > 0 && gross < currentThreshold) {
+                thresholdWarning.classList.remove('hidden');
+                thresholdVal.textContent = formatCurrency(currentThreshold);
+            } else {
+                thresholdWarning.classList.add('hidden');
+            }
+
+            const tdsAmount = Math.round(gross * (rate / 100));
+            const netAmount = gross - tdsAmount;
+
+            resTds.textContent = formatCurrency(tdsAmount);
+            resNet.textContent = formatCurrency(netAmount);
+
+            const section = sectionInput.value || "Custom";
+            updateDashboard(gross, rate, tdsAmount, netAmount, section);
+        }
+
+        function updateDashboard(gross, rate, tds, net, section) {
+            dashboardGross.textContent = formatCurrency(gross);
+            dashboardRate.textContent = rate + '%';
+            dashboardTds.textContent = formatCurrency(tds);
+            dashboardNet.textContent = formatCurrency(net);
+            dashboardSection.textContent = `Section ${section}`;
+        }
+
+        function addToRegister() {
+            const gross = parseFloat(grossInput.value) || 0;
+            if (gross <= 0) {
+                alert("Please enter a valid amount.");
+                return;
+            }
+
+            const entry = {
+                id: Date.now(),
+                date: entryDateInput.value,
+                name: deducteeNameInput.value || "Unknown Deductee",
+                paymentId: paymentSelect.value,
+                section: sectionInput.value,
+                gross: gross,
+                rate: parseFloat(rateInput.value) || 0,
+                tds: Math.round(gross * ((parseFloat(rateInput.value) || 0) / 100)),
+                panAvailable: panToggle.checked
+            };
+            entry.net = entry.gross - entry.tds;
+
+            registerEntries.push(entry);
+            renderRegister();
+            alert("Entry added to Register!");
+        }
+
+        function deleteEntry(id) {
+            registerEntries = registerEntries.filter(e => e.id !== id);
+            renderRegister();
+        }
+
+        function renderRegister() {
+            const tbody = document.getElementById('register-body');
+            tbody.innerHTML = "";
+
+            let sumGross = 0;
+            let sumTds = 0;
+            let sumNet = 0;
+
+            if (registerEntries.length === 0) {
+                tbody.innerHTML = `<tr class="text-center text-slate-500 italic"><td colspan="8" class="p-8">No entries yet.</td></tr>`;
+            } else {
+                registerEntries.forEach(entry => {
+                    sumGross += entry.gross;
+                    sumTds += entry.tds;
+                    sumNet += entry.net;
+
+                    const tr = document.createElement('tr');
+                    tr.className = "hover:bg-slate-800 transition border-b border-slate-800";
+                    tr.innerHTML = `
+                        <td class="p-4 text-slate-400 whitespace-nowrap">${formatDate(entry.date)}</td>
+                        <td class="p-4 font-medium text-white">${entry.name}</td>
+                        <td class="p-4 text-emerald-400">${entry.section || '-'}</td>
+                        <td class="p-4 text-right">${formatCurrency(entry.gross)}</td>
+                        <td class="p-4 text-right">${entry.rate}%</td>
+                        <td class="p-4 text-right text-red-400">${formatCurrency(entry.tds)}</td>
+                        <td class="p-4 text-right text-emerald-400">${formatCurrency(entry.net)}</td>
+                        <td class="p-4 text-center">
+                            <button onclick="deleteEntry(${entry.id})" class="text-slate-500 hover:text-red-400 transition">
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
+                            </button>
+                        </td>
+                    `;
+                    tbody.appendChild(tr);
+                });
+            }
+
+            document.getElementById('total-gross').textContent = formatCurrency(sumGross);
+            document.getElementById('total-tds').textContent = formatCurrency(sumTds);
+            document.getElementById('total-net').textContent = formatCurrency(sumNet);
+            dashCount.textContent = registerEntries.length;
+            dashTotalTds.textContent = formatCurrency(sumTds);
+        }
+
+        // --- GST LOGIC ---
+        function setGstMode(mode) {
+            isGstExclusive = (mode === 'exclusive');
+            document.getElementById('btn-exclusive').className = isGstExclusive ? "flex-1 py-2 text-sm font-medium rounded-md text-white bg-slate-700 shadow-sm transition-all" : "flex-1 py-2 text-sm font-medium rounded-md text-slate-400 hover:text-white transition-all";
+            document.getElementById('btn-inclusive').className = !isGstExclusive ? "flex-1 py-2 text-sm font-medium rounded-md text-white bg-slate-700 shadow-sm transition-all" : "flex-1 py-2 text-sm font-medium rounded-md text-slate-400 hover:text-white transition-all";
+            calculateGST();
+        }
+
+        function setGstRate(rate, isCustom = false) {
+            currentGstRate = rate;
+            
+            // Visual update
+            document.querySelectorAll('.gst-rate-btn').forEach(btn => {
+                const btnRate = parseFloat(btn.dataset.rate);
+                if (btnRate === rate && !isCustom) {
+                    btn.classList.remove('bg-slate-800', 'border-slate-700', 'hover:bg-slate-700');
+                    btn.classList.add('bg-blue-600', 'border-blue-500');
+                } else {
+                    btn.classList.add('bg-slate-800', 'border-slate-700', 'hover:bg-slate-700');
+                    btn.classList.remove('bg-blue-600', 'border-blue-500');
+                }
+            });
+            calculateGST();
+        }
+
+        function calculateGST() {
+            const amount = parseFloat(gstAmountInput.value) || 0;
+            const cessRate = parseFloat(gstCessInput.value) || 0;
+            
+            let net = 0;
+            let tax = 0;
+            let cess = 0;
+            let total = 0;
+
+            if (isGstExclusive) {
+                // Add GST
+                net = amount;
+                tax = amount * (currentGstRate / 100);
+                cess = amount * (cessRate / 100);
+                total = net + tax + cess;
+            } else {
+                // Remove GST
+                const totalRate = currentGstRate + cessRate;
+                net = amount / (1 + (totalRate / 100));
+                tax = net * (currentGstRate / 100);
+                cess = net * (cessRate / 100);
+                total = amount;
+            }
+
+            gstResNet.textContent = formatCurrency(net);
+            gstResTax.textContent = formatCurrency(tax);
+            gstResCess.textContent = formatCurrency(cess);
+            gstResTotal.textContent = formatCurrency(total);
+        }
+
+        // --- IMPORT DUTY LOGIC ---
+        function calculateImport() {
+            const cifValue = parseFloat(importValueInput.value) || 0;
+            const bcdRate = parseFloat(importBCDInput.value) || 0;
+            const swsRate = parseFloat(importSWSInput.value) || 0;
+            const igstRate = parseFloat(importIGSTInput.value) || 0;
+
+            const bcd = cifValue * (bcdRate / 100);
+            const sws = bcd * (swsRate / 100);
+            
+            const valForIgst = cifValue + bcd + sws;
+            const igst = valForIgst * (igstRate / 100);
+
+            const totalDuty = bcd + sws + igst;
+            const landedCost = cifValue + totalDuty;
+
+            resBCD.textContent = formatCurrency(bcd);
+            resSWS.textContent = formatCurrency(sws);
+            resValIGST.textContent = formatCurrency(valForIgst);
+            resIGST.textContent = formatCurrency(igst);
+            resTotalDuty.textContent = formatCurrency(totalDuty);
+            resLandedCost.textContent = formatCurrency(landedCost);
+        }
+
+        function renderReports() {
+            let totalGross = 0;
+            let totalTds = 0;
+            let totalNet = 0;
+            const sectionMap = {};
+
+            registerEntries.forEach(e => {
+                totalGross += e.gross;
+                totalTds += e.tds;
+                totalNet += e.net;
+
+                const sec = e.section || "Unknown";
+                if(!sectionMap[sec]) sectionMap[sec] = { count: 0, tds: 0 };
+                sectionMap[sec].count++;
+                sectionMap[sec].tds += e.tds;
+            });
+
+            document.getElementById('report-total-gross').textContent = formatCurrency(totalGross);
+            document.getElementById('report-total-tds').textContent = formatCurrency(totalTds);
+            document.getElementById('report-total-net').textContent = formatCurrency(totalNet);
+
+            const breakdownContainer = document.getElementById('reports-breakdown');
+            breakdownContainer.innerHTML = '';
+            const sections = Object.keys(sectionMap);
+            
+            if (sections.length === 0) {
+                 breakdownContainer.innerHTML = '<p class="text-slate-500 text-sm italic">No data to display. Add entries to the register.</p>';
+                 return;
+            }
+
+            sections.sort((a,b) => sectionMap[b].tds - sectionMap[a].tds);
+
+            sections.forEach(sec => {
+                const data = sectionMap[sec];
+                const percentage = totalTds > 0 ? (data.tds / totalTds) * 100 : 0;
+                
+                const div = document.createElement('div');
+                div.innerHTML = `
+                    <div class="flex justify-between items-end mb-1">
+                        <div>
+                            <span class="text-white font-bold">Section ${sec}</span>
+                            <span class="text-xs text-slate-400 ml-2">(${data.count} entries)</span>
+                        </div>
+                        <span class="text-emerald-400 font-mono">${formatCurrency(data.tds)}</span>
+                    </div>
+                    <div class="w-full bg-slate-800 rounded-full h-2.5">
+                        <div class="bg-emerald-500 h-2.5 rounded-full" style="width: ${percentage}%"></div>
+                    </div>
+                `;
+                breakdownContainer.appendChild(div);
+            });
+        }
+
+        function exportToCSV() {
+            if (registerEntries.length === 0) {
+                alert("No data to export!");
+                return;
+            }
+            let csvContent = "data:text/csv;charset=utf-8,";
+            csvContent += "Date,Deductee Name,Section,Gross Amount,TDS Rate (%),TDS Amount,Net Amount,PAN Available\n";
+            registerEntries.forEach(e => {
+                const row = [e.date, `"${e.name}"`, e.section, e.gross, e.rate, e.tds, e.net, e.panAvailable ? "Yes" : "No"].join(",");
+                csvContent += row + "\n";
+            });
+            const encodedUri = encodeURI(csvContent);
+            const link = document.createElement("a");
+            link.setAttribute("href", encodedUri);
+            link.setAttribute("download", "TDS_Register_Export.csv");
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
+
+        window.addEventListener('DOMContentLoaded', init);
+
+    </script>
+</body>
+</html>
