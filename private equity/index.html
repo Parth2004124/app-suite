@@ -3,690 +3,714 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>KKR x Avalanche | Private Equity Tokenization</title>
-    
-    <!-- React & ReactDOM -->
-    <script crossorigin src="https://unpkg.com/react@18/umd/react.development.js"></script>
-    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
-    
-    <!-- Babel for JSX -->
-    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
-    
-    <!-- Tailwind CSS -->
+    <title>Avalanche Private Equity Exchange</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    
-    <!-- Phosphor Icons -->
-    <script src="https://unpkg.com/@phosphor-icons/web"></script>
-    
-    <!-- Google Fonts -->
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
-
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
-        body { font-family: 'Inter', sans-serif; background-color: #0f172a; color: #e2e8f0; }
-        .font-mono { font-family: 'JetBrains Mono', monospace; }
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
         
-        /* Custom Scrollbar */
-        ::-webkit-scrollbar { width: 6px; }
-        ::-webkit-scrollbar-track { background: #1e293b; }
-        ::-webkit-scrollbar-thumb { background: #475569; border-radius: 3px; }
-        
-        /* Animations */
-        @keyframes pulse-red {
-            0% { box-shadow: 0 0 0 0 rgba(232, 65, 66, 0.4); }
-            70% { box-shadow: 0 0 0 10px rgba(232, 65, 66, 0); }
-            100% { box-shadow: 0 0 0 0 rgba(232, 65, 66, 0); }
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #0f172a; /* Slate 900 */
+            color: #e2e8f0; /* Slate 200 */
         }
-        .animate-pulse-red { animation: pulse-red 2s infinite; }
-        
+
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #1e293b; 
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #475569; 
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #64748b; 
+        }
+
         .glass-panel {
             background: rgba(30, 41, 59, 0.7);
             backdrop-filter: blur(12px);
-            border: 1px solid rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
         }
 
         .avalanche-gradient {
-            background: linear-gradient(135deg, #E84142 0%, #a82e2e 100%);
+            background: linear-gradient(135deg, #E84142 0%, #C72C33 100%);
+        }
+        
+        .token-card:hover {
+            transform: translateY(-2px);
+            border-color: #E84142;
+            transition: all 0.3s ease;
+        }
+
+        /* Console animation */
+        @keyframes flash {
+            0% { background-color: rgba(232, 65, 66, 0.2); }
+            100% { background-color: transparent; }
+        }
+        .log-new {
+            animation: flash 1s ease-out;
+        }
+        
+        .loading-spinner {
+            border: 3px solid rgba(255,255,255,0.1);
+            border-radius: 50%;
+            border-top: 3px solid #E84142;
+            width: 20px;
+            height: 20px;
+            animation: spin 1s linear infinite;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
         }
     </style>
 </head>
-<body>
-    <div id="root"></div>
+<body class="h-screen flex overflow-hidden">
 
-    <script type="text/babel">
-        const { useState, useEffect, useRef } = React;
+    <!-- Sidebar -->
+    <aside class="w-64 bg-slate-900 border-r border-slate-800 flex flex-col z-20">
+        <div class="p-6 flex items-center gap-3">
+            <div class="w-8 h-8 rounded bg-white flex items-center justify-center text-red-600 font-bold text-xl">
+                <i class="fa-solid fa-mountain"></i>
+            </div>
+            <span class="text-xl font-bold tracking-tight text-white">EquiToken<span class="text-red-500">.avax</span></span>
+        </div>
 
-        // --- Mock Data: KKR Health Care Strategic Growth Fund II ---
-        const FUND_DATA = {
-            id: "KKR-HCSG-II",
-            name: "KKR Health Care Strategic Growth Fund II",
-            ticker: "HCSG",
-            nav: 24.50, // Net Asset Value per token
-            minInvestment: 100000, // Traditional might be $5M, Tokenized is lower
-            aum: "4.0B",
-            lockup: "1 Year",
-            strategy: "Growth Equity in Health Care (NA & Europe)",
-            description: "A tokenized feeder fund providing exposure to KKR's health care growth strategy. Leveraging the Avalanche blockchain for operational efficiency and democratized access."
-        };
+        <nav class="flex-1 px-4 space-y-2 mt-4">
+            <a href="#" onclick="switchTab('dashboard')" id="nav-dashboard" class="nav-item flex items-center gap-3 px-4 py-3 text-sm font-medium rounded-lg bg-red-500/10 text-red-400 border border-red-500/20 transition-colors">
+                <i class="fa-solid fa-chart-pie w-5"></i>
+                Dashboard
+            </a>
+            <a href="#" onclick="switchTab('market')" id="nav-market" class="nav-item flex items-center gap-3 px-4 py-3 text-sm font-medium rounded-lg text-slate-400 hover:bg-slate-800 hover:text-white transition-colors">
+                <i class="fa-solid fa-building-columns w-5"></i>
+                Private Market
+            </a>
+            <a href="#" onclick="switchTab('portfolio')" id="nav-portfolio" class="nav-item flex items-center gap-3 px-4 py-3 text-sm font-medium rounded-lg text-slate-400 hover:bg-slate-800 hover:text-white transition-colors">
+                <i class="fa-solid fa-wallet w-5"></i>
+                My Assets
+            </a>
+            <a href="#" onclick="switchTab('compliance')" id="nav-compliance" class="nav-item flex items-center gap-3 px-4 py-3 text-sm font-medium rounded-lg text-slate-400 hover:bg-slate-800 hover:text-white transition-colors">
+                <i class="fa-solid fa-shield-halved w-5"></i>
+                KYC & Compliance
+            </a>
+        </nav>
 
-        // --- Mock Smart Contract Logs ---
-        const INITIAL_LOGS = [
-            { time: "09:00:01", type: "system", msg: "Avalanche C-Chain Node Connected." },
-            { time: "09:00:02", type: "contract", msg: "Securitize Registry Contract Loaded (0x7a...9f)" },
-            { time: "09:00:03", type: "info", msg: "Compliance Oracle: Active" }
-        ];
-
-        // --- Components ---
-
-        // 1. Sidebar Navigation
-        const Sidebar = ({ activeTab, setActiveTab }) => (
-            <div className="w-64 h-screen bg-slate-900 border-r border-slate-800 flex flex-col fixed left-0 top-0 z-50">
-                <div className="p-6 flex items-center gap-3 border-b border-slate-800">
-                    <div className="w-8 h-8 bg-white rounded flex items-center justify-center">
-                        <span className="font-bold text-slate-900 text-xs tracking-tighter">KKR</span>
-                    </div>
-                    <div className="h-6 w-px bg-slate-700 mx-1"></div>
-                    <i className="ph-fill ph-triangle text-red-500 text-xl"></i> 
-                    <span className="font-semibold text-white tracking-tight">Avalanche</span>
+        <div class="p-4 border-t border-slate-800">
+            <div class="bg-slate-800 rounded-lg p-3">
+                <div class="flex items-center gap-2 text-xs text-slate-400 mb-2">
+                    <div class="w-2 h-2 rounded-full bg-green-500 animate-pulse"></div>
+                    Avalanche C-Chain
                 </div>
-
-                <nav className="flex-1 p-4 space-y-2">
-                    {[
-                        { id: 'dashboard', icon: 'ph-squares-four', label: 'Dashboard' },
-                        { id: 'marketplace', icon: 'ph-storefront', label: 'Primary Offering' },
-                        { id: 'secondary', icon: 'ph-arrows-left-right', label: 'Secondary Market' },
-                        { id: 'compliance', icon: 'ph-shield-check', label: 'Compliance & KYC' },
-                        { id: 'manual', icon: 'ph-book-open', label: 'User Guide' },
-                    ].map(item => (
-                        <button
-                            key={item.id}
-                            onClick={() => setActiveTab(item.id)}
-                            className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg transition-all ${
-                                activeTab === item.id 
-                                ? 'bg-slate-800 text-red-500 border-l-4 border-red-500' 
-                                : 'text-slate-400 hover:bg-slate-800 hover:text-white'
-                            }`}
-                        >
-                            <i className={`ph ${item.icon} text-lg`}></i>
-                            <span className="text-sm font-medium">{item.label}</span>
-                        </button>
-                    ))}
-                </nav>
-
-                <div className="p-4 border-t border-slate-800">
-                    <div className="bg-slate-800 rounded-lg p-3 text-xs text-slate-400">
-                        <div className="flex items-center gap-2 mb-2">
-                            <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse"></div>
-                            <span>Network: Avalanche C-Chain</span>
-                        </div>
-                        <div className="font-mono truncate">Block: 34,582,109</div>
-                    </div>
+                <div class="text-xs font-mono text-slate-500 break-all">
+                    0x71C...92F
                 </div>
             </div>
-        );
+        </div>
+    </aside>
 
-        // 2. Smart Contract Terminal (The "Backend" View)
-        const ContractTerminal = ({ logs }) => {
-            const bottomRef = useRef(null);
-
-            useEffect(() => {
-                bottomRef.current?.scrollIntoView({ behavior: "smooth" });
-            }, [logs]);
-
-            return (
-                <div className="fixed bottom-0 right-0 w-[400px] h-[300px] bg-black border-t border-l border-slate-700 shadow-2xl z-40 flex flex-col font-mono text-xs">
-                    <div className="bg-slate-900 p-2 flex justify-between items-center border-b border-slate-700">
-                        <span className="text-slate-300 flex items-center gap-2">
-                            <i className="ph ph-code"></i> Smart Contract Events
-                        </span>
-                        <span className="text-green-500 text-[10px]">● LIVE</span>
-                    </div>
-                    <div className="flex-1 overflow-y-auto p-3 space-y-1 bg-black/90 text-slate-300">
-                        {logs.map((log, i) => (
-                            <div key={i} className="break-all">
-                                <span className="text-slate-500">[{log.time}]</span>{' '}
-                                <span className={`${
-                                    log.type === 'error' ? 'text-red-400' :
-                                    log.type === 'success' ? 'text-green-400' :
-                                    log.type === 'contract' ? 'text-blue-400' : 'text-slate-300'
-                                }`}>
-                                    {log.type === 'contract' && '>> '}
-                                    {log.msg}
-                                </span>
-                            </div>
-                        ))}
-                        <div ref={bottomRef} />
-                    </div>
-                </div>
-            );
-        };
-
-        // 3. Main Content Views
-        const UserManual = () => (
-            <div className="p-8 max-w-4xl mx-auto space-y-8 animate-fade-in pb-32">
-                <header>
-                     <h1 className="text-3xl font-bold text-white mb-2">Platform User Guide</h1>
-                     <p className="text-slate-400">Master the KKR x Avalanche Tokenized Private Equity Exchange.</p>
-                </header>
-
-                <div className="space-y-6">
-                    {/* Introduction */}
-                    <div className="bg-slate-800 rounded-xl p-6 border border-slate-700">
-                        <h3 className="text-xl font-bold text-white mb-4 flex items-center gap-2">
-                            <i className="ph-fill ph-info text-blue-500"></i> Overview
-                        </h3>
-                        <p className="text-slate-300 leading-relaxed">
-                            This simulator demonstrates the tokenization of the <strong>KKR Health Care Strategic Growth Fund II</strong> on the Avalanche blockchain.
-                            It highlights three key benefits:
-                        </p>
-                        <ul className="list-disc list-inside text-slate-400 mt-3 space-y-1 ml-2">
-                            <li><strong>Democratized Access:</strong> Lower minimums compared to traditional PE.</li>
-                            <li><strong>Operational Efficiency:</strong> Automated compliance and settlement via smart contracts.</li>
-                            <li><strong>Liquidity:</strong> A secondary market for traditionally illiquid assets.</li>
-                        </ul>
-                    </div>
-
-                    {/* Workflow Steps */}
-                    <div className="space-y-4">
-                         <h3 className="text-xl font-bold text-white">Core Workflows</h3>
-                         
-                         {/* Step 1 */}
-                         <div className="glass-panel p-6 rounded-xl border-l-4 border-yellow-500">
-                             <h4 className="font-bold text-white text-lg mb-2">1. Compliance & Identity (Mandatory)</h4>
-                             <p className="text-slate-400 text-sm mb-3">Unlike DeFi, institutional private equity requires strict KYC/AML compliance (SEC Reg D). You must complete this step first.</p>
-                             <ol className="list-decimal list-inside text-slate-300 space-y-2 text-sm">
-                                <li>Navigate to the <strong>Compliance & KYC</strong> tab.</li>
-                                <li>Click the blue <strong>"Start KYC Check"</strong> button.</li>
-                                <li>Watch the bottom-right terminal for the <code>IdentityOracle.verifyUser()</code> call.</li>
-                                <li>Once "Verified", your wallet is whitelisted to invest.</li>
-                             </ol>
-                         </div>
-
-                         {/* Step 2 */}
-                         <div className="glass-panel p-6 rounded-xl border-l-4 border-red-500">
-                             <h4 className="font-bold text-white text-lg mb-2">2. Primary Offering (Investing)</h4>
-                             <p className="text-slate-400 text-sm mb-3">Subscribe directly to the fund and mint new tokens.</p>
-                             <ol className="list-decimal list-inside text-slate-300 space-y-2 text-sm">
-                                <li>Navigate to the <strong>Primary Offering</strong> tab.</li>
-                                <li>Enter an investment amount (e.g., $100,000).</li>
-                                <li>Click <strong>"Invest & Mint Tokens"</strong>.</li>
-                                <li>Watch the terminal for <code>Whitelist.check()</code> and <code>FundToken.mint()</code>.</li>
-                                <li>Check your new balance on the Dashboard.</li>
-                             </ol>
-                         </div>
-
-                         {/* Step 3 */}
-                         <div className="glass-panel p-6 rounded-xl border-l-4 border-green-500">
-                             <h4 className="font-bold text-white text-lg mb-2">3. Secondary Market (Trading)</h4>
-                             <p className="text-slate-400 text-sm mb-3">Trade typically illiquid assets peer-to-peer.</p>
-                             <ol className="list-decimal list-inside text-slate-300 space-y-2 text-sm">
-                                <li>Navigate to the <strong>Secondary Market</strong> tab.</li>
-                                <li>View live orders in the Order Book from other simulated investors.</li>
-                                <li>Use the trade form to simulate buying or selling existing tokens.</li>
-                             </ol>
-                         </div>
-                    </div>
-
-                    {/* Terminal Explainer */}
-                    <div className="bg-slate-900 rounded-xl p-6 border border-slate-800">
-                        <h3 className="font-bold text-white mb-2">About the Smart Contract Terminal</h3>
-                        <p className="text-slate-400 text-sm">
-                            The black console at the bottom right reveals the "invisible" logic happening on the blockchain. 
-                            It shows system logs, smart contract function calls (in <span className="text-blue-400">blue</span>), and transaction confirmations.
-                            This visualizes how frontend actions trigger actual blockchain events.
-                        </p>
-                    </div>
+    <!-- Main Content -->
+    <main class="flex-1 flex flex-col relative">
+        <!-- Header -->
+        <header class="h-16 border-b border-slate-800 bg-slate-900/50 backdrop-blur flex items-center justify-between px-8 z-10">
+            <div class="text-sm text-slate-400">
+                <span id="page-title" class="font-semibold text-white">Dashboard</span>
+            </div>
+            <div class="flex items-center gap-4">
+                <button onclick="simulateGas()" class="flex items-center gap-2 px-3 py-1.5 rounded-full bg-slate-800 border border-slate-700 text-xs font-medium text-slate-300 hover:bg-slate-700">
+                    <i class="fa-solid fa-gas-pump text-slate-500"></i>
+                    <span id="gas-price">27 nAVAX</span>
+                </button>
+                <div class="h-8 w-8 rounded-full bg-gradient-to-tr from-blue-500 to-purple-500 flex items-center justify-center text-xs font-bold text-white shadow-lg shadow-purple-500/20">
+                    PB
                 </div>
             </div>
-        );
+        </header>
 
-        const Dashboard = ({ balance, userStatus }) => (
-            <div className="p-8 space-y-6">
-                <header>
-                    <h1 className="text-3xl font-bold text-white mb-2">Institutional Dashboard</h1>
-                    <p className="text-slate-400">Welcome, Accredited Investor. Manage your tokenized private equity portfolio.</p>
-                </header>
-
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                    {/* Total Value */}
-                    <div className="glass-panel p-6 rounded-xl relative overflow-hidden group">
-                        <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity">
-                            <i className="ph ph-wallet text-6xl text-white"></i>
-                        </div>
-                        <h3 className="text-slate-400 text-sm font-medium mb-1">Total Portfolio Value</h3>
-                        <div className="text-3xl font-bold text-white">${(balance * FUND_DATA.nav).toLocaleString(undefined, {minimumFractionDigits: 2})}</div>
-                        <div className="mt-4 flex items-center gap-2 text-xs text-green-400 bg-green-400/10 w-fit px-2 py-1 rounded">
-                            <i className="ph ph-trend-up"></i> +4.2% (YTD)
-                        </div>
-                    </div>
-
-                    {/* Token Holdings */}
-                    <div className="glass-panel p-6 rounded-xl">
-                        <h3 className="text-slate-400 text-sm font-medium mb-1">Token Holdings</h3>
-                        <div className="text-3xl font-bold text-white">{balance.toLocaleString()} <span className="text-lg text-slate-500">{FUND_DATA.ticker}</span></div>
-                        <p className="text-xs text-slate-500 mt-2">Held in Self-Custody Wallet (0x8...3a)</p>
-                    </div>
-
-                    {/* KYC Status */}
-                    <div className="glass-panel p-6 rounded-xl border-l-4 border-blue-500">
-                        <h3 className="text-slate-400 text-sm font-medium mb-1">Compliance Status</h3>
-                        <div className="flex items-center gap-2 mt-2">
-                            {userStatus === 'approved' ? (
-                                <>
-                                    <i className="ph-fill ph-check-circle text-blue-500 text-2xl"></i>
-                                    <span className="text-xl font-bold text-white">Verified</span>
-                                </>
-                            ) : (
-                                <>
-                                    <i className="ph-fill ph-warning text-yellow-500 text-2xl"></i>
-                                    <span className="text-xl font-bold text-white">Pending KYC</span>
-                                </>
-                            )}
-                        </div>
-                        <p className="text-xs text-slate-500 mt-2">Securitize ID: #9928-KKR</p>
-                    </div>
-                </div>
-
-                {/* Educational Banner */}
-                <div className="bg-gradient-to-r from-slate-800 to-slate-900 rounded-xl p-6 border border-slate-700 flex justify-between items-center">
-                    <div>
-                        <h4 className="font-bold text-white text-lg">Why Tokenization?</h4>
-                        <p className="text-slate-400 text-sm max-w-2xl mt-1">
-                            By leveraging the Avalanche blockchain, KKR reduces operational friction, allowing for lower investment minimums and automated compliance enforcement.
-                        </p>
-                    </div>
-                    <button className="px-4 py-2 bg-slate-700 hover:bg-slate-600 rounded-lg text-sm text-white transition-colors">
-                        Read Case Study
-                    </button>
-                </div>
-            </div>
-        );
-
-        const Marketplace = ({ userStatus, onInvest }) => {
-            const [amount, setAmount] = useState(100000);
+        <!-- Content Area -->
+        <div class="flex-1 overflow-y-auto p-8 relative" id="content-area">
             
-            return (
-                <div className="p-8 max-w-5xl mx-auto">
-                    <div className="mb-8">
-                        <h2 className="text-2xl font-bold text-white">Primary Offering</h2>
-                        <p className="text-slate-400">Direct subscription to tokenized funds.</p>
+            <!-- VIEW: DASHBOARD -->
+            <div id="view-dashboard" class="space-y-6 animate-fade-in">
+                <!-- Stats Row -->
+                <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
+                    <div class="glass-panel rounded-xl p-6">
+                        <div class="text-slate-400 text-xs font-medium uppercase tracking-wider mb-1">Total Portfolio Value</div>
+                        <div class="text-2xl font-bold text-white">$1,245,000.00</div>
+                        <div class="mt-2 text-xs text-green-400 flex items-center gap-1">
+                            <i class="fa-solid fa-arrow-trend-up"></i>
+                            +4.2% (30d)
+                        </div>
+                    </div>
+                    <div class="glass-panel rounded-xl p-6">
+                        <div class="text-slate-400 text-xs font-medium uppercase tracking-wider mb-1">Active Investments</div>
+                        <div class="text-2xl font-bold text-white">3</div>
+                        <div class="mt-2 text-xs text-slate-500">Private Funds</div>
+                    </div>
+                    <div class="glass-panel rounded-xl p-6">
+                        <div class="text-slate-400 text-xs font-medium uppercase tracking-wider mb-1">Accreditation Status</div>
+                        <div class="text-2xl font-bold text-green-500">Verified</div>
+                        <div class="mt-2 text-xs text-slate-500">Securitize ID: #8821</div>
+                    </div>
+                    <div class="glass-panel rounded-xl p-6">
+                        <div class="text-slate-400 text-xs font-medium uppercase tracking-wider mb-1">Next Liquidity Window</div>
+                        <div class="text-2xl font-bold text-white">14 Days</div>
+                        <div class="mt-2 text-xs text-orange-400">Quarterly Redemption</div>
+                    </div>
+                </div>
+
+                <!-- Main Chart & Recent Activity -->
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 h-96">
+                    <div class="lg:col-span-2 glass-panel rounded-xl p-6 flex flex-col">
+                        <div class="flex justify-between items-center mb-4">
+                            <h3 class="text-white font-medium">Portfolio Performance</h3>
+                            <div class="flex gap-2">
+                                <button class="px-2 py-1 text-xs rounded bg-slate-700 text-white">1M</button>
+                                <button class="px-2 py-1 text-xs rounded hover:bg-slate-800 text-slate-400">1Y</button>
+                                <button class="px-2 py-1 text-xs rounded hover:bg-slate-800 text-slate-400">ALL</button>
+                            </div>
+                        </div>
+                        <div class="flex-1 relative w-full h-full">
+                            <canvas id="portfolioChart"></canvas>
+                        </div>
                     </div>
 
-                    <div className="bg-slate-800 rounded-2xl overflow-hidden border border-slate-700 shadow-xl">
-                        {/* Fund Header */}
-                        <div className="bg-slate-900 p-8 border-b border-slate-700 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+                    <div class="glass-panel rounded-xl p-0 flex flex-col overflow-hidden">
+                        <div class="p-4 border-b border-slate-700 bg-slate-800/50">
+                            <h3 class="text-white font-medium text-sm">Smart Contract Events</h3>
+                        </div>
+                        <div class="flex-1 overflow-y-auto p-4 space-y-3 font-mono text-xs" id="console-logs">
+                            <!-- Logs injected here -->
+                            <div class="flex gap-2 text-slate-500">
+                                <span class="text-slate-600">[10:02:45]</span>
+                                <span>Connecting to Avalanche Mainnet...</span>
+                            </div>
+                            <div class="flex gap-2 text-green-400">
+                                <span class="text-slate-600">[10:02:46]</span>
+                                <span>Connected. Block #34921022</span>
+                            </div>
+                            <div class="flex gap-2 text-slate-400">
+                                <span class="text-slate-600">[10:03:12]</span>
+                                <span>Querying NAV for SKHC token...</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- VIEW: MARKETPLACE -->
+            <div id="view-market" class="hidden space-y-6">
+                <div class="flex justify-between items-end">
+                    <div>
+                        <h2 class="text-2xl font-bold text-white mb-2">Private Equity Opportunities</h2>
+                        <p class="text-slate-400 text-sm max-w-2xl">
+                            Institutional-grade funds tokenized on Avalanche. Access traditionally illiquid assets with lower minimums and enhanced transparency.
+                        </p>
+                    </div>
+                    <div class="flex gap-3">
+                        <select class="bg-slate-800 border border-slate-700 text-white text-sm rounded-lg px-3 py-2 outline-none">
+                            <option>All Sectors</option>
+                            <option>Healthcare</option>
+                            <option>Technology</option>
+                            <option>Real Estate</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    <!-- KKR Fund Card -->
+                    <div class="glass-panel rounded-xl p-6 token-card border-t-4 border-t-red-500 cursor-pointer relative overflow-hidden group">
+                        <div class="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity">
+                            <i class="fa-solid fa-rocket text-6xl"></i>
+                        </div>
+                        <div class="flex justify-between items-start mb-4">
+                            <div class="flex items-center gap-3">
+                                <div class="w-12 h-12 bg-white rounded-full flex items-center justify-center text-slate-900 font-bold text-xl shadow-lg">K</div>
+                                <div>
+                                    <h3 class="font-bold text-white">Health Care Strategic Growth II</h3>
+                                    <div class="text-xs text-slate-400 font-mono">TKR: SKHC</div>
+                                </div>
+                            </div>
+                            <span class="bg-green-500/20 text-green-400 px-2 py-1 rounded text-xs font-medium border border-green-500/20">Open</span>
+                        </div>
+                        
+                        <div class="space-y-3 mb-6">
+                            <div class="flex justify-between text-sm">
+                                <span class="text-slate-500">NAV / Token</span>
+                                <span class="text-white font-medium">$1,024.50</span>
+                            </div>
+                            <div class="flex justify-between text-sm">
+                                <span class="text-slate-500">Min Investment</span>
+                                <span class="text-white font-medium">$100,000</span>
+                            </div>
+                            <div class="flex justify-between text-sm">
+                                <span class="text-slate-500">Lock-up Period</span>
+                                <span class="text-white font-medium">1 Year</span>
+                            </div>
+                            <div class="flex justify-between text-sm">
+                                <span class="text-slate-500">Management Fee</span>
+                                <span class="text-white font-medium">1.25%</span>
+                            </div>
+                        </div>
+
+                        <div class="flex gap-3">
+                            <button onclick="openModal('SKHC')" class="flex-1 bg-white text-slate-900 font-medium py-2 rounded-lg hover:bg-slate-200 transition-colors">Invest</button>
+                            <button class="px-3 py-2 border border-slate-600 rounded-lg hover:bg-slate-800 text-slate-300">
+                                <i class="fa-regular fa-file-pdf"></i>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Apollo Fund Card -->
+                    <div class="glass-panel rounded-xl p-6 token-card border-t-4 border-t-blue-500 cursor-pointer relative overflow-hidden group">
+                        <div class="flex justify-between items-start mb-4">
+                            <div class="flex items-center gap-3">
+                                <div class="w-12 h-12 bg-white rounded-full flex items-center justify-center text-slate-900 font-bold text-xl shadow-lg">A</div>
+                                <div>
+                                    <h3 class="font-bold text-white">Apollo Debt Solutions</h3>
+                                    <div class="text-xs text-slate-400 font-mono">TKR: ADSF</div>
+                                </div>
+                            </div>
+                            <span class="bg-slate-700/50 text-slate-400 px-2 py-1 rounded text-xs font-medium border border-slate-600">Waitlist</span>
+                        </div>
+                        
+                        <div class="space-y-3 mb-6">
+                            <div class="flex justify-between text-sm">
+                                <span class="text-slate-500">NAV / Token</span>
+                                <span class="text-white font-medium">$25.10</span>
+                            </div>
+                            <div class="flex justify-between text-sm">
+                                <span class="text-slate-500">Min Investment</span>
+                                <span class="text-white font-medium">$25,000</span>
+                            </div>
+                            <div class="flex justify-between text-sm">
+                                <span class="text-slate-500">Yield (TTM)</span>
+                                <span class="text-white font-medium">9.4%</span>
+                            </div>
+                            <div class="flex justify-between text-sm">
+                                <span class="text-slate-500">Strategy</span>
+                                <span class="text-white font-medium">Private Credit</span>
+                            </div>
+                        </div>
+
+                        <button class="w-full border border-slate-600 text-slate-300 font-medium py-2 rounded-lg hover:bg-slate-800 transition-colors">Join Waitlist</button>
+                    </div>
+
+                    <!-- Real Estate Fund -->
+                    <div class="glass-panel rounded-xl p-6 token-card border-t-4 border-t-emerald-500 cursor-pointer relative overflow-hidden group">
+                        <div class="flex justify-between items-start mb-4">
+                            <div class="flex items-center gap-3">
+                                <div class="w-12 h-12 bg-white rounded-full flex items-center justify-center text-slate-900 font-bold text-xl shadow-lg">H</div>
+                                <div>
+                                    <h3 class="font-bold text-white">Hamilton Lane Global</h3>
+                                    <div class="text-xs text-slate-400 font-mono">TKR: HLGP</div>
+                                </div>
+                            </div>
+                            <span class="bg-green-500/20 text-green-400 px-2 py-1 rounded text-xs font-medium border border-green-500/20">Open</span>
+                        </div>
+                        
+                        <div class="space-y-3 mb-6">
+                            <div class="flex justify-between text-sm">
+                                <span class="text-slate-500">NAV / Token</span>
+                                <span class="text-white font-medium">$142.80</span>
+                            </div>
+                            <div class="flex justify-between text-sm">
+                                <span class="text-slate-500">Min Investment</span>
+                                <span class="text-white font-medium">$50,000</span>
+                            </div>
+                            <div class="flex justify-between text-sm">
+                                <span class="text-slate-500">Asset Class</span>
+                                <span class="text-white font-medium">Secondary Equity</span>
+                            </div>
+                            <div class="flex justify-between text-sm">
+                                <span class="text-slate-500">Vintage</span>
+                                <span class="text-white font-medium">2024</span>
+                            </div>
+                        </div>
+
+                        <div class="flex gap-3">
+                            <button onclick="openModal('HLGP')" class="flex-1 bg-white text-slate-900 font-medium py-2 rounded-lg hover:bg-slate-200 transition-colors">Invest</button>
+                            <button class="px-3 py-2 border border-slate-600 rounded-lg hover:bg-slate-800 text-slate-300">
+                                <i class="fa-regular fa-file-pdf"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- VIEW: COMPLIANCE -->
+            <div id="view-compliance" class="hidden max-w-3xl mx-auto space-y-6">
+                <div class="text-center mb-8">
+                    <h2 class="text-2xl font-bold text-white">Investor Passport</h2>
+                    <p class="text-slate-400 mt-2">Your on-chain identity token regulates your access to restricted assets.</p>
+                </div>
+
+                <div class="glass-panel rounded-xl p-8 border border-green-500/30 bg-green-500/5">
+                    <div class="flex items-center justify-between mb-6">
+                        <div class="flex items-center gap-4">
+                            <div class="w-12 h-12 rounded-full bg-green-500 flex items-center justify-center text-slate-900 text-xl">
+                                <i class="fa-solid fa-check"></i>
+                            </div>
                             <div>
-                                <div className="flex items-center gap-3 mb-2">
-                                    <span className="px-2 py-1 bg-white text-black text-xs font-bold rounded">KKR</span>
-                                    <span className="text-xs font-mono text-slate-500 bg-slate-800 px-2 py-1 rounded border border-slate-700">Contract: 0x4A...9B2</span>
-                                </div>
-                                <h1 className="text-2xl font-bold text-white">{FUND_DATA.name}</h1>
-                                <p className="text-slate-400 mt-1 max-w-xl">{FUND_DATA.description}</p>
-                            </div>
-                            <div className="text-right">
-                                <div className="text-sm text-slate-400">NAV per Token</div>
-                                <div className="text-3xl font-bold text-white">${FUND_DATA.nav.toFixed(2)}</div>
+                                <h3 class="text-white font-bold text-lg">Accredited Investor Status</h3>
+                                <p class="text-slate-400 text-sm">Verified via Securitize ID</p>
                             </div>
                         </div>
-
-                        <div className="grid grid-cols-1 lg:grid-cols-3">
-                            {/* Fund Details */}
-                            <div className="col-span-2 p-8 space-y-6 border-r border-slate-700">
-                                <div className="grid grid-cols-2 gap-y-6">
-                                    {[
-                                        { label: "Asset Class", val: "Private Equity" },
-                                        { label: "Strategy", val: FUND_DATA.strategy },
-                                        { label: "Target AUM", val: FUND_DATA.aum },
-                                        { label: "Lockup Period", val: FUND_DATA.lockup },
-                                        { label: "Min. Investment", val: `$${FUND_DATA.minInvestment.toLocaleString()}` },
-                                        { label: "Management Fee", val: "1.5%" },
-                                    ].map((stat, i) => (
-                                        <div key={i}>
-                                            <div className="text-xs text-slate-500 uppercase tracking-wider">{stat.label}</div>
-                                            <div className="text-white font-medium mt-1">{stat.val}</div>
-                                        </div>
-                                    ))}
-                                </div>
-
-                                <div className="pt-6 border-t border-slate-700">
-                                    <h4 className="font-semibold text-white mb-3">Fund Performance (Simulated)</h4>
-                                    <div className="h-32 flex items-end gap-2">
-                                        {[40, 55, 48, 62, 75, 82, 95, 100].map((h, i) => (
-                                            <div key={i} className="flex-1 bg-slate-700 hover:bg-red-500 transition-colors rounded-t" style={{ height: `${h}%` }}></div>
-                                        ))}
-                                    </div>
-                                </div>
-                            </div>
-
-                            {/* Investment Action */}
-                            <div className="p-8 bg-slate-800/50">
-                                <div className="bg-slate-900 border border-slate-700 rounded-xl p-6">
-                                    <h3 className="font-bold text-white mb-4">Subscribe</h3>
-                                    
-                                    <div className="space-y-4">
-                                        <div>
-                                            <label className="block text-xs text-slate-400 mb-1">Investment Amount ($)</label>
-                                            <input 
-                                                type="number" 
-                                                value={amount}
-                                                onChange={(e) => setAmount(Number(e.target.value))}
-                                                className="w-full bg-slate-800 border border-slate-600 rounded p-3 text-white focus:border-red-500 focus:outline-none"
-                                            />
-                                        </div>
-                                        
-                                        <div className="flex justify-between text-sm">
-                                            <span className="text-slate-400">Est. Tokens:</span>
-                                            <span className="text-white font-mono">{(amount / FUND_DATA.nav).toFixed(2)} {FUND_DATA.ticker}</span>
-                                        </div>
-
-                                        <div className="p-3 bg-blue-900/20 border border-blue-500/30 rounded text-xs text-blue-300">
-                                            <i className="ph-fill ph-info mr-1"></i>
-                                            Smart Contract enforces whitelist check before minting.
-                                        </div>
-
-                                        <button 
-                                            onClick={() => onInvest(amount)}
-                                            disabled={userStatus !== 'approved'}
-                                            className={`w-full py-3 rounded-lg font-bold transition-all ${
-                                                userStatus === 'approved' 
-                                                ? 'avalanche-gradient text-white shadow-lg hover:shadow-red-500/25' 
-                                                : 'bg-slate-700 text-slate-500 cursor-not-allowed'
-                                            }`}
-                                        >
-                                            {userStatus === 'approved' ? 'Invest & Mint Tokens' : 'Complete KYC to Invest'}
-                                        </button>
-                                    </div>
-                                </div>
-                            </div>
+                        <span class="px-3 py-1 bg-green-500/20 text-green-400 rounded-full text-xs font-mono">0xKYC...VALID</span>
+                    </div>
+                    
+                    <div class="grid grid-cols-2 gap-4 text-sm">
+                        <div class="p-3 bg-slate-800 rounded-lg flex justify-between">
+                            <span class="text-slate-400">Jurisdiction</span>
+                            <span class="text-white">United States (Reg D)</span>
+                        </div>
+                        <div class="p-3 bg-slate-800 rounded-lg flex justify-between">
+                            <span class="text-slate-400">KYC Renewal</span>
+                            <span class="text-white">12 Dec 2026</span>
+                        </div>
+                        <div class="p-3 bg-slate-800 rounded-lg flex justify-between">
+                            <span class="text-slate-400">AML Check</span>
+                            <span class="text-green-400">Passed</span>
+                        </div>
+                        <div class="p-3 bg-slate-800 rounded-lg flex justify-between">
+                            <span class="text-slate-400">Wallet Whitelist</span>
+                            <span class="text-white">0x71C...92F</span>
                         </div>
                     </div>
                 </div>
-            );
-        };
 
-        const Compliance = ({ userStatus, onVerify }) => (
-            <div className="p-8 flex items-center justify-center h-full">
-                <div className="max-w-md w-full text-center space-y-6">
-                    <div className="w-20 h-20 bg-slate-800 rounded-full flex items-center justify-center mx-auto border border-slate-700">
-                        <i className="ph-fill ph-fingerprint text-4xl text-slate-400"></i>
-                    </div>
-                    <div>
-                        <h2 className="text-2xl font-bold text-white">Securitize ID Verification</h2>
-                        <p className="text-slate-400 mt-2">
-                            To comply with SEC Reg D 506(c), all investors must be accredited and pass KYC/AML checks. This status is recorded on-chain via the whitelist contract.
-                        </p>
-                    </div>
-
-                    {userStatus === 'guest' && (
-                        <button 
-                            onClick={onVerify}
-                            className="w-full py-3 bg-blue-600 hover:bg-blue-500 text-white rounded-lg font-semibold transition-all"
-                        >
-                            Start KYC Check
-                        </button>
-                    )}
-
-                    {userStatus === 'verifying' && (
-                        <div className="space-y-3">
-                            <div className="h-2 w-full bg-slate-800 rounded-full overflow-hidden">
-                                <div className="h-full bg-blue-500 animate-pulse w-2/3"></div>
-                            </div>
-                            <p className="text-sm text-blue-400">Verifying accreditation status...</p>
+                <div class="glass-panel rounded-xl p-6">
+                    <h3 class="text-white font-medium mb-4">Pending Actions</h3>
+                    <div class="flex items-center gap-4 p-4 border border-dashed border-slate-600 rounded-lg">
+                        <i class="fa-regular fa-file-lines text-slate-400 text-xl"></i>
+                        <div class="flex-1">
+                            <div class="text-white font-medium text-sm">Tax Document Certification (W-9)</div>
+                            <div class="text-slate-500 text-xs">Required for 2026 distributions</div>
                         </div>
-                    )}
-
-                    {userStatus === 'approved' && (
-                        <div className="p-4 bg-green-500/10 border border-green-500/30 rounded-lg">
-                            <h3 className="text-green-400 font-bold flex items-center justify-center gap-2">
-                                <i className="ph-fill ph-check-circle"></i> Verification Complete
-                            </h3>
-                            <p className="text-xs text-green-300/80 mt-1">Wallet 0x8...3a is now whitelisted on the Fund Smart Contract.</p>
-                        </div>
-                    )}
+                        <button class="text-sm bg-slate-700 hover:bg-slate-600 text-white px-3 py-1.5 rounded">Sign Now</button>
+                    </div>
                 </div>
             </div>
-        );
 
-        const SecondaryMarket = ({ balance, onTrade }) => {
-            const [orderType, setOrderType] = useState('buy'); // 'buy' or 'sell'
-            const [price, setPrice] = useState(24.55);
-            const [amount, setAmount] = useState(100);
-            
-            // Simulated Order Book
-            const sellOrders = [
-                { price: 24.60, amount: 500, total: 12300 },
-                { price: 24.55, amount: 1200, total: 29460 },
-                { price: 24.52, amount: 200, total: 4904 },
-            ];
-            const buyOrders = [
-                { price: 24.48, amount: 1000, total: 24480 },
-                { price: 24.45, amount: 3000, total: 73350 },
-                { price: 24.40, amount: 500, total: 12200 },
-            ];
-            
-            const totalCost = price * amount * 1.001; // 0.1% fee
+            <!-- VIEW: PORTFOLIO -->
+            <div id="view-portfolio" class="hidden space-y-6">
+                <h2 class="text-2xl font-bold text-white mb-6">My Assets</h2>
+                
+                <div class="glass-panel rounded-xl overflow-hidden">
+                    <table class="w-full text-left">
+                        <thead class="bg-slate-800 text-xs uppercase text-slate-400">
+                            <tr>
+                                <th class="p-4">Asset</th>
+                                <th class="p-4">Balance (Tokens)</th>
+                                <th class="p-4">Current Value</th>
+                                <th class="p-4">Avg Cost</th>
+                                <th class="p-4">Unrealized P/L</th>
+                                <th class="p-4">Status</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-slate-700 text-sm">
+                            <tr class="hover:bg-slate-800/50">
+                                <td class="p-4">
+                                    <div class="flex items-center gap-3">
+                                        <div class="w-8 h-8 rounded bg-white text-slate-900 flex items-center justify-center font-bold">K</div>
+                                        <div>
+                                            <div class="font-medium text-white">KKR Health Care II</div>
+                                            <div class="text-xs text-slate-500">SKHC</div>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td class="p-4 text-white font-mono">500.00</td>
+                                <td class="p-4 text-white font-medium">$512,250.00</td>
+                                <td class="p-4 text-slate-400">$980.00</td>
+                                <td class="p-4 text-green-400">+ $22,250.00 (4.5%)</td>
+                                <td class="p-4"><span class="bg-orange-500/20 text-orange-400 px-2 py-1 rounded-full text-xs">Locked (11mo)</span></td>
+                            </tr>
+                            <tr class="hover:bg-slate-800/50">
+                                <td class="p-4">
+                                    <div class="flex items-center gap-3">
+                                        <div class="w-8 h-8 rounded bg-slate-700 text-white flex items-center justify-center font-bold">U</div>
+                                        <div>
+                                            <div class="font-medium text-white">USDC (Avalanche)</div>
+                                            <div class="text-xs text-slate-500">Stablecoin</div>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td class="p-4 text-white font-mono">732,750.00</td>
+                                <td class="p-4 text-white font-medium">$732,750.00</td>
+                                <td class="p-4 text-slate-400">$1.00</td>
+                                <td class="p-4 text-slate-400">--</td>
+                                <td class="p-4"><span class="bg-green-500/20 text-green-400 px-2 py-1 rounded-full text-xs">Liquid</span></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
 
-            return (
-                <div className="p-8 h-full flex flex-col">
-                    <div className="flex justify-between items-end mb-6">
-                        <div>
-                            <h2 className="text-2xl font-bold text-white">Secondary Market</h2>
-                            <p className="text-slate-400">Trade tokenized private equity interests peer-to-peer.</p>
-                        </div>
-                        <div className="text-right">
-                            <span className="text-xs text-slate-500 uppercase">Market Status</span>
-                            <div className="text-green-400 font-mono text-sm flex items-center gap-2">
-                                <span className="w-2 h-2 bg-green-500 rounded-full"></span> OPEN
-                            </div>
-                        </div>
+        </div>
+    </main>
+
+    <!-- Investment Modal -->
+    <div id="invest-modal" class="fixed inset-0 bg-black/80 backdrop-blur-sm hidden z-50 flex items-center justify-center">
+        <div class="glass-panel w-full max-w-lg rounded-xl shadow-2xl transform transition-all border border-slate-700">
+            <div class="p-6 border-b border-slate-700 flex justify-between items-center">
+                <div>
+                    <h3 class="text-xl font-bold text-white">Invest in <span id="modal-token-symbol">SKHC</span></h3>
+                    <p class="text-xs text-slate-400">Powered by Avalanche C-Chain</p>
+                </div>
+                <button onclick="closeModal()" class="text-slate-400 hover:text-white"><i class="fa-solid fa-xmark text-xl"></i></button>
+            </div>
+            
+            <div class="p-6 space-y-4">
+                <div class="bg-slate-800/50 p-4 rounded-lg border border-slate-700">
+                    <div class="flex justify-between text-sm mb-2">
+                        <span class="text-slate-400">Available Balance</span>
+                        <span class="text-white font-mono">732,750 USDC</span>
                     </div>
-
-                    <div className="flex-1 grid grid-cols-1 lg:grid-cols-4 gap-6">
-                        {/* Order Book */}
-                        <div className="lg:col-span-3 bg-slate-800 rounded-xl border border-slate-700 overflow-hidden flex flex-col">
-                            <div className="grid grid-cols-3 p-4 bg-slate-900 text-xs font-medium text-slate-500 uppercase border-b border-slate-700">
-                                <span>Price (USD)</span>
-                                <span className="text-right">Amount ({FUND_DATA.ticker})</span>
-                                <span className="text-right">Total (USD)</span>
-                            </div>
-                            
-                            {/* Sells */}
-                            <div className="flex-1 overflow-y-auto">
-                                {sellOrders.map((order, i) => (
-                                    <div key={`sell-${i}`} className="grid grid-cols-3 p-3 hover:bg-slate-700/50 cursor-pointer transition-colors border-b border-slate-700/30">
-                                        <span className="text-red-400 font-mono">{order.price.toFixed(2)}</span>
-                                        <span className="text-right text-white font-mono">{order.amount}</span>
-                                        <span className="text-right text-slate-400 font-mono">{order.total.toLocaleString()}</span>
-                                    </div>
-                                ))}
-                                
-                                <div className="p-2 bg-slate-900/50 text-center text-xs text-slate-500 my-2">Spread: $0.04</div>
-
-                                {/* Buys */}
-                                {buyOrders.map((order, i) => (
-                                    <div key={`buy-${i}`} className="grid grid-cols-3 p-3 hover:bg-slate-700/50 cursor-pointer transition-colors border-b border-slate-700/30">
-                                        <span className="text-green-400 font-mono">{order.price.toFixed(2)}</span>
-                                        <span className="text-right text-white font-mono">{order.amount}</span>
-                                        <span className="text-right text-slate-400 font-mono">{order.total.toLocaleString()}</span>
-                                    </div>
-                                ))}
-                            </div>
-                        </div>
-
-                        {/* Trade Form */}
-                        <div className="bg-slate-800 rounded-xl p-6 border border-slate-700 h-fit">
-                            <div className="flex gap-2 mb-6 bg-slate-900 p-1 rounded-lg">
-                                <button 
-                                    onClick={() => setOrderType('buy')}
-                                    className={`flex-1 py-2 rounded text-sm font-bold border transition-all ${
-                                        orderType === 'buy' 
-                                        ? 'bg-green-500/20 text-green-400 border-green-500/50' 
-                                        : 'text-slate-400 border-transparent hover:text-white'
-                                    }`}
-                                >
-                                    Buy
-                                </button>
-                                <button 
-                                    onClick={() => setOrderType('sell')}
-                                    className={`flex-1 py-2 rounded text-sm font-bold border transition-all ${
-                                        orderType === 'sell' 
-                                        ? 'bg-red-500/20 text-red-400 border-red-500/50' 
-                                        : 'text-slate-400 border-transparent hover:text-white'
-                                    }`}
-                                >
-                                    Sell
-                                </button>
-                            </div>
-
-                            <div className="space-y-4">
-                                <div>
-                                    <label className="text-xs text-slate-500">Price Limit</label>
-                                    <div className="relative">
-                                        <span className="absolute left-3 top-2.5 text-slate-400">$</span>
-                                        <input 
-                                            type="number" 
-                                            value={price}
-                                            onChange={(e) => setPrice(Number(e.target.value))}
-                                            className="w-full bg-slate-900 border border-slate-600 rounded p-2 pl-6 text-white text-sm focus:outline-none focus:border-slate-500" 
-                                        />
-                                    </div>
-                                </div>
-                                <div>
-                                    <label className="text-xs text-slate-500">Amount</label>
-                                    <div className="relative">
-                                        <input 
-                                            type="number" 
-                                            value={amount}
-                                            onChange={(e) => setAmount(Number(e.target.value))}
-                                            className="w-full bg-slate-900 border border-slate-600 rounded p-2 text-white text-sm focus:outline-none focus:border-slate-500" 
-                                        />
-                                        <span className="absolute right-3 top-2.5 text-xs text-slate-500">{FUND_DATA.ticker}</span>
-                                    </div>
-                                </div>
-                                
-                                <div className="pt-4 border-t border-slate-700">
-                                    <div className="flex justify-between text-xs mb-2">
-                                        <span className="text-slate-400">Fee (0.1%)</span>
-                                        <span className="text-slate-300">${(price * amount * 0.001).toFixed(2)}</span>
-                                    </div>
-                                    <div className="flex justify-between text-sm font-bold mb-4">
-                                        <span className="text-slate-300">Total</span>
-                                        <span className="text-white">${totalCost.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}</span>
-                                    </div>
-                                    
-                                    <button 
-                                        onClick={() => onTrade(orderType, amount, price)}
-                                        className={`w-full py-3 rounded font-bold shadow-lg transition-all ${
-                                            orderType === 'buy' 
-                                            ? 'bg-green-600 hover:bg-green-500 text-white shadow-green-500/20' 
-                                            : 'bg-red-600 hover:bg-red-500 text-white shadow-red-500/20'
-                                        }`}
-                                    >
-                                        Place {orderType === 'buy' ? 'Buy' : 'Sell'} Order
-                                    </button>
-                                </div>
-                            </div>
-                        </div>
+                    <div class="relative">
+                        <input type="number" id="invest-amount" class="w-full bg-transparent text-2xl font-bold text-white outline-none" placeholder="0.00" oninput="calculateTokens()">
+                        <span class="absolute right-0 top-1/2 -translate-y-1/2 text-slate-500 font-medium">USDC</span>
                     </div>
                 </div>
-            );
-        };
 
-        // 4. Main App Container
-        const App = () => {
-            const [activeTab, setActiveTab] = useState('dashboard');
-            const [logs, setLogs] = useState(INITIAL_LOGS);
-            const [userStatus, setUserStatus] = useState('guest'); // guest, verifying, approved
-            const [balance, setBalance] = useState(0); // Token balance
+                <div class="flex justify-center text-slate-500">
+                    <i class="fa-solid fa-arrow-down"></i>
+                </div>
 
-            const addLog = (type, msg) => {
-                const time = new Date().toLocaleTimeString('en-US', { hour12: false });
-                setLogs(prev => [...prev, { time, type, msg }]);
+                <div class="bg-slate-800/50 p-4 rounded-lg border border-slate-700">
+                    <div class="flex justify-between text-sm mb-2">
+                        <span class="text-slate-400">Estimated Receive</span>
+                        <span class="text-xs text-slate-500">NAV: $1,024.50</span>
+                    </div>
+                    <div class="flex justify-between items-center">
+                        <span id="token-est" class="text-2xl font-bold text-white">0.00</span>
+                        <span id="modal-token-name" class="text-slate-500 font-medium">SKHC</span>
+                    </div>
+                </div>
+
+                <div class="space-y-2 text-xs text-slate-400 mt-4">
+                    <div class="flex justify-between">
+                        <span>Gas Fee (Avalanche)</span>
+                        <span class="text-white">~0.002 AVAX ($0.08)</span>
+                    </div>
+                    <div class="flex justify-between">
+                        <span>Platform Fee (0.5%)</span>
+                        <span id="platform-fee" class="text-white">0 USDC</span>
+                    </div>
+                    <div class="flex justify-between items-center">
+                        <span>Compliance Check</span>
+                        <span class="text-green-400 flex items-center gap-1"><i class="fa-solid fa-check-circle"></i> Whitelisted</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="p-6 border-t border-slate-700">
+                <button onclick="executeTrade()" id="confirm-btn" class="w-full bg-white text-slate-900 font-bold py-3 rounded-lg hover:bg-slate-200 transition-colors flex items-center justify-center gap-2">
+                    Confirm Investment
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // State
+        let currentTab = 'dashboard';
+        const NAV_PRICE = 1024.50;
+        
+        // Navigation Logic
+        function switchTab(tabId) {
+            // Update UI State
+            document.querySelectorAll('.nav-item').forEach(el => {
+                el.classList.remove('bg-red-500/10', 'text-red-400', 'border', 'border-red-500/20');
+                el.classList.add('text-slate-400', 'hover:bg-slate-800', 'hover:text-white');
+            });
+            
+            const activeNav = document.getElementById(`nav-${tabId}`);
+            activeNav.classList.remove('text-slate-400', 'hover:bg-slate-800', 'hover:text-white');
+            activeNav.classList.add('bg-red-500/10', 'text-red-400', 'border', 'border-red-500/20');
+
+            // Hide all views
+            document.getElementById('view-dashboard').classList.add('hidden');
+            document.getElementById('view-market').classList.add('hidden');
+            document.getElementById('view-portfolio').classList.add('hidden');
+            document.getElementById('view-compliance').classList.add('hidden');
+
+            // Show selected view
+            const view = document.getElementById(`view-${tabId}`);
+            view.classList.remove('hidden');
+            view.classList.add('animate-fade-in');
+
+            // Update Header
+            const titles = {
+                'dashboard': 'Dashboard',
+                'market': 'Private Market / Primary Issuance',
+                'portfolio': 'Portfolio & Liquidity',
+                'compliance': 'Regulatory Identity (KYC/AML)'
             };
+            document.getElementById('page-title').innerText = titles[tabId];
+            
+            // Re-render chart if dashboard
+            if(tabId === 'dashboard') initChart();
+        }
 
-            const handleVerify = () => {
-                setUserStatus('verifying');
-                addLog('system', 'Initiating Securitize ID check...');
-                
-                setTimeout(() => {
-                    addLog('contract', 'Call: IdentityOracle.verifyUser(0x8...3a)');
-                }, 1000);
+        // Chart Logic
+        function initChart() {
+            const ctx = document.getElementById('portfolioChart').getContext('2d');
+            
+            // Gradient
+            const gradient = ctx.createLinearGradient(0, 0, 0, 400);
+            gradient.addColorStop(0, 'rgba(232, 65, 66, 0.5)'); // Red
+            gradient.addColorStop(1, 'rgba(232, 65, 66, 0.0)');
 
-                setTimeout(() => {
-                    addLog('success', 'Identity Verified. Accreditation Status: CONFIRMED');
-                    addLog('contract', 'Tx: Whitelist.add(0x8...3a) confirmed on Avalanche');
-                    setUserStatus('approved');
-                }, 3000);
-            };
+            if(window.myChart) window.myChart.destroy();
 
-            const handleInvest = (amountUSD) => {
-                if (userStatus !== 'approved') return;
-                
-                addLog('info', `Processing subscription for $${amountUSD.toLocaleString()}...`);
-                addLog('contract', 'Checking Whitelist status...');
-                addLog('contract', 'Status: OK');
-
-                setTimeout(() => {
-                    addLog('contract', 'Call: FundToken.mint(0x8...3a, amount)');
-                    addLog('info', 'Waiting for block confirmation...');
-                }, 1500);
-
-                setTimeout(() => {
-                    const tokens = amountUSD / FUND_DATA.nav;
-                    setBalance(prev => prev + tokens);
-                    addLog('success', `Minted ${tokens.toFixed(2)} ${FUND_DATA.ticker} to 0x8...3a`);
-                    addLog('info', `Gas Used: 0.004 AVAX`);
-                    setActiveTab('dashboard');
-                }, 3500);
-            };
-
-            const handleSecondaryTrade = (type, amount, price) => {
-                if (userStatus !== 'approved') {
-                    addLog('error', 'Error: KYC required to trade on secondary market.');
-                    return;
-                }
-
-                if (type === 'sell' && amount > balance) {
-                    addLog('error', 'Trade Failed: Insufficient token balance to sell.');
-                    return;
-                }
-
-                addLog('info', `Initiating ${type.toUpperCase()} order: ${amount} HCSG @ $${price}...`);
-                addLog('contract', `Call: Exchange.createOrder(${type}, ${amount}, ${price})`);
-
-                setTimeout(() => {
-                    addLog('contract', 'Order matched via liquidity pool (0x9...21)');
-                }, 1500);
-
-                setTimeout(() => {
-                    if (type === 'buy') {
-                        setBalance(prev => prev + amount);
-                        addLog('success', `Bought ${amount} HCSG. New Balance: ${(balance + amount).toFixed(2)}`);
-                    } else {
-                        setBalance(prev => prev - amount);
-                        addLog('success', `Sold ${amount} HCSG. New Balance: ${(balance - amount).toFixed(2)}`);
+            window.myChart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'],
+                    datasets: [{
+                        label: 'Portfolio Value',
+                        data: [1100000, 1120000, 1150000, 1145000, 1180000, 1245000],
+                        borderColor: '#E84142',
+                        backgroundColor: gradient,
+                        borderWidth: 2,
+                        fill: true,
+                        tension: 0.4,
+                        pointBackgroundColor: '#fff',
+                        pointRadius: 4
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { display: false }
+                    },
+                    scales: {
+                        y: {
+                            display: false,
+                            grid: { display: false }
+                        },
+                        x: {
+                            grid: { color: 'rgba(255,255,255,0.05)' },
+                            ticks: { color: '#94a3b8' }
+                        }
                     }
-                }, 3000);
-            };
+                }
+            });
+        }
 
-            return (
-                <div className="flex min-h-screen bg-slate-950">
-                    <Sidebar activeTab={activeTab} setActiveTab={setActiveTab} />
-                    
-                    <main className="ml-64 flex-1 relative pb-[300px] md:pb-0">
-                        {activeTab === 'dashboard' && <Dashboard balance={balance} userStatus={userStatus} />}
-                        {activeTab === 'marketplace' && <Marketplace userStatus={userStatus} onInvest={handleInvest} />}
-                        {activeTab === 'compliance' && <Compliance userStatus={userStatus} onVerify={handleVerify} />}
-                        {activeTab === 'secondary' && <SecondaryMarket balance={balance} onTrade={handleSecondaryTrade} />}
-                        {activeTab === 'manual' && <UserManual />}
-                    </main>
+        // Console Logging Simulation
+        function addLog(message, type = 'info') {
+            const consoleDiv = document.getElementById('console-logs');
+            const row = document.createElement('div');
+            const time = new Date().toLocaleTimeString('en-US', {hour12: false});
+            
+            let colorClass = 'text-slate-400';
+            if(type === 'success') colorClass = 'text-green-400';
+            if(type === 'tx') colorClass = 'text-blue-400';
+            if(type === 'error') colorClass = 'text-red-400';
 
-                    <ContractTerminal logs={logs} />
-                </div>
-            );
-        };
+            row.className = `flex gap-2 ${colorClass} log-new font-mono text-xs`;
+            row.innerHTML = `<span class="text-slate-600">[${time}]</span><span>${message}</span>`;
+            
+            consoleDiv.prepend(row); // Add to top
+        }
 
-        const root = ReactDOM.createRoot(document.getElementById('root'));
-        root.render(<App />);
+        // Modal Logic
+        function openModal(symbol) {
+            document.getElementById('invest-modal').classList.remove('hidden');
+            document.getElementById('modal-token-symbol').innerText = symbol;
+            document.getElementById('modal-token-name').innerText = symbol;
+            document.getElementById('invest-amount').value = '';
+            document.getElementById('token-est').innerText = '0.00';
+            addLog(`Initializing purchase intent for ${symbol}...`);
+            addLog(`Checking Whitelist status for 0x71C...92F on RegistryContract...`, 'tx');
+            setTimeout(() => addLog(`Whitelist Verified: User is Accredited Investor (Reg D).`, 'success'), 800);
+        }
+
+        function closeModal() {
+            document.getElementById('invest-modal').classList.add('hidden');
+        }
+
+        function calculateTokens() {
+            const amount = parseFloat(document.getElementById('invest-amount').value) || 0;
+            const tokens = amount / NAV_PRICE;
+            const fee = amount * 0.005;
+            
+            document.getElementById('token-est').innerText = tokens.toFixed(4);
+            document.getElementById('platform-fee').innerText = fee.toFixed(2) + ' USDC';
+        }
+
+        function executeTrade() {
+            const btn = document.getElementById('confirm-btn');
+            const originalText = btn.innerHTML;
+            const amount = document.getElementById('invest-amount').value;
+            
+            if(!amount || amount <= 0) return;
+
+            // Loading State
+            btn.innerHTML = `<div class="loading-spinner"></div> Processing on Avalanche`;
+            btn.disabled = true;
+
+            // Simulation sequence
+            addLog(`Broadcasting transaction to Avalanche C-Chain...`, 'tx');
+            
+            setTimeout(() => {
+                addLog(`Transaction Pending: Hash 0x8a1...3f9`, 'info');
+            }, 1500);
+
+            setTimeout(() => {
+                addLog(`Interacting with Securitize Feeder Contract...`, 'tx');
+            }, 2500);
+
+            setTimeout(() => {
+                addLog(`Transaction Confirmed! Block #34921055`, 'success');
+                addLog(`Minted ${document.getElementById('token-est').innerText} SKHC to 0x71C...92F`, 'success');
+                
+                btn.innerHTML = `<i class="fa-solid fa-check"></i> Success`;
+                btn.classList.replace('bg-white', 'bg-green-500');
+                btn.classList.replace('text-slate-900', 'text-white');
+                
+                setTimeout(() => {
+                    closeModal();
+                    btn.innerHTML = originalText;
+                    btn.disabled = false;
+                    btn.classList.replace('bg-green-500', 'bg-white');
+                    btn.classList.replace('text-white', 'text-slate-900');
+                    switchTab('dashboard'); // Go back to dashboard to see "change"
+                }, 1500);
+            }, 4000);
+        }
+
+        function simulateGas() {
+            const gas = Math.floor(Math.random() * (35 - 25) + 25);
+            document.getElementById('gas-price').innerText = `${gas} nAVAX`;
+        }
+
+        // Init
+        window.addEventListener('load', () => {
+            initChart();
+            setInterval(simulateGas, 5000);
+            
+            // Random background logs
+            setInterval(() => {
+                if(Math.random() > 0.7) {
+                    const actions = [
+                        'Syncing latest NAV data oracle...',
+                        'Validating peer node connection...',
+                        'Checking compliance registry updates...'
+                    ];
+                    addLog(actions[Math.floor(Math.random() * actions.length)]);
+                }
+            }, 8000);
+        });
+
     </script>
 </body>
 </html>
