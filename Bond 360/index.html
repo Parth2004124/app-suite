@@ -1,0 +1,744 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bond 360 | Financial Advisory</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+        
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f3f4f6;
+        }
+
+        .step-circle {
+            transition: all 0.3s ease;
+        }
+
+        .step-circle.active {
+            background-color: #2563eb;
+            color: white;
+            border-color: #2563eb;
+        }
+        
+        .step-circle.completed {
+            background-color: #10b981;
+            color: white;
+            border-color: #10b981;
+        }
+
+        .input-field {
+            transition: border-color 0.2s, box-shadow 0.2s;
+        }
+        .input-field:focus {
+            outline: none;
+            border-color: #2563eb;
+            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+        }
+        
+        .card-hover {
+            transition: transform 0.2s;
+        }
+        .card-hover:hover {
+            transform: translateY(-2px);
+        }
+
+        /* Gauge styles */
+        .gauge-segment {
+            transition: width 0.5s ease-out;
+        }
+    </style>
+</head>
+<body class="text-slate-800 h-screen flex flex-col overflow-hidden">
+
+    <!-- Top Navigation -->
+    <header class="bg-slate-900 text-white h-16 flex items-center justify-between px-6 shadow-md z-10 shrink-0">
+        <div class="flex items-center gap-3">
+            <div class="bg-blue-600 w-8 h-8 rounded flex items-center justify-center font-bold">B</div>
+            <h1 class="text-xl font-semibold tracking-tight">Bond 360 <span class="text-slate-400 text-sm font-normal ml-2">Advisory Edition</span></h1>
+        </div>
+        <div class="flex items-center gap-4">
+            <button onclick="resetApp()" class="text-slate-400 hover:text-white text-sm transition"><i class="fas fa-undo mr-1"></i> Reset</button>
+            <button onclick="window.print()" class="bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 rounded-md text-sm font-medium transition shadow-sm flex items-center gap-2">
+                <i class="fas fa-file-export"></i> Export Report
+            </button>
+        </div>
+    </header>
+
+    <!-- Main Layout -->
+    <div class="flex flex-1 overflow-hidden">
+        
+        <!-- Left Sidebar: Wizard Inputs -->
+        <div class="w-1/2 md:w-[45%] lg:w-[40%] bg-white border-r border-slate-200 flex flex-col h-full overflow-hidden">
+            
+            <!-- Stepper Header -->
+            <div class="p-6 border-b border-slate-100 bg-slate-50 shrink-0">
+                <div class="flex justify-between items-center relative">
+                    <!-- Progress Line -->
+                    <div class="absolute top-1/2 left-0 w-full h-0.5 bg-slate-200 -z-0"></div>
+                    
+                    <!-- Steps -->
+                    <div onclick="setStep(1)" class="relative z-10 flex flex-col items-center cursor-pointer group">
+                        <div id="step-1-circle" class="step-circle active w-8 h-8 rounded-full border-2 border-slate-300 bg-white flex items-center justify-center font-semibold text-sm">1</div>
+                        <span class="text-xs font-medium mt-1 text-slate-600">Company</span>
+                    </div>
+                    <div onclick="setStep(2)" class="relative z-10 flex flex-col items-center cursor-pointer group">
+                        <div id="step-2-circle" class="step-circle w-8 h-8 rounded-full border-2 border-slate-300 bg-white flex items-center justify-center font-semibold text-sm">2</div>
+                        <span class="text-xs font-medium mt-1 text-slate-600">Pricing</span>
+                    </div>
+                    <div onclick="setStep(3)" class="relative z-10 flex flex-col items-center cursor-pointer group">
+                        <div id="step-3-circle" class="step-circle w-8 h-8 rounded-full border-2 border-slate-300 bg-white flex items-center justify-center font-semibold text-sm">3</div>
+                        <span class="text-xs font-medium mt-1 text-slate-600">Structure</span>
+                    </div>
+                    <div onclick="setStep(4)" class="relative z-10 flex flex-col items-center cursor-pointer group">
+                        <div id="step-4-circle" class="step-circle w-8 h-8 rounded-full border-2 border-slate-300 bg-white flex items-center justify-center font-semibold text-sm">4</div>
+                        <span class="text-xs font-medium mt-1 text-slate-600">Summary</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Scrollable Input Form -->
+            <div class="flex-1 overflow-y-auto p-6 space-y-6" id="wizard-content">
+                <!-- Content injected by JS -->
+            </div>
+
+            <!-- Navigation Buttons -->
+            <div class="p-4 border-t border-slate-200 bg-white shrink-0 flex justify-between">
+                <button id="btn-prev" onclick="prevStep()" class="px-4 py-2 text-slate-600 font-medium hover:bg-slate-100 rounded-md transition disabled:opacity-50 disabled:cursor-not-allowed">Back</button>
+                <button id="btn-next" onclick="nextStep()" class="px-6 py-2 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-md transition shadow-md shadow-blue-200">Next Step</button>
+            </div>
+        </div>
+
+        <!-- Right Side: Analytics & Advisory -->
+        <div class="flex-1 bg-slate-100 flex flex-col h-full overflow-hidden">
+            <!-- Tabs -->
+            <div class="bg-white border-b border-slate-200 px-6 pt-4 flex gap-6 shrink-0">
+                <button onclick="setTab('analysis')" id="tab-analysis" class="pb-3 border-b-2 border-blue-600 text-blue-600 font-medium text-sm transition">Financial Advisor</button>
+                <button onclick="setTab('preview')" id="tab-preview" class="pb-3 border-b-2 border-transparent text-slate-500 hover:text-slate-700 font-medium text-sm transition">Term Sheet</button>
+                <button onclick="setTab('schedule')" id="tab-schedule" class="pb-3 border-b-2 border-transparent text-slate-500 hover:text-slate-700 font-medium text-sm transition">Cash Flow</button>
+            </div>
+
+            <!-- Tab Content -->
+            <div class="flex-1 overflow-y-auto p-8 relative">
+                
+                <!-- Advisory / Analysis View (Default) -->
+                <div id="view-analysis" class="max-w-4xl mx-auto space-y-6">
+                    
+                    <!-- Top Verdict Banner -->
+                    <div id="advisor-verdict-banner" class="rounded-lg p-6 shadow-sm border-l-4 flex items-start gap-4 transition-all duration-300">
+                        <div id="verdict-icon" class="text-3xl mt-1"></div>
+                        <div>
+                            <h3 class="text-lg font-bold" id="verdict-title">Advisor Analysis</h3>
+                            <p class="text-sm mt-1 opacity-90" id="verdict-text">Complete the inputs to generate an assessment.</p>
+                        </div>
+                    </div>
+
+                    <!-- Pricing & Yield Section -->
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <!-- Card 1: Pricing vs Market -->
+                        <div class="bg-white p-6 rounded-lg shadow-sm border border-slate-200 card-hover">
+                            <h4 class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-4">Pricing Benchmark</h4>
+                            <div class="flex justify-between items-end mb-2">
+                                <span class="text-sm text-slate-600">Your Coupon</span>
+                                <span class="text-2xl font-bold text-slate-800" id="bench-user-rate">0.00%</span>
+                            </div>
+                            <div class="flex justify-between items-end mb-4">
+                                <span class="text-sm text-slate-600">Market Fair Value</span>
+                                <span class="text-2xl font-bold text-blue-600" id="bench-market-rate">0.00%</span>
+                            </div>
+                            <div class="h-2 bg-slate-100 rounded-full overflow-hidden flex">
+                                <div id="bench-bar-fill" class="h-full bg-blue-500 transition-all duration-500" style="width: 0%"></div>
+                            </div>
+                            <p class="text-xs text-slate-500 mt-3" id="bench-comment">
+                                Loading market curves...
+                            </p>
+                        </div>
+
+                        <!-- Card 2: Debt Capacity -->
+                        <div class="bg-white p-6 rounded-lg shadow-sm border border-slate-200 card-hover">
+                            <h4 class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-4">Leverage Profile (Pro Forma)</h4>
+                            <div class="flex justify-between items-center mb-1">
+                                <span class="text-sm text-slate-600">Net Debt / EBITDA</span>
+                                <span class="font-bold text-xl" id="lev-ratio">0.0x</span>
+                            </div>
+                            <!-- Simple meter -->
+                            <div class="w-full bg-slate-100 h-2 rounded-full mb-4 relative overflow-hidden">
+                                <div class="absolute left-0 top-0 bottom-0 bg-green-400 w-1/3"></div>
+                                <div class="absolute left-1/3 top-0 bottom-0 bg-yellow-400 w-1/3"></div>
+                                <div class="absolute right-0 top-0 bottom-0 bg-red-400 w-1/3"></div>
+                                <div id="lev-indicator" class="absolute top-0 bottom-0 w-1 bg-black transform transition-all duration-500" style="left: 0%"></div>
+                            </div>
+                            
+                            <div class="flex justify-between items-center mb-1 mt-4">
+                                <span class="text-sm text-slate-600">Interest Coverage</span>
+                                <span class="font-bold text-xl" id="cov-ratio">0.0x</span>
+                            </div>
+                            <p class="text-xs text-slate-500 mt-2" id="lev-comment">Calculating capacity...</p>
+                        </div>
+                    </div>
+
+                    <!-- Feasibility Details Table -->
+                    <div class="bg-white rounded-lg shadow-sm border border-slate-200 overflow-hidden">
+                        <div class="bg-slate-50 px-6 py-3 border-b border-slate-200 font-semibold text-slate-700">Feasibility Breakdown</div>
+                        <table class="w-full text-sm text-left">
+                            <tbody class="divide-y divide-slate-100">
+                                <tr>
+                                    <td class="px-6 py-3 text-slate-500">Total New Principal</td>
+                                    <td class="px-6 py-3 font-medium text-right" id="feas-principal">$0</td>
+                                </tr>
+                                <tr>
+                                    <td class="px-6 py-3 text-slate-500">Est. Annual Interest Expense</td>
+                                    <td class="px-6 py-3 font-medium text-right text-red-600" id="feas-interest">$0</td>
+                                </tr>
+                                <tr>
+                                    <td class="px-6 py-3 text-slate-500">EBITDA (Annual)</td>
+                                    <td class="px-6 py-3 font-medium text-right text-emerald-600" id="feas-ebitda">$0</td>
+                                </tr>
+                                <tr class="bg-slate-50">
+                                    <td class="px-6 py-3 font-semibold text-slate-700">Net Impact on Cash Flow</td>
+                                    <td class="px-6 py-3 font-bold text-right" id="feas-impact">Neutral</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <!-- Recommendations -->
+                    <div class="bg-blue-50 border border-blue-100 p-6 rounded-lg">
+                        <h4 class="text-blue-900 font-semibold mb-3"><i class="fas fa-robot text-blue-500 mr-2"></i>Strategic Recommendations</h4>
+                        <ul class="space-y-2 text-sm text-blue-800" id="rec-list">
+                            <li><i class="fas fa-check-circle mr-2 opacity-50"></i>Input financial data to receive recommendations.</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- Term Sheet Preview (Hidden by default) -->
+                <div id="view-preview" class="hidden max-w-3xl mx-auto bg-white shadow-lg rounded-sm min-h-[800px] p-10 relative">
+                    <div class="absolute inset-0 flex items-center justify-center opacity-[0.03] pointer-events-none select-none">
+                        <span class="text-9xl font-bold uppercase rotate-45 transform">DRAFT</span>
+                    </div>
+                    <div class="border-b-2 border-slate-800 pb-4 mb-8 flex justify-between items-end">
+                        <div>
+                            <h2 class="text-2xl font-serif font-bold text-slate-900 uppercase tracking-widest">Term Sheet</h2>
+                            <p class="text-slate-500 text-sm mt-1">Preliminary & Indicative Terms</p>
+                        </div>
+                        <div class="text-right">
+                            <div class="text-xs text-slate-400 uppercase">Generated On</div>
+                            <div class="font-mono text-sm text-slate-700" id="ts-date">--</div>
+                        </div>
+                    </div>
+                    <div class="bg-slate-50 border border-slate-200 p-4 mb-8 rounded">
+                        <h3 class="font-bold text-slate-800 text-sm uppercase mb-2">Executive Summary</h3>
+                        <p class="text-sm text-slate-600 leading-relaxed">
+                            <span id="ts-issuer" class="font-semibold text-slate-900">[Issuer]</span> proposes to issue 
+                            <span id="ts-amount" class="font-semibold text-slate-900">[Amount]</span> of 
+                            <span id="ts-type" class="font-semibold text-slate-900">Notes</span> due 
+                            <span id="ts-maturity-year" class="font-semibold text-slate-900">[Year]</span>.
+                        </p>
+                    </div>
+                    <table class="w-full text-sm text-left border-collapse mb-8">
+                        <tbody id="ts-table-body"></tbody>
+                    </table>
+                </div>
+
+                <!-- Schedule View (Hidden by default) -->
+                <div id="view-schedule" class="hidden max-w-4xl mx-auto">
+                    <div class="bg-white rounded-lg shadow border border-slate-200 overflow-hidden">
+                        <div class="p-4 bg-slate-50 border-b border-slate-200 flex justify-between items-center">
+                            <h3 class="font-semibold text-slate-700">Projected Cash Flows</h3>
+                            <div class="text-sm text-slate-500">
+                                Total Interest: <span id="schedule-total-interest" class="font-mono font-medium text-slate-900">$0.00</span>
+                            </div>
+                        </div>
+                        <div class="overflow-x-auto">
+                            <table class="w-full text-sm text-left">
+                                <thead class="bg-slate-50 text-slate-500 font-medium border-b border-slate-200">
+                                    <tr>
+                                        <th class="px-6 py-3">Period</th>
+                                        <th class="px-6 py-3">Date</th>
+                                        <th class="px-6 py-3 text-right">Payment Type</th>
+                                        <th class="px-6 py-3 text-right">Amount</th>
+                                        <th class="px-6 py-3 text-right">Remaining Principal</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="schedule-body" class="divide-y divide-slate-100"></tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+<script>
+    // --- Data Store ---
+    const data = {
+        // Issuer & Financials
+        issuerName: "Acme Corp",
+        sector: "Technology",
+        creditRating: "BBB",
+        currency: "USD",
+        principal: 50000000,
+        ebitda: 12000000,
+        existingDebt: 25000000,
+        cash: 5000000,
+        useOfProceeds: "Expansion of manufacturing facilities",
+
+        // Economics
+        maturityYears: 5,
+        couponRate: 5.5, 
+        couponFreq: 2, 
+        issuePrice: 100,
+
+        // Technical
+        bondType: "Senior Unsecured",
+        dayCount: "30/360",
+        covenants: ["Negative Pledge", "Cross Default"],
+        listing: "Luxembourg Stock Exchange",
+        governingLaw: "New York Law"
+    };
+
+    let currentStep = 1;
+
+    // --- Formatters ---
+    const fmtCurrency = (val) => new Intl.NumberFormat('en-US', { style: 'currency', currency: data.currency, minimumFractionDigits: 0 }).format(val);
+    const fmtPercent = (val) => `${Number(val).toFixed(3)}%`;
+    const fmtDate = (d) => d.toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' });
+
+    // --- Market Data Simulation ---
+    // Returns a fair market yield based on Rating + Years
+    function getMarketYield(rating, years) {
+        let baseRate = 3.50; // Risk Free Rate (approx 5y treasury)
+        
+        // Spread based on Rating (bps)
+        const spreads = {
+            "AAA": 40, "AA": 70, "A": 110, "BBB": 180, 
+            "BB": 350, "B": 550, "CCC": 900
+        };
+        
+        // Term Premium (simple curve steepener: +10bps per year over 2 years)
+        const termPremium = Math.max(0, (years - 2) * 10);
+        
+        let spread = spreads[rating] || 200;
+        
+        // Sector adjustment
+        if(data.sector === 'Technology') spread -= 10; // Tech usually tighter
+        if(data.sector === 'Energy') spread += 25; // Energy slightly wider
+
+        return baseRate + ((spread + termPremium) / 100);
+    }
+
+    // --- Render Wizard Steps ---
+    function renderWizardStep() {
+        const container = document.getElementById('wizard-content');
+        container.innerHTML = '';
+
+        if (currentStep === 1) {
+            // Step 1: Company Profile & Financials
+            container.innerHTML = `
+                <div class="space-y-4">
+                    <h3 class="text-lg font-semibold text-slate-800">Company Profile & Financials</h3>
+                    <p class="text-sm text-slate-500 mb-6">Enter financial data to enable the Advisory Engine.</p>
+
+                    <div>
+                        <label class="block text-xs font-medium text-slate-700 mb-1">Issuer Legal Name</label>
+                        <input type="text" class="input-field w-full border border-slate-300 rounded px-3 py-2 text-sm" 
+                            value="${data.issuerName}" oninput="updateData('issuerName', this.value)">
+                    </div>
+
+                    <div class="grid grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-xs font-medium text-slate-700 mb-1">Sector</label>
+                            <select class="input-field w-full border border-slate-300 rounded px-3 py-2 text-sm"
+                                onchange="updateData('sector', this.value)">
+                                <option value="Technology" ${data.sector === 'Technology' ? 'selected' : ''}>Technology</option>
+                                <option value="Energy" ${data.sector === 'Energy' ? 'selected' : ''}>Energy</option>
+                                <option value="Financials" ${data.sector === 'Financials' ? 'selected' : ''}>Financials</option>
+                                <option value="Healthcare" ${data.sector === 'Healthcare' ? 'selected' : ''}>Healthcare</option>
+                                <option value="Real Estate" ${data.sector === 'Real Estate' ? 'selected' : ''}>Real Estate</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-xs font-medium text-slate-700 mb-1">Current Rating</label>
+                            <select class="input-field w-full border border-slate-300 rounded px-3 py-2 text-sm"
+                                onchange="updateData('creditRating', this.value)">
+                                <option value="AAA" ${data.creditRating === 'AAA' ? 'selected' : ''}>AAA (Prime)</option>
+                                <option value="AA" ${data.creditRating === 'AA' ? 'selected' : ''}>AA (High Grade)</option>
+                                <option value="A" ${data.creditRating === 'A' ? 'selected' : ''}>A (Upper Med)</option>
+                                <option value="BBB" ${data.creditRating === 'BBB' ? 'selected' : ''}>BBB (Inv. Grade)</option>
+                                <option value="BB" ${data.creditRating === 'BB' ? 'selected' : ''}>BB (High Yield)</option>
+                                <option value="B" ${data.creditRating === 'B' ? 'selected' : ''}>B (Speculative)</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <hr class="border-slate-100 my-2">
+                    <div class="bg-slate-50 p-4 rounded border border-slate-200 space-y-3">
+                        <div class="text-xs font-bold text-slate-500 uppercase tracking-wide mb-2">Financial Health (Last 12M)</div>
+                        
+                        <div>
+                            <label class="block text-xs font-medium text-slate-700 mb-1">EBITDA (Annual)</label>
+                            <input type="number" class="input-field w-full border border-slate-300 rounded px-3 py-2 text-sm" 
+                                value="${data.ebitda}" oninput="updateData('ebitda', this.value)">
+                        </div>
+                        <div class="grid grid-cols-2 gap-4">
+                            <div>
+                                <label class="block text-xs font-medium text-slate-700 mb-1">Existing Total Debt</label>
+                                <input type="number" class="input-field w-full border border-slate-300 rounded px-3 py-2 text-sm" 
+                                    value="${data.existingDebt}" oninput="updateData('existingDebt', this.value)">
+                            </div>
+                            <div>
+                                <label class="block text-xs font-medium text-slate-700 mb-1">Cash on Hand</label>
+                                <input type="number" class="input-field w-full border border-slate-300 rounded px-3 py-2 text-sm" 
+                                    value="${data.cash}" oninput="updateData('cash', this.value)">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+        } else if (currentStep === 2) {
+            // Step 2: Economics (With Market Suggestion)
+            const marketYield = getMarketYield(data.creditRating, data.maturityYears);
+            
+            container.innerHTML = `
+                <div class="space-y-4">
+                    <h3 class="text-lg font-semibold text-slate-800">Deal Economics</h3>
+                    <p class="text-sm text-slate-500 mb-6">Define the size and pricing of the bond.</p>
+
+                    <div>
+                        <label class="block text-xs font-medium text-slate-700 mb-1">Issuance Amount (${data.currency})</label>
+                        <input type="number" class="input-field w-full border border-slate-300 rounded px-3 py-2 text-sm font-medium" 
+                            value="${data.principal}" oninput="updateData('principal', this.value)">
+                    </div>
+
+                    <div>
+                        <label class="block text-xs font-medium text-slate-700 mb-1">Maturity (Years)</label>
+                        <input type="range" min="1" max="15" step="1" class="w-full accent-blue-600 mb-1" 
+                            value="${data.maturityYears}" oninput="updateData('maturityYears', this.value)">
+                        <div class="flex justify-between text-xs text-slate-500">
+                            <span>1Y</span>
+                            <span class="font-bold text-blue-600">${data.maturityYears} Years</span>
+                            <span>15Y</span>
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-xs font-medium text-slate-700 mb-1">Coupon Rate (%)</label>
+                            <input type="number" step="0.125" class="input-field w-full border border-slate-300 rounded px-3 py-2 text-sm" 
+                                value="${data.couponRate}" oninput="updateData('couponRate', this.value)">
+                            <button onclick="updateData('couponRate', ${marketYield.toFixed(3)})" class="text-xs text-blue-600 hover:text-blue-800 mt-1 underline">
+                                Apply Market Rate (${marketYield.toFixed(3)}%)
+                            </button>
+                        </div>
+                        <div>
+                            <label class="block text-xs font-medium text-slate-700 mb-1">Frequency</label>
+                            <select class="input-field w-full border border-slate-300 rounded px-3 py-2 text-sm"
+                                onchange="updateData('couponFreq', this.value)">
+                                <option value="1" ${data.couponFreq == 1 ? 'selected' : ''}>Annual</option>
+                                <option value="2" ${data.couponFreq == 2 ? 'selected' : ''}>Semi-Annual</option>
+                                <option value="4" ${data.couponFreq == 4 ? 'selected' : ''}>Quarterly</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="bg-blue-50 p-3 rounded border border-blue-100">
+                        <div class="flex justify-between text-sm mb-1">
+                            <span class="text-blue-800">Market Benchmark Yield:</span>
+                            <span class="font-bold text-blue-900">${marketYield.toFixed(3)}%</span>
+                        </div>
+                        <p class="text-xs text-blue-600 opacity-80">Based on ${data.creditRating} rating for ${data.maturityYears}Y paper in ${data.sector}.</p>
+                    </div>
+                </div>
+            `;
+        } else if (currentStep === 3) {
+            // Step 3: Technicals
+            container.innerHTML = `
+                <div class="space-y-4">
+                    <h3 class="text-lg font-semibold text-slate-800">Structure & Covenants</h3>
+                    <p class="text-sm text-slate-500 mb-6">Fine-tune the legal structure.</p>
+
+                    <div>
+                        <label class="block text-xs font-medium text-slate-700 mb-1">Rank</label>
+                        <select class="input-field w-full border border-slate-300 rounded px-3 py-2 text-sm"
+                            onchange="updateData('bondType', this.value)">
+                            <option value="Senior Secured" ${data.bondType === 'Senior Secured' ? 'selected' : ''}>Senior Secured</option>
+                            <option value="Senior Unsecured" ${data.bondType === 'Senior Unsecured' ? 'selected' : ''}>Senior Unsecured</option>
+                            <option value="Subordinated" ${data.bondType === 'Subordinated' ? 'selected' : ''}>Subordinated</option>
+                        </select>
+                    </div>
+
+                    <div class="pt-2">
+                        <label class="block text-xs font-medium text-slate-700 mb-2">Recommended Covenants</label>
+                        <div class="space-y-2">
+                             <label class="flex items-center space-x-2 p-2 border border-slate-200 rounded hover:bg-slate-50 cursor-pointer">
+                                <input type="checkbox" class="rounded text-blue-600 focus:ring-blue-500" 
+                                    ${data.covenants.includes('Negative Pledge') ? 'checked' : ''}
+                                    onchange="toggleCovenant('Negative Pledge')">
+                                <span class="text-sm text-slate-700">Negative Pledge</span>
+                            </label>
+                             <label class="flex items-center space-x-2 p-2 border border-slate-200 rounded hover:bg-slate-50 cursor-pointer">
+                                <input type="checkbox" class="rounded text-blue-600 focus:ring-blue-500" 
+                                    ${data.covenants.includes('Cross Default') ? 'checked' : ''}
+                                    onchange="toggleCovenant('Cross Default')">
+                                <span class="text-sm text-slate-700">Cross Default</span>
+                            </label>
+                             <label class="flex items-center space-x-2 p-2 border border-slate-200 rounded hover:bg-slate-50 cursor-pointer">
+                                <input type="checkbox" class="rounded text-blue-600 focus:ring-blue-500" 
+                                    ${data.covenants.includes('Change of Control') ? 'checked' : ''}
+                                    onchange="toggleCovenant('Change of Control')">
+                                <span class="text-sm text-slate-700">Change of Control Put</span>
+                            </label>
+                        </div>
+                    </div>
+
+                    <div>
+                        <label class="block text-xs font-medium text-slate-700 mb-1">Use of Proceeds</label>
+                        <textarea class="input-field w-full border border-slate-300 rounded px-3 py-2 text-sm h-20"
+                            oninput="updateData('useOfProceeds', this.value)">${data.useOfProceeds}</textarea>
+                    </div>
+                </div>
+            `;
+        } else {
+             container.innerHTML = `
+                 <div class="space-y-4 text-center py-10">
+                    <div class="w-16 h-16 bg-green-100 text-green-600 rounded-full flex items-center justify-center mx-auto text-2xl mb-4">
+                        <i class="fas fa-check"></i>
+                    </div>
+                    <h3 class="text-xl font-bold text-slate-800">Analysis Ready</h3>
+                    <p class="text-slate-500 max-w-xs mx-auto">The Advisory Engine has crunched the numbers.</p>
+                    <p class="text-sm text-slate-400 mt-2">See the 'Financial Advisor' tab for your feasibility report.</p>
+                </div>
+            `;
+        }
+    }
+
+    // --- Core Advisory Logic ---
+    function runAdvisoryEngine() {
+        // 1. Calculate Ratios
+        const totalNewDebt = parseFloat(data.existingDebt) + parseFloat(data.principal);
+        const netDebt = totalNewDebt - parseFloat(data.cash);
+        const ebitda = parseFloat(data.ebitda) || 1; // avoid div by zero
+        
+        const leverageRatio = netDebt / ebitda; // Net Debt / EBITDA
+        
+        // Est. Interest (Assume 5% on existing debt for simplicity + actual on new)
+        const existingInterest = parseFloat(data.existingDebt) * 0.05; 
+        const newInterest = parseFloat(data.principal) * (parseFloat(data.couponRate) / 100);
+        const totalInterest = existingInterest + newInterest;
+        
+        const coverageRatio = ebitda / totalInterest; // Interest Coverage
+
+        // 2. Market Comparison
+        const marketRate = getMarketYield(data.creditRating, data.maturityYears);
+        const userRate = parseFloat(data.couponRate);
+        const spreadToMarket = userRate - marketRate;
+
+        // --- Render Visuals ---
+
+        // A. Pricing Card
+        document.getElementById('bench-user-rate').innerText = fmtPercent(userRate);
+        document.getElementById('bench-market-rate').innerText = fmtPercent(marketRate);
+        
+        const benchFill = document.getElementById('bench-bar-fill');
+        const benchMsg = document.getElementById('bench-comment');
+        
+        if (spreadToMarket < -0.5) {
+            benchFill.style.width = '20%';
+            benchFill.className = 'h-full bg-red-500 transition-all duration-500';
+            benchMsg.innerText = "Below Market: Investors unlikely to buy. Too cheap.";
+            benchMsg.className = "text-xs text-red-500 mt-3 font-medium";
+        } else if (spreadToMarket > 0.5) {
+            benchFill.style.width = '90%';
+            benchFill.className = 'h-full bg-orange-400 transition-all duration-500';
+            benchMsg.innerText = "Above Market: Costly for issuer, great for investors.";
+            benchMsg.className = "text-xs text-orange-600 mt-3 font-medium";
+        } else {
+            benchFill.style.width = '60%';
+            benchFill.className = 'h-full bg-green-500 transition-all duration-500';
+            benchMsg.innerText = "Fair Value: Aligned with market curve.";
+            benchMsg.className = "text-xs text-green-600 mt-3 font-medium";
+        }
+
+        // B. Leverage Card
+        document.getElementById('lev-ratio').innerText = leverageRatio.toFixed(2) + "x";
+        document.getElementById('cov-ratio').innerText = coverageRatio.toFixed(2) + "x";
+        
+        const levIndicator = document.getElementById('lev-indicator');
+        // Map ratio 0x-6x to 0%-100%
+        let levPos = (leverageRatio / 6) * 100;
+        if(levPos > 100) levPos = 100;
+        levIndicator.style.left = levPos + "%";
+
+        // C. Feasibility Table
+        document.getElementById('feas-principal').innerText = fmtCurrency(data.principal);
+        document.getElementById('feas-interest').innerText = fmtCurrency(newInterest);
+        document.getElementById('feas-ebitda').innerText = fmtCurrency(ebitda);
+        
+        const impactEl = document.getElementById('feas-impact');
+        if (newInterest > (ebitda * 0.3)) {
+            impactEl.innerText = "Negative";
+            impactEl.className = "px-6 py-3 font-bold text-right text-red-600";
+        } else {
+            impactEl.innerText = "Manageable";
+            impactEl.className = "px-6 py-3 font-bold text-right text-emerald-600";
+        }
+
+        // D. Final Verdict & Recommendations
+        const banner = document.getElementById('advisor-verdict-banner');
+        const vTitle = document.getElementById('verdict-title');
+        const vText = document.getElementById('verdict-text');
+        const vIcon = document.getElementById('verdict-icon');
+        const recList = document.getElementById('rec-list');
+        
+        let recs = [];
+        let verdict = "Neutral";
+        
+        // Logic Tree
+        if (leverageRatio > 5.0) {
+            verdict = "Critical Risk";
+            banner.className = "bg-red-50 border-red-500 text-red-900 rounded-lg p-6 shadow-sm border-l-4 flex items-start gap-4";
+            vIcon.innerHTML = '<i class="fas fa-exclamation-triangle text-red-500"></i>';
+            vText.innerText = `Pro-forma leverage of ${leverageRatio.toFixed(1)}x is too high for ${data.creditRating} rating.`;
+            recs.push("Reduce issuance size immediately to lower leverage.");
+            recs.push("Consider Equity issuance instead of Debt.");
+        } else if (leverageRatio > 3.5) {
+            verdict = "Caution";
+            banner.className = "bg-yellow-50 border-yellow-500 text-yellow-900 rounded-lg p-6 shadow-sm border-l-4 flex items-start gap-4";
+            vIcon.innerHTML = '<i class="fas fa-hand-paper text-yellow-500"></i>';
+            vText.innerText = "Leverage is high but manageable with strict discipline.";
+            recs.push("Add stricter covenants (max leverage 4.0x) to comfort investors.");
+            recs.push("Ensure Use of Proceeds is accretive to EBITDA.");
+        } else {
+            verdict = "Strong";
+            banner.className = "bg-green-50 border-green-500 text-green-900 rounded-lg p-6 shadow-sm border-l-4 flex items-start gap-4";
+            vIcon.innerHTML = '<i class="fas fa-check-circle text-green-500"></i>';
+            vText.innerText = "Balance sheet has ample capacity for this issuance.";
+            recs.push("Strong capacity allows you to negotiate tighter pricing.");
+            recs.push("Consider increasing size if capital is needed.");
+        }
+        
+        // Pricing Recs
+        if (spreadToMarket < -0.25) recs.push(`Increase coupon to ~${marketRate.toFixed(2)}% to ensure successful bookbuilding.`);
+        if (spreadToMarket > 0.5) recs.push(`You are overpaying. Try guiding price down to ${marketRate.toFixed(2)}%.`);
+        
+        vTitle.innerText = verdict;
+        recList.innerHTML = recs.map(r => `<li><i class="fas fa-angle-right mr-2 text-blue-400"></i>${r}</li>`).join('');
+    }
+
+    // --- Standard Rendering (Term Sheet, Schedule) ---
+    function renderTermSheet() {
+        document.getElementById('ts-issuer').innerText = data.issuerName;
+        document.getElementById('ts-amount').innerText = fmtCurrency(data.principal);
+        document.getElementById('ts-type').innerText = data.bondType;
+        const matDate = new Date(); matDate.setFullYear(matDate.getFullYear() + parseInt(data.maturityYears));
+        document.getElementById('ts-maturity-year').innerText = fmtDate(matDate);
+        document.getElementById('ts-date').innerText = fmtDate(new Date());
+
+        const rows = [
+            ["Issuer", data.issuerName],
+            ["Ratings", data.creditRating],
+            ["Structure", data.bondType],
+            ["Amount", fmtCurrency(data.principal)],
+            ["Maturity", `${data.maturityYears} Years (${fmtDate(matDate)})`],
+            ["Coupon", `${fmtPercent(data.couponRate)} ${getFreqLabel(data.couponFreq)}`],
+            ["Covenants", data.covenants.join(", ") || "None"],
+            ["Governing Law", data.governingLaw]
+        ];
+        document.getElementById('ts-table-body').innerHTML = rows.map(([k,v]) => `
+            <tr class="border-b border-slate-100"><td class="py-3 font-semibold text-slate-700 w-1/3">${k}</td><td class="py-3 text-slate-600">${v}</td></tr>
+        `).join('');
+    }
+
+    function renderSchedule() {
+        const principal = parseFloat(data.principal);
+        const rate = parseFloat(data.couponRate) / 100;
+        const freq = parseInt(data.couponFreq);
+        const periods = parseInt(data.maturityYears) * freq;
+        const pmt = (principal * rate) / freq;
+        
+        let html = '';
+        let total = 0;
+        let d = new Date();
+        
+        for(let i=1; i<=periods; i++) {
+            d.setMonth(d.getMonth() + (12/freq));
+            html += `<tr class="hover:bg-slate-50"><td class="px-6 py-3 font-mono text-xs text-slate-500">${i}</td><td class="px-6 py-3">${fmtDate(d)}</td><td class="px-6 py-3 text-right text-emerald-600">Coupon</td><td class="px-6 py-3 text-right">${fmtCurrency(pmt)}</td><td class="px-6 py-3 text-right text-slate-400">${fmtCurrency(principal)}</td></tr>`;
+            total += pmt;
+        }
+        html += `<tr class="bg-blue-50 font-semibold border-t border-blue-100"><td class="px-6 py-3 font-mono text-xs text-slate-500">End</td><td class="px-6 py-3">${fmtDate(d)}</td><td class="px-6 py-3 text-right text-blue-700">Principal</td><td class="px-6 py-3 text-right">${fmtCurrency(principal)}</td><td class="px-6 py-3 text-right">-</td></tr>`;
+        
+        document.getElementById('schedule-body').innerHTML = html;
+        document.getElementById('schedule-total-interest').innerText = fmtCurrency(total);
+    }
+
+    // --- State Management ---
+    function updateData(key, value) {
+        data[key] = value;
+        refreshViews();
+    }
+    
+    function toggleCovenant(name) {
+        if(data.covenants.includes(name)) data.covenants = data.covenants.filter(c=>c!==name);
+        else data.covenants.push(name);
+        refreshViews();
+    }
+
+    function refreshViews() {
+        if(document.getElementById('view-analysis').className.indexOf('hidden') === -1) runAdvisoryEngine();
+        renderTermSheet();
+        renderSchedule();
+        
+        // Re-render wizard if on step 2 to update dynamic market calcs
+        if(currentStep === 2) {
+             const marketYield = getMarketYield(data.creditRating, data.maturityYears);
+             // We don't want to re-render the whole input as it kills focus, but update the badge
+             const badge = document.querySelector('.bg-blue-50 .font-bold.text-blue-900');
+             if(badge) badge.innerText = marketYield.toFixed(3) + "%";
+        }
+    }
+
+    function setStep(step) {
+        currentStep = step;
+        document.querySelectorAll('.step-circle').forEach((el, idx) => {
+            el.classList.remove('active', 'completed');
+            if (idx + 1 < step) el.classList.add('completed');
+            if (idx + 1 === step) el.classList.add('active');
+        });
+        
+        const btnNext = document.getElementById('btn-next');
+        const btnPrev = document.getElementById('btn-prev');
+        btnPrev.disabled = currentStep === 1;
+        btnNext.innerText = currentStep === 4 ? "Finish" : "Next Step";
+        if(currentStep === 4) btnNext.style.display = 'none'; else btnNext.style.display = 'block';
+        
+        renderWizardStep();
+        refreshViews();
+    }
+
+    function nextStep() { if (currentStep < 4) setStep(currentStep + 1); }
+    function prevStep() { if (currentStep > 1) setStep(currentStep - 1); }
+    
+    function setTab(name) {
+        ['analysis','preview','schedule'].forEach(t => {
+            document.getElementById(`view-${t}`).classList.add('hidden');
+            document.getElementById(`tab-${t}`).className = "pb-3 border-b-2 border-transparent text-slate-500 hover:text-slate-700 font-medium text-sm transition";
+        });
+        document.getElementById(`view-${name}`).classList.remove('hidden');
+        document.getElementById(`tab-${name}`).className = "pb-3 border-b-2 border-blue-600 text-blue-600 font-medium text-sm transition";
+        refreshViews();
+    }
+
+    function getFreqLabel(v) { return v==1?"Annual":v==2?"Semi-Annual":"Quarterly"; }
+    function resetApp() { location.reload(); }
+
+    // Init
+    renderWizardStep();
+    refreshViews();
+
+</script>
+</body>
+</html>
