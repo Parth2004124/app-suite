@@ -446,7 +446,11 @@
             </div>
         );
 
-        const SecondaryMarket = ({ balance }) => {
+        const SecondaryMarket = ({ balance, onTrade }) => {
+            const [orderType, setOrderType] = useState('buy'); // 'buy' or 'sell'
+            const [price, setPrice] = useState(24.55);
+            const [amount, setAmount] = useState(100);
+            
             // Simulated Order Book
             const sellOrders = [
                 { price: 24.60, amount: 500, total: 12300 },
@@ -458,6 +462,8 @@
                 { price: 24.45, amount: 3000, total: 73350 },
                 { price: 24.40, amount: 500, total: 12200 },
             ];
+            
+            const totalCost = price * amount * 1.001; // 0.1% fee
 
             return (
                 <div className="p-8 h-full flex flex-col">
@@ -509,8 +515,26 @@
                         {/* Trade Form */}
                         <div className="bg-slate-800 rounded-xl p-6 border border-slate-700 h-fit">
                             <div className="flex gap-2 mb-6 bg-slate-900 p-1 rounded-lg">
-                                <button className="flex-1 py-2 bg-green-500/20 text-green-400 rounded text-sm font-bold border border-green-500/50">Buy</button>
-                                <button className="flex-1 py-2 text-slate-400 hover:text-white text-sm font-bold">Sell</button>
+                                <button 
+                                    onClick={() => setOrderType('buy')}
+                                    className={`flex-1 py-2 rounded text-sm font-bold border transition-all ${
+                                        orderType === 'buy' 
+                                        ? 'bg-green-500/20 text-green-400 border-green-500/50' 
+                                        : 'text-slate-400 border-transparent hover:text-white'
+                                    }`}
+                                >
+                                    Buy
+                                </button>
+                                <button 
+                                    onClick={() => setOrderType('sell')}
+                                    className={`flex-1 py-2 rounded text-sm font-bold border transition-all ${
+                                        orderType === 'sell' 
+                                        ? 'bg-red-500/20 text-red-400 border-red-500/50' 
+                                        : 'text-slate-400 border-transparent hover:text-white'
+                                    }`}
+                                >
+                                    Sell
+                                </button>
                             </div>
 
                             <div className="space-y-4">
@@ -518,13 +542,23 @@
                                     <label className="text-xs text-slate-500">Price Limit</label>
                                     <div className="relative">
                                         <span className="absolute left-3 top-2.5 text-slate-400">$</span>
-                                        <input type="number" defaultValue={24.55} className="w-full bg-slate-900 border border-slate-600 rounded p-2 pl-6 text-white text-sm" />
+                                        <input 
+                                            type="number" 
+                                            value={price}
+                                            onChange={(e) => setPrice(Number(e.target.value))}
+                                            className="w-full bg-slate-900 border border-slate-600 rounded p-2 pl-6 text-white text-sm focus:outline-none focus:border-slate-500" 
+                                        />
                                     </div>
                                 </div>
                                 <div>
                                     <label className="text-xs text-slate-500">Amount</label>
                                     <div className="relative">
-                                        <input type="number" defaultValue={100} className="w-full bg-slate-900 border border-slate-600 rounded p-2 text-white text-sm" />
+                                        <input 
+                                            type="number" 
+                                            value={amount}
+                                            onChange={(e) => setAmount(Number(e.target.value))}
+                                            className="w-full bg-slate-900 border border-slate-600 rounded p-2 text-white text-sm focus:outline-none focus:border-slate-500" 
+                                        />
                                         <span className="absolute right-3 top-2.5 text-xs text-slate-500">{FUND_DATA.ticker}</span>
                                     </div>
                                 </div>
@@ -532,15 +566,22 @@
                                 <div className="pt-4 border-t border-slate-700">
                                     <div className="flex justify-between text-xs mb-2">
                                         <span className="text-slate-400">Fee (0.1%)</span>
-                                        <span className="text-slate-300">$2.45</span>
+                                        <span className="text-slate-300">${(price * amount * 0.001).toFixed(2)}</span>
                                     </div>
                                     <div className="flex justify-between text-sm font-bold mb-4">
                                         <span className="text-slate-300">Total</span>
-                                        <span className="text-white">$2,457.45</span>
+                                        <span className="text-white">${totalCost.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}</span>
                                     </div>
                                     
-                                    <button className="w-full py-3 bg-green-600 hover:bg-green-500 text-white rounded font-bold shadow-lg shadow-green-500/20 transition-all">
-                                        Place Buy Order
+                                    <button 
+                                        onClick={() => onTrade(orderType, amount, price)}
+                                        className={`w-full py-3 rounded font-bold shadow-lg transition-all ${
+                                            orderType === 'buy' 
+                                            ? 'bg-green-600 hover:bg-green-500 text-white shadow-green-500/20' 
+                                            : 'bg-red-600 hover:bg-red-500 text-white shadow-red-500/20'
+                                        }`}
+                                    >
+                                        Place {orderType === 'buy' ? 'Buy' : 'Sell'} Order
                                     </button>
                                 </div>
                             </div>
@@ -598,6 +639,35 @@
                 }, 3500);
             };
 
+            const handleSecondaryTrade = (type, amount, price) => {
+                if (userStatus !== 'approved') {
+                    addLog('error', 'Error: KYC required to trade on secondary market.');
+                    return;
+                }
+
+                if (type === 'sell' && amount > balance) {
+                    addLog('error', 'Trade Failed: Insufficient token balance to sell.');
+                    return;
+                }
+
+                addLog('info', `Initiating ${type.toUpperCase()} order: ${amount} HCSG @ $${price}...`);
+                addLog('contract', `Call: Exchange.createOrder(${type}, ${amount}, ${price})`);
+
+                setTimeout(() => {
+                    addLog('contract', 'Order matched via liquidity pool (0x9...21)');
+                }, 1500);
+
+                setTimeout(() => {
+                    if (type === 'buy') {
+                        setBalance(prev => prev + amount);
+                        addLog('success', `Bought ${amount} HCSG. New Balance: ${(balance + amount).toFixed(2)}`);
+                    } else {
+                        setBalance(prev => prev - amount);
+                        addLog('success', `Sold ${amount} HCSG. New Balance: ${(balance - amount).toFixed(2)}`);
+                    }
+                }, 3000);
+            };
+
             return (
                 <div className="flex min-h-screen bg-slate-950">
                     <Sidebar activeTab={activeTab} setActiveTab={setActiveTab} />
@@ -606,7 +676,7 @@
                         {activeTab === 'dashboard' && <Dashboard balance={balance} userStatus={userStatus} />}
                         {activeTab === 'marketplace' && <Marketplace userStatus={userStatus} onInvest={handleInvest} />}
                         {activeTab === 'compliance' && <Compliance userStatus={userStatus} onVerify={handleVerify} />}
-                        {activeTab === 'secondary' && <SecondaryMarket balance={balance} />}
+                        {activeTab === 'secondary' && <SecondaryMarket balance={balance} onTrade={handleSecondaryTrade} />}
                         {activeTab === 'manual' && <UserManual />}
                     </main>
 
