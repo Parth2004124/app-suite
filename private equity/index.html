@@ -1,0 +1,622 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>KKR x Avalanche | Private Equity Tokenization</title>
+    
+    <!-- React & ReactDOM -->
+    <script crossorigin src="https://unpkg.com/react@18/umd/react.development.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+    
+    <!-- Babel for JSX -->
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Phosphor Icons -->
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+    
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+
+    <style>
+        body { font-family: 'Inter', sans-serif; background-color: #0f172a; color: #e2e8f0; }
+        .font-mono { font-family: 'JetBrains Mono', monospace; }
+        
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: #1e293b; }
+        ::-webkit-scrollbar-thumb { background: #475569; border-radius: 3px; }
+        
+        /* Animations */
+        @keyframes pulse-red {
+            0% { box-shadow: 0 0 0 0 rgba(232, 65, 66, 0.4); }
+            70% { box-shadow: 0 0 0 10px rgba(232, 65, 66, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(232, 65, 66, 0); }
+        }
+        .animate-pulse-red { animation: pulse-red 2s infinite; }
+        
+        .glass-panel {
+            background: rgba(30, 41, 59, 0.7);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        .avalanche-gradient {
+            background: linear-gradient(135deg, #E84142 0%, #a82e2e 100%);
+        }
+    </style>
+</head>
+<body>
+    <div id="root"></div>
+
+    <script type="text/babel">
+        const { useState, useEffect, useRef } = React;
+
+        // --- Mock Data: KKR Health Care Strategic Growth Fund II ---
+        const FUND_DATA = {
+            id: "KKR-HCSG-II",
+            name: "KKR Health Care Strategic Growth Fund II",
+            ticker: "HCSG",
+            nav: 24.50, // Net Asset Value per token
+            minInvestment: 100000, // Traditional might be $5M, Tokenized is lower
+            aum: "4.0B",
+            lockup: "1 Year",
+            strategy: "Growth Equity in Health Care (NA & Europe)",
+            description: "A tokenized feeder fund providing exposure to KKR's health care growth strategy. Leveraging the Avalanche blockchain for operational efficiency and democratized access."
+        };
+
+        // --- Mock Smart Contract Logs ---
+        const INITIAL_LOGS = [
+            { time: "09:00:01", type: "system", msg: "Avalanche C-Chain Node Connected." },
+            { time: "09:00:02", type: "contract", msg: "Securitize Registry Contract Loaded (0x7a...9f)" },
+            { time: "09:00:03", type: "info", msg: "Compliance Oracle: Active" }
+        ];
+
+        // --- Components ---
+
+        // 1. Sidebar Navigation
+        const Sidebar = ({ activeTab, setActiveTab }) => (
+            <div className="w-64 h-screen bg-slate-900 border-r border-slate-800 flex flex-col fixed left-0 top-0 z-50">
+                <div className="p-6 flex items-center gap-3 border-b border-slate-800">
+                    <div className="w-8 h-8 bg-white rounded flex items-center justify-center">
+                        <span className="font-bold text-slate-900 text-xs tracking-tighter">KKR</span>
+                    </div>
+                    <div className="h-6 w-px bg-slate-700 mx-1"></div>
+                    <i className="ph-fill ph-triangle text-red-500 text-xl"></i> 
+                    <span className="font-semibold text-white tracking-tight">Avalanche</span>
+                </div>
+
+                <nav className="flex-1 p-4 space-y-2">
+                    {[
+                        { id: 'dashboard', icon: 'ph-squares-four', label: 'Dashboard' },
+                        { id: 'marketplace', icon: 'ph-storefront', label: 'Primary Offering' },
+                        { id: 'secondary', icon: 'ph-arrows-left-right', label: 'Secondary Market' },
+                        { id: 'compliance', icon: 'ph-shield-check', label: 'Compliance & KYC' },
+                        { id: 'manual', icon: 'ph-book-open', label: 'User Guide' },
+                    ].map(item => (
+                        <button
+                            key={item.id}
+                            onClick={() => setActiveTab(item.id)}
+                            className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg transition-all ${
+                                activeTab === item.id 
+                                ? 'bg-slate-800 text-red-500 border-l-4 border-red-500' 
+                                : 'text-slate-400 hover:bg-slate-800 hover:text-white'
+                            }`}
+                        >
+                            <i className={`ph ${item.icon} text-lg`}></i>
+                            <span className="text-sm font-medium">{item.label}</span>
+                        </button>
+                    ))}
+                </nav>
+
+                <div className="p-4 border-t border-slate-800">
+                    <div className="bg-slate-800 rounded-lg p-3 text-xs text-slate-400">
+                        <div className="flex items-center gap-2 mb-2">
+                            <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse"></div>
+                            <span>Network: Avalanche C-Chain</span>
+                        </div>
+                        <div className="font-mono truncate">Block: 34,582,109</div>
+                    </div>
+                </div>
+            </div>
+        );
+
+        // 2. Smart Contract Terminal (The "Backend" View)
+        const ContractTerminal = ({ logs }) => {
+            const bottomRef = useRef(null);
+
+            useEffect(() => {
+                bottomRef.current?.scrollIntoView({ behavior: "smooth" });
+            }, [logs]);
+
+            return (
+                <div className="fixed bottom-0 right-0 w-[400px] h-[300px] bg-black border-t border-l border-slate-700 shadow-2xl z-40 flex flex-col font-mono text-xs">
+                    <div className="bg-slate-900 p-2 flex justify-between items-center border-b border-slate-700">
+                        <span className="text-slate-300 flex items-center gap-2">
+                            <i className="ph ph-code"></i> Smart Contract Events
+                        </span>
+                        <span className="text-green-500 text-[10px]">● LIVE</span>
+                    </div>
+                    <div className="flex-1 overflow-y-auto p-3 space-y-1 bg-black/90 text-slate-300">
+                        {logs.map((log, i) => (
+                            <div key={i} className="break-all">
+                                <span className="text-slate-500">[{log.time}]</span>{' '}
+                                <span className={`${
+                                    log.type === 'error' ? 'text-red-400' :
+                                    log.type === 'success' ? 'text-green-400' :
+                                    log.type === 'contract' ? 'text-blue-400' : 'text-slate-300'
+                                }`}>
+                                    {log.type === 'contract' && '>> '}
+                                    {log.msg}
+                                </span>
+                            </div>
+                        ))}
+                        <div ref={bottomRef} />
+                    </div>
+                </div>
+            );
+        };
+
+        // 3. Main Content Views
+        const UserManual = () => (
+            <div className="p-8 max-w-4xl mx-auto space-y-8 animate-fade-in pb-32">
+                <header>
+                     <h1 className="text-3xl font-bold text-white mb-2">Platform User Guide</h1>
+                     <p className="text-slate-400">Master the KKR x Avalanche Tokenized Private Equity Exchange.</p>
+                </header>
+
+                <div className="space-y-6">
+                    {/* Introduction */}
+                    <div className="bg-slate-800 rounded-xl p-6 border border-slate-700">
+                        <h3 className="text-xl font-bold text-white mb-4 flex items-center gap-2">
+                            <i className="ph-fill ph-info text-blue-500"></i> Overview
+                        </h3>
+                        <p className="text-slate-300 leading-relaxed">
+                            This simulator demonstrates the tokenization of the <strong>KKR Health Care Strategic Growth Fund II</strong> on the Avalanche blockchain.
+                            It highlights three key benefits:
+                        </p>
+                        <ul className="list-disc list-inside text-slate-400 mt-3 space-y-1 ml-2">
+                            <li><strong>Democratized Access:</strong> Lower minimums compared to traditional PE.</li>
+                            <li><strong>Operational Efficiency:</strong> Automated compliance and settlement via smart contracts.</li>
+                            <li><strong>Liquidity:</strong> A secondary market for traditionally illiquid assets.</li>
+                        </ul>
+                    </div>
+
+                    {/* Workflow Steps */}
+                    <div className="space-y-4">
+                         <h3 className="text-xl font-bold text-white">Core Workflows</h3>
+                         
+                         {/* Step 1 */}
+                         <div className="glass-panel p-6 rounded-xl border-l-4 border-yellow-500">
+                             <h4 className="font-bold text-white text-lg mb-2">1. Compliance & Identity (Mandatory)</h4>
+                             <p className="text-slate-400 text-sm mb-3">Unlike DeFi, institutional private equity requires strict KYC/AML compliance (SEC Reg D). You must complete this step first.</p>
+                             <ol className="list-decimal list-inside text-slate-300 space-y-2 text-sm">
+                                <li>Navigate to the <strong>Compliance & KYC</strong> tab.</li>
+                                <li>Click the blue <strong>"Start KYC Check"</strong> button.</li>
+                                <li>Watch the bottom-right terminal for the <code>IdentityOracle.verifyUser()</code> call.</li>
+                                <li>Once "Verified", your wallet is whitelisted to invest.</li>
+                             </ol>
+                         </div>
+
+                         {/* Step 2 */}
+                         <div className="glass-panel p-6 rounded-xl border-l-4 border-red-500">
+                             <h4 className="font-bold text-white text-lg mb-2">2. Primary Offering (Investing)</h4>
+                             <p className="text-slate-400 text-sm mb-3">Subscribe directly to the fund and mint new tokens.</p>
+                             <ol className="list-decimal list-inside text-slate-300 space-y-2 text-sm">
+                                <li>Navigate to the <strong>Primary Offering</strong> tab.</li>
+                                <li>Enter an investment amount (e.g., $100,000).</li>
+                                <li>Click <strong>"Invest & Mint Tokens"</strong>.</li>
+                                <li>Watch the terminal for <code>Whitelist.check()</code> and <code>FundToken.mint()</code>.</li>
+                                <li>Check your new balance on the Dashboard.</li>
+                             </ol>
+                         </div>
+
+                         {/* Step 3 */}
+                         <div className="glass-panel p-6 rounded-xl border-l-4 border-green-500">
+                             <h4 className="font-bold text-white text-lg mb-2">3. Secondary Market (Trading)</h4>
+                             <p className="text-slate-400 text-sm mb-3">Trade typically illiquid assets peer-to-peer.</p>
+                             <ol className="list-decimal list-inside text-slate-300 space-y-2 text-sm">
+                                <li>Navigate to the <strong>Secondary Market</strong> tab.</li>
+                                <li>View live orders in the Order Book from other simulated investors.</li>
+                                <li>Use the trade form to simulate buying or selling existing tokens.</li>
+                             </ol>
+                         </div>
+                    </div>
+
+                    {/* Terminal Explainer */}
+                    <div className="bg-slate-900 rounded-xl p-6 border border-slate-800">
+                        <h3 className="font-bold text-white mb-2">About the Smart Contract Terminal</h3>
+                        <p className="text-slate-400 text-sm">
+                            The black console at the bottom right reveals the "invisible" logic happening on the blockchain. 
+                            It shows system logs, smart contract function calls (in <span className="text-blue-400">blue</span>), and transaction confirmations.
+                            This visualizes how frontend actions trigger actual blockchain events.
+                        </p>
+                    </div>
+                </div>
+            </div>
+        );
+
+        const Dashboard = ({ balance, userStatus }) => (
+            <div className="p-8 space-y-6">
+                <header>
+                    <h1 className="text-3xl font-bold text-white mb-2">Institutional Dashboard</h1>
+                    <p className="text-slate-400">Welcome, Accredited Investor. Manage your tokenized private equity portfolio.</p>
+                </header>
+
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    {/* Total Value */}
+                    <div className="glass-panel p-6 rounded-xl relative overflow-hidden group">
+                        <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity">
+                            <i className="ph ph-wallet text-6xl text-white"></i>
+                        </div>
+                        <h3 className="text-slate-400 text-sm font-medium mb-1">Total Portfolio Value</h3>
+                        <div className="text-3xl font-bold text-white">${(balance * FUND_DATA.nav).toLocaleString(undefined, {minimumFractionDigits: 2})}</div>
+                        <div className="mt-4 flex items-center gap-2 text-xs text-green-400 bg-green-400/10 w-fit px-2 py-1 rounded">
+                            <i className="ph ph-trend-up"></i> +4.2% (YTD)
+                        </div>
+                    </div>
+
+                    {/* Token Holdings */}
+                    <div className="glass-panel p-6 rounded-xl">
+                        <h3 className="text-slate-400 text-sm font-medium mb-1">Token Holdings</h3>
+                        <div className="text-3xl font-bold text-white">{balance.toLocaleString()} <span className="text-lg text-slate-500">{FUND_DATA.ticker}</span></div>
+                        <p className="text-xs text-slate-500 mt-2">Held in Self-Custody Wallet (0x8...3a)</p>
+                    </div>
+
+                    {/* KYC Status */}
+                    <div className="glass-panel p-6 rounded-xl border-l-4 border-blue-500">
+                        <h3 className="text-slate-400 text-sm font-medium mb-1">Compliance Status</h3>
+                        <div className="flex items-center gap-2 mt-2">
+                            {userStatus === 'approved' ? (
+                                <>
+                                    <i className="ph-fill ph-check-circle text-blue-500 text-2xl"></i>
+                                    <span className="text-xl font-bold text-white">Verified</span>
+                                </>
+                            ) : (
+                                <>
+                                    <i className="ph-fill ph-warning text-yellow-500 text-2xl"></i>
+                                    <span className="text-xl font-bold text-white">Pending KYC</span>
+                                </>
+                            )}
+                        </div>
+                        <p className="text-xs text-slate-500 mt-2">Securitize ID: #9928-KKR</p>
+                    </div>
+                </div>
+
+                {/* Educational Banner */}
+                <div className="bg-gradient-to-r from-slate-800 to-slate-900 rounded-xl p-6 border border-slate-700 flex justify-between items-center">
+                    <div>
+                        <h4 className="font-bold text-white text-lg">Why Tokenization?</h4>
+                        <p className="text-slate-400 text-sm max-w-2xl mt-1">
+                            By leveraging the Avalanche blockchain, KKR reduces operational friction, allowing for lower investment minimums and automated compliance enforcement.
+                        </p>
+                    </div>
+                    <button className="px-4 py-2 bg-slate-700 hover:bg-slate-600 rounded-lg text-sm text-white transition-colors">
+                        Read Case Study
+                    </button>
+                </div>
+            </div>
+        );
+
+        const Marketplace = ({ userStatus, onInvest }) => {
+            const [amount, setAmount] = useState(100000);
+            
+            return (
+                <div className="p-8 max-w-5xl mx-auto">
+                    <div className="mb-8">
+                        <h2 className="text-2xl font-bold text-white">Primary Offering</h2>
+                        <p className="text-slate-400">Direct subscription to tokenized funds.</p>
+                    </div>
+
+                    <div className="bg-slate-800 rounded-2xl overflow-hidden border border-slate-700 shadow-xl">
+                        {/* Fund Header */}
+                        <div className="bg-slate-900 p-8 border-b border-slate-700 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+                            <div>
+                                <div className="flex items-center gap-3 mb-2">
+                                    <span className="px-2 py-1 bg-white text-black text-xs font-bold rounded">KKR</span>
+                                    <span className="text-xs font-mono text-slate-500 bg-slate-800 px-2 py-1 rounded border border-slate-700">Contract: 0x4A...9B2</span>
+                                </div>
+                                <h1 className="text-2xl font-bold text-white">{FUND_DATA.name}</h1>
+                                <p className="text-slate-400 mt-1 max-w-xl">{FUND_DATA.description}</p>
+                            </div>
+                            <div className="text-right">
+                                <div className="text-sm text-slate-400">NAV per Token</div>
+                                <div className="text-3xl font-bold text-white">${FUND_DATA.nav.toFixed(2)}</div>
+                            </div>
+                        </div>
+
+                        <div className="grid grid-cols-1 lg:grid-cols-3">
+                            {/* Fund Details */}
+                            <div className="col-span-2 p-8 space-y-6 border-r border-slate-700">
+                                <div className="grid grid-cols-2 gap-y-6">
+                                    {[
+                                        { label: "Asset Class", val: "Private Equity" },
+                                        { label: "Strategy", val: FUND_DATA.strategy },
+                                        { label: "Target AUM", val: FUND_DATA.aum },
+                                        { label: "Lockup Period", val: FUND_DATA.lockup },
+                                        { label: "Min. Investment", val: `$${FUND_DATA.minInvestment.toLocaleString()}` },
+                                        { label: "Management Fee", val: "1.5%" },
+                                    ].map((stat, i) => (
+                                        <div key={i}>
+                                            <div className="text-xs text-slate-500 uppercase tracking-wider">{stat.label}</div>
+                                            <div className="text-white font-medium mt-1">{stat.val}</div>
+                                        </div>
+                                    ))}
+                                </div>
+
+                                <div className="pt-6 border-t border-slate-700">
+                                    <h4 className="font-semibold text-white mb-3">Fund Performance (Simulated)</h4>
+                                    <div className="h-32 flex items-end gap-2">
+                                        {[40, 55, 48, 62, 75, 82, 95, 100].map((h, i) => (
+                                            <div key={i} className="flex-1 bg-slate-700 hover:bg-red-500 transition-colors rounded-t" style={{ height: `${h}%` }}></div>
+                                        ))}
+                                    </div>
+                                </div>
+                            </div>
+
+                            {/* Investment Action */}
+                            <div className="p-8 bg-slate-800/50">
+                                <div className="bg-slate-900 border border-slate-700 rounded-xl p-6">
+                                    <h3 className="font-bold text-white mb-4">Subscribe</h3>
+                                    
+                                    <div className="space-y-4">
+                                        <div>
+                                            <label className="block text-xs text-slate-400 mb-1">Investment Amount ($)</label>
+                                            <input 
+                                                type="number" 
+                                                value={amount}
+                                                onChange={(e) => setAmount(Number(e.target.value))}
+                                                className="w-full bg-slate-800 border border-slate-600 rounded p-3 text-white focus:border-red-500 focus:outline-none"
+                                            />
+                                        </div>
+                                        
+                                        <div className="flex justify-between text-sm">
+                                            <span className="text-slate-400">Est. Tokens:</span>
+                                            <span className="text-white font-mono">{(amount / FUND_DATA.nav).toFixed(2)} {FUND_DATA.ticker}</span>
+                                        </div>
+
+                                        <div className="p-3 bg-blue-900/20 border border-blue-500/30 rounded text-xs text-blue-300">
+                                            <i className="ph-fill ph-info mr-1"></i>
+                                            Smart Contract enforces whitelist check before minting.
+                                        </div>
+
+                                        <button 
+                                            onClick={() => onInvest(amount)}
+                                            disabled={userStatus !== 'approved'}
+                                            className={`w-full py-3 rounded-lg font-bold transition-all ${
+                                                userStatus === 'approved' 
+                                                ? 'avalanche-gradient text-white shadow-lg hover:shadow-red-500/25' 
+                                                : 'bg-slate-700 text-slate-500 cursor-not-allowed'
+                                            }`}
+                                        >
+                                            {userStatus === 'approved' ? 'Invest & Mint Tokens' : 'Complete KYC to Invest'}
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            );
+        };
+
+        const Compliance = ({ userStatus, onVerify }) => (
+            <div className="p-8 flex items-center justify-center h-full">
+                <div className="max-w-md w-full text-center space-y-6">
+                    <div className="w-20 h-20 bg-slate-800 rounded-full flex items-center justify-center mx-auto border border-slate-700">
+                        <i className="ph-fill ph-fingerprint text-4xl text-slate-400"></i>
+                    </div>
+                    <div>
+                        <h2 className="text-2xl font-bold text-white">Securitize ID Verification</h2>
+                        <p className="text-slate-400 mt-2">
+                            To comply with SEC Reg D 506(c), all investors must be accredited and pass KYC/AML checks. This status is recorded on-chain via the whitelist contract.
+                        </p>
+                    </div>
+
+                    {userStatus === 'guest' && (
+                        <button 
+                            onClick={onVerify}
+                            className="w-full py-3 bg-blue-600 hover:bg-blue-500 text-white rounded-lg font-semibold transition-all"
+                        >
+                            Start KYC Check
+                        </button>
+                    )}
+
+                    {userStatus === 'verifying' && (
+                        <div className="space-y-3">
+                            <div className="h-2 w-full bg-slate-800 rounded-full overflow-hidden">
+                                <div className="h-full bg-blue-500 animate-pulse w-2/3"></div>
+                            </div>
+                            <p className="text-sm text-blue-400">Verifying accreditation status...</p>
+                        </div>
+                    )}
+
+                    {userStatus === 'approved' && (
+                        <div className="p-4 bg-green-500/10 border border-green-500/30 rounded-lg">
+                            <h3 className="text-green-400 font-bold flex items-center justify-center gap-2">
+                                <i className="ph-fill ph-check-circle"></i> Verification Complete
+                            </h3>
+                            <p className="text-xs text-green-300/80 mt-1">Wallet 0x8...3a is now whitelisted on the Fund Smart Contract.</p>
+                        </div>
+                    )}
+                </div>
+            </div>
+        );
+
+        const SecondaryMarket = ({ balance }) => {
+            // Simulated Order Book
+            const sellOrders = [
+                { price: 24.60, amount: 500, total: 12300 },
+                { price: 24.55, amount: 1200, total: 29460 },
+                { price: 24.52, amount: 200, total: 4904 },
+            ];
+            const buyOrders = [
+                { price: 24.48, amount: 1000, total: 24480 },
+                { price: 24.45, amount: 3000, total: 73350 },
+                { price: 24.40, amount: 500, total: 12200 },
+            ];
+
+            return (
+                <div className="p-8 h-full flex flex-col">
+                    <div className="flex justify-between items-end mb-6">
+                        <div>
+                            <h2 className="text-2xl font-bold text-white">Secondary Market</h2>
+                            <p className="text-slate-400">Trade tokenized private equity interests peer-to-peer.</p>
+                        </div>
+                        <div className="text-right">
+                            <span className="text-xs text-slate-500 uppercase">Market Status</span>
+                            <div className="text-green-400 font-mono text-sm flex items-center gap-2">
+                                <span className="w-2 h-2 bg-green-500 rounded-full"></span> OPEN
+                            </div>
+                        </div>
+                    </div>
+
+                    <div className="flex-1 grid grid-cols-1 lg:grid-cols-4 gap-6">
+                        {/* Order Book */}
+                        <div className="lg:col-span-3 bg-slate-800 rounded-xl border border-slate-700 overflow-hidden flex flex-col">
+                            <div className="grid grid-cols-3 p-4 bg-slate-900 text-xs font-medium text-slate-500 uppercase border-b border-slate-700">
+                                <span>Price (USD)</span>
+                                <span className="text-right">Amount ({FUND_DATA.ticker})</span>
+                                <span className="text-right">Total (USD)</span>
+                            </div>
+                            
+                            {/* Sells */}
+                            <div className="flex-1 overflow-y-auto">
+                                {sellOrders.map((order, i) => (
+                                    <div key={`sell-${i}`} className="grid grid-cols-3 p-3 hover:bg-slate-700/50 cursor-pointer transition-colors border-b border-slate-700/30">
+                                        <span className="text-red-400 font-mono">{order.price.toFixed(2)}</span>
+                                        <span className="text-right text-white font-mono">{order.amount}</span>
+                                        <span className="text-right text-slate-400 font-mono">{order.total.toLocaleString()}</span>
+                                    </div>
+                                ))}
+                                
+                                <div className="p-2 bg-slate-900/50 text-center text-xs text-slate-500 my-2">Spread: $0.04</div>
+
+                                {/* Buys */}
+                                {buyOrders.map((order, i) => (
+                                    <div key={`buy-${i}`} className="grid grid-cols-3 p-3 hover:bg-slate-700/50 cursor-pointer transition-colors border-b border-slate-700/30">
+                                        <span className="text-green-400 font-mono">{order.price.toFixed(2)}</span>
+                                        <span className="text-right text-white font-mono">{order.amount}</span>
+                                        <span className="text-right text-slate-400 font-mono">{order.total.toLocaleString()}</span>
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+
+                        {/* Trade Form */}
+                        <div className="bg-slate-800 rounded-xl p-6 border border-slate-700 h-fit">
+                            <div className="flex gap-2 mb-6 bg-slate-900 p-1 rounded-lg">
+                                <button className="flex-1 py-2 bg-green-500/20 text-green-400 rounded text-sm font-bold border border-green-500/50">Buy</button>
+                                <button className="flex-1 py-2 text-slate-400 hover:text-white text-sm font-bold">Sell</button>
+                            </div>
+
+                            <div className="space-y-4">
+                                <div>
+                                    <label className="text-xs text-slate-500">Price Limit</label>
+                                    <div className="relative">
+                                        <span className="absolute left-3 top-2.5 text-slate-400">$</span>
+                                        <input type="number" defaultValue={24.55} className="w-full bg-slate-900 border border-slate-600 rounded p-2 pl-6 text-white text-sm" />
+                                    </div>
+                                </div>
+                                <div>
+                                    <label className="text-xs text-slate-500">Amount</label>
+                                    <div className="relative">
+                                        <input type="number" defaultValue={100} className="w-full bg-slate-900 border border-slate-600 rounded p-2 text-white text-sm" />
+                                        <span className="absolute right-3 top-2.5 text-xs text-slate-500">{FUND_DATA.ticker}</span>
+                                    </div>
+                                </div>
+                                
+                                <div className="pt-4 border-t border-slate-700">
+                                    <div className="flex justify-between text-xs mb-2">
+                                        <span className="text-slate-400">Fee (0.1%)</span>
+                                        <span className="text-slate-300">$2.45</span>
+                                    </div>
+                                    <div className="flex justify-between text-sm font-bold mb-4">
+                                        <span className="text-slate-300">Total</span>
+                                        <span className="text-white">$2,457.45</span>
+                                    </div>
+                                    
+                                    <button className="w-full py-3 bg-green-600 hover:bg-green-500 text-white rounded font-bold shadow-lg shadow-green-500/20 transition-all">
+                                        Place Buy Order
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            );
+        };
+
+        // 4. Main App Container
+        const App = () => {
+            const [activeTab, setActiveTab] = useState('dashboard');
+            const [logs, setLogs] = useState(INITIAL_LOGS);
+            const [userStatus, setUserStatus] = useState('guest'); // guest, verifying, approved
+            const [balance, setBalance] = useState(0); // Token balance
+
+            const addLog = (type, msg) => {
+                const time = new Date().toLocaleTimeString('en-US', { hour12: false });
+                setLogs(prev => [...prev, { time, type, msg }]);
+            };
+
+            const handleVerify = () => {
+                setUserStatus('verifying');
+                addLog('system', 'Initiating Securitize ID check...');
+                
+                setTimeout(() => {
+                    addLog('contract', 'Call: IdentityOracle.verifyUser(0x8...3a)');
+                }, 1000);
+
+                setTimeout(() => {
+                    addLog('success', 'Identity Verified. Accreditation Status: CONFIRMED');
+                    addLog('contract', 'Tx: Whitelist.add(0x8...3a) confirmed on Avalanche');
+                    setUserStatus('approved');
+                }, 3000);
+            };
+
+            const handleInvest = (amountUSD) => {
+                if (userStatus !== 'approved') return;
+                
+                addLog('info', `Processing subscription for $${amountUSD.toLocaleString()}...`);
+                addLog('contract', 'Checking Whitelist status...');
+                addLog('contract', 'Status: OK');
+
+                setTimeout(() => {
+                    addLog('contract', 'Call: FundToken.mint(0x8...3a, amount)');
+                    addLog('info', 'Waiting for block confirmation...');
+                }, 1500);
+
+                setTimeout(() => {
+                    const tokens = amountUSD / FUND_DATA.nav;
+                    setBalance(prev => prev + tokens);
+                    addLog('success', `Minted ${tokens.toFixed(2)} ${FUND_DATA.ticker} to 0x8...3a`);
+                    addLog('info', `Gas Used: 0.004 AVAX`);
+                    setActiveTab('dashboard');
+                }, 3500);
+            };
+
+            return (
+                <div className="flex min-h-screen bg-slate-950">
+                    <Sidebar activeTab={activeTab} setActiveTab={setActiveTab} />
+                    
+                    <main className="ml-64 flex-1 relative pb-[300px] md:pb-0">
+                        {activeTab === 'dashboard' && <Dashboard balance={balance} userStatus={userStatus} />}
+                        {activeTab === 'marketplace' && <Marketplace userStatus={userStatus} onInvest={handleInvest} />}
+                        {activeTab === 'compliance' && <Compliance userStatus={userStatus} onVerify={handleVerify} />}
+                        {activeTab === 'secondary' && <SecondaryMarket balance={balance} />}
+                        {activeTab === 'manual' && <UserManual />}
+                    </main>
+
+                    <ContractTerminal logs={logs} />
+                </div>
+            );
+        };
+
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(<App />);
+    </script>
+</body>
+</html>
