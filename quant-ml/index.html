@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Optimus Prime: ML in Quant Finance</title>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;500;800&family=Inter:wght@400;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+    <script src="script.js" defer></script>
+</head>
+<body>
+    <!-- Background Particles / Glow -->
+    <div class="glow-bg"></div>
+
+    <!-- Navigation -->
+    <nav class="navbar">
+        <div class="logo">Optimus<span>Finance</span></div>
+        <ul class="nav-links">
+            <li><a href="#hero">Home</a></li>
+            <li><a href="#project1">Basket BO</a></li>
+            <li><a href="#project2">SPO Portfolio</a></li>
+            <li><a href="#project3">RL Hedging</a></li>
+        </ul>
+    </nav>
+
+    <!-- Hero Section (The "Head" of Optimus) -->
+    <section id="hero" class="panel hero-panel">
+        <div class="hero-content scroll-reveal">
+            <h1 class="hero-title">TRANSFORMING <br><span class="gradient-text">QUANT FINANCE</span></h1>
+            <p class="hero-subtitle">Adaptive, data-driven approaches merging Machine Learning & Financial Engineering.</p>
+            <div class="scroll-indicator">
+                <span>SCROLL TO IGNITE</span>
+                <div class="mouse">
+                    <div class="wheel"></div>
+                </div>
+            </div>
+        </div>
+        <!-- Optimus Prime abstract visual -->
+        <div class="abstract-prime scroll-reveal right">
+            <div class="core-matrix"></div>
+        </div>
+    </section>
+
+    <!-- Project 1 Section -->
+    <section id="project1" class="panel project-panel">
+        <div class="project-container">
+            <div class="project-info scroll-reveal left">
+                <div class="project-number">01</div>
+                <h2>Bayesian Optimization<br>Basket Trading</h2>
+                <p>Discard simple p-values. We model trading performance as a black-box function, unleashing Bayesian Optimization to hunt the global maxima of Sharpe ratios and stability across out-of-sample data.</p>
+                <div class="tech-stack">
+                    <span class="tag">Optuna</span>
+                    <span class="tag">Johansen Test</span>
+                    <span class="tag">yfinance</span>
+                </div>
+                <a href="../01_basket_trading.py" class="btn primary-btn" download>View Baseline Code</a>
+            </div>
+            <div class="project-visual scroll-reveal right">
+                <div class="glass-card">
+                    <div class="chart-mockup">
+                        <svg viewBox="0 0 100 50" class="line-chart">
+                            <polyline fill="none" class="chart-line active-line" points="0,40 20,35 40,15 60,25 80,5 100,10"/>
+                            <polyline fill="none" class="chart-line base-line" points="0,40 20,45 40,30 60,35 80,20 100,25"/>
+                        </svg>
+                        <div class="chart-labels">
+                            <span>Baseline</span>
+                            <span class="gradient-text">Optimized</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Project 2 Section -->
+    <section id="project2" class="panel project-panel reverse">
+        <div class="project-container">
+            <div class="project-visual scroll-reveal left">
+                <div class="glass-card">
+                    <div class="network-mockup">
+                        <div class="node-layer input"><i></i><i></i><i></i></div>
+                        <div class="node-layer hidden"><i></i><i></i><i></i><i></i><i></i></div>
+                        <div class="node-layer output"><i></i><i></i></div>
+                    </div>
+                    <div class="data-flow">Predict &rarr; Optimize (End-to-End)</div>
+                </div>
+            </div>
+            <div class="project-info scroll-reveal right">
+                <div class="project-number">02</div>
+                <h2>Smart Predict-then-Optimize (SPO)</h2>
+                <p>Why optimize for mere prediction accuracy? The SPO framework forces the Neural Network to directly minimize decision loss. End-to-end PyTorch training that aligns forecasting with the actual Mean-Variance outcome.</p>
+                <div class="tech-stack">
+                    <span class="tag">PyTorch</span>
+                    <span class="tag">SPO Loss</span>
+                    <span class="tag">Softmax Allocation</span>
+                </div>
+                <a href="../02_spo_portfolio.py" class="btn primary-btn" download>View SPO Model</a>
+            </div>
+        </div>
+    </section>
+
+    <!-- Project 3 Section -->
+    <section id="project3" class="panel project-panel">
+        <div class="project-container">
+            <div class="project-info scroll-reveal left">
+                <div class="project-number">03</div>
+                <h2>RL vs Black-Scholes Hedging</h2>
+                <p>Static parameters fail in dynamic markets. Deploy Deep Q-Networks to dynamically adjust hedge ratios natively. The agent learns to balance the lethal trade-off between transaction costs and P&L variance.</p>
+                <div class="tech-stack">
+                    <span class="tag">Deep Q-Network</span>
+                    <span class="tag">Gym Env</span>
+                    <span class="tag">Stochastic Vol</span>
+                </div>
+                <a href="../03_rl_hedging.py" class="btn primary-btn" download>View RL Agent</a>
+            </div>
+            <div class="project-visual scroll-reveal right">
+                <div class="glass-card">
+                    <div class="rl-mockup">
+                        <div class="state-action">
+                            <div class="box state">State:<br>Greeks, Price</div>
+                            <div class="arrow">&rarr;</div>
+                            <div class="box agent">DQN Agent</div>
+                            <div class="arrow">&rarr;</div>
+                            <div class="box action">Action:<br>+0.1 Delta</div>
+                        </div>
+                        <div class="reward-feedback">&larr; Reward: -0.05 (Costs) &larr;</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <h2>"Autobots, Transform and Quantify."</h2>
+        <p>Built as part of the Machine Learning in Quantitative Finance series.</p>
+    </footer>
+</body>
+</html>
