@@ -1,13 +1,16 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Optimus Prime: ML in Quant Finance</title>
-    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;500;800&family=Inter:wght@400;600&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;500;800&family=Inter:wght@400;600&display=swap"
+        rel="stylesheet">
     <link rel="stylesheet" href="style.css">
     <script src="script.js" defer></script>
 </head>
+
 <body>
     <!-- Background Particles / Glow -->
     <div class="glow-bg"></div>
@@ -27,7 +30,8 @@
     <section id="hero" class="panel hero-panel">
         <div class="hero-content scroll-reveal">
             <h1 class="hero-title">TRANSFORMING <br><span class="gradient-text">QUANT FINANCE</span></h1>
-            <p class="hero-subtitle">Adaptive, data-driven approaches merging Machine Learning & Financial Engineering.</p>
+            <p class="hero-subtitle">Adaptive, data-driven approaches merging Machine Learning & Financial Engineering.
+            </p>
             <div class="scroll-indicator">
                 <span>SCROLL TO IGNITE</span>
                 <div class="mouse">
@@ -47,20 +51,27 @@
             <div class="project-info scroll-reveal left">
                 <div class="project-number">01</div>
                 <h2>Bayesian Optimization<br>Basket Trading</h2>
-                <p>Discard simple p-values. We model trading performance as a black-box function, unleashing Bayesian Optimization to hunt the global maxima of Sharpe ratios and stability across out-of-sample data.</p>
+                <p>Go beyond simple p-values and static thresholds. This project models live trading performance as a
+                    black-box function, utilizing the Optuna framework to execute Bayesian Optimization. It searches a
+                    multi-dimensional parameter space to hunt for the global maxima of Sharpe ratios, controlling for
+                    optimal lookback windows, dynamic entry/exit Z-scores, and capital allocations across cointegrated
+                    baskets to ensure robust out-of-sample performance.</p>
                 <div class="tech-stack">
                     <span class="tag">Optuna</span>
                     <span class="tag">Johansen Test</span>
                     <span class="tag">yfinance</span>
                 </div>
-                <a href="../01_basket_trading.py" class="btn primary-btn" download>View Baseline Code</a>
+                <a href="https://colab.research.google.com/drive/1CFrD_gOFSBst4BSVdfvewDl21Q0nPGj3?usp=sharing"
+                    target="_blank" class="btn primary-btn">Launch in Google Colab</a>
             </div>
             <div class="project-visual scroll-reveal right">
                 <div class="glass-card">
                     <div class="chart-mockup">
                         <svg viewBox="0 0 100 50" class="line-chart">
-                            <polyline fill="none" class="chart-line active-line" points="0,40 20,35 40,15 60,25 80,5 100,10"/>
-                            <polyline fill="none" class="chart-line base-line" points="0,40 20,45 40,30 60,35 80,20 100,25"/>
+                            <polyline fill="none" class="chart-line active-line"
+                                points="0,40 20,35 40,15 60,25 80,5 100,10" />
+                            <polyline fill="none" class="chart-line base-line"
+                                points="0,40 20,45 40,30 60,35 80,20 100,25" />
                         </svg>
                         <div class="chart-labels">
                             <span>Baseline</span>
@@ -88,13 +99,18 @@
             <div class="project-info scroll-reveal right">
                 <div class="project-number">02</div>
                 <h2>Smart Predict-then-Optimize (SPO)</h2>
-                <p>Why optimize for mere prediction accuracy? The SPO framework forces the Neural Network to directly minimize decision loss. End-to-end PyTorch training that aligns forecasting with the actual Mean-Variance outcome.</p>
+                <p>Why optimize for mere statistical prediction accuracy when the ultimate goal is financial returns?
+                    The SPO framework forces a PyTorch Neural Network to directly minimize portfolio decision loss. By
+                    coupling forecasting layers directly to a differentiable Softmax allocator, this approach enables
+                    end-to-end training that aligns asset return forecasting natively with the actual downstream
+                    Mean-Variance optimization outcome.</p>
                 <div class="tech-stack">
                     <span class="tag">PyTorch</span>
                     <span class="tag">SPO Loss</span>
                     <span class="tag">Softmax Allocation</span>
                 </div>
-                <a href="../02_spo_portfolio.py" class="btn primary-btn" download>View SPO Model</a>
+                <a href="https://colab.research.google.com/drive/1YHWDkR3OcU4ADybc1jjggbQ2fscjVoMo?usp=sharing"
+                    target="_blank" class="btn primary-btn">Launch in Google Colab</a>
             </div>
         </div>
     </section>
@@ -105,13 +121,18 @@
             <div class="project-info scroll-reveal left">
                 <div class="project-number">03</div>
                 <h2>RL vs Black-Scholes Hedging</h2>
-                <p>Static parameters fail in dynamic markets. Deploy Deep Q-Networks to dynamically adjust hedge ratios natively. The agent learns to balance the lethal trade-off between transaction costs and P&L variance.</p>
+                <p>Static analytical parameters fail in the face of dynamic market frictions. This environment deploys
+                    PyTorch Deep Q-Networks to dynamically adjust Option hedging ratios natively against simulated
+                    Geometric Brownian Motion. The RL agent learns from scratch to balance the lethal trade-off between
+                    accumulating transaction costs and unhedged P&L variance—often discovering novel strategies that
+                    outperform standard Black-Scholes delta-neutral models.</p>
                 <div class="tech-stack">
                     <span class="tag">Deep Q-Network</span>
                     <span class="tag">Gym Env</span>
                     <span class="tag">Stochastic Vol</span>
                 </div>
-                <a href="../03_rl_hedging.py" class="btn primary-btn" download>View RL Agent</a>
+                <a href="https://colab.research.google.com/drive/1-p6aYsch8Qdp3TgxV3Y_D4d_wB-ME8Xb?usp=sharing"
+                    target="_blank" class="btn primary-btn">Launch in Google Colab</a>
             </div>
             <div class="project-visual scroll-reveal right">
                 <div class="glass-card">
@@ -136,4 +157,5 @@
         <p>Built as part of the Machine Learning in Quantitative Finance series.</p>
     </footer>
 </body>
+
 </html>
