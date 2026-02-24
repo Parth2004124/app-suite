@@ -3,7 +3,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const revealElements = document.querySelectorAll('.scroll-reveal');
 
     const revealOptions = {
-        threshold: 0.2,
+        threshold: 0.1,
         rootMargin: "0px 0px -50px 0px"
     };
 

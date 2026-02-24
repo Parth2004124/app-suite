@@ -1,14 +1,14 @@
 :root {
     --bg-color: #0d0d12;
     /* Deep Charcoal */
-    --card-bg: #ececec;
-    /* Soft Off-White for high contrast cards */
+    --card-bg: rgba(255, 255, 255, 0.03);
+    /* Restore dark glass card */
     --dark-card-bg: rgba(255, 255, 255, 0.05);
     --text-primary: #ffffff;
-    --text-dark: #0d0d12;
+    --text-dark: #ffffff;
     --text-secondary: #a0a0ab;
-    --accent-neon: #ccff00;
-    /* Neon Lime Green */
+    --accent-neon: #00f0ff;
+    /* Cyan instead of jarring lime green */
     --glass-border: rgba(255, 255, 255, 0.08);
     --radius-large: 40px;
     --radius-medium: 24px;
@@ -155,7 +155,7 @@ h3,
 .primary-btn {
     text-decoration: none;
     padding: 14px 32px;
-    background-color: var(--accent-neon);
+    background: linear-gradient(90deg, var(--accent-neon), #ff003c);
     color: #000;
     font-family: 'Outfit', sans-serif;
     font-size: 1rem;
@@ -399,6 +399,7 @@ h3,
     align-items: center;
     justify-content: center;
     overflow: hidden;
+    position: relative;
 }
 
 .item-1 .mockup-container {
