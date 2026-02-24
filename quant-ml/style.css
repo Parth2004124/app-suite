@@ -1,0 +1,1009 @@
+:root {
+    --bg-color: #0d0d12;
+    /* Deep Charcoal */
+    --card-bg: rgba(255, 255, 255, 0.03);
+    /* Restore dark glass card */
+    --dark-card-bg: rgba(255, 255, 255, 0.05);
+    --text-primary: #ffffff;
+    --text-dark: #ffffff;
+    --text-secondary: #a0a0ab;
+    --accent-neon: #00f0ff;
+    /* Cyan instead of jarring lime green */
+    --glass-border: rgba(255, 255, 255, 0.08);
+    --radius-large: 40px;
+    --radius-medium: 24px;
+    --radius-small: 12px;
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    background-color: var(--bg-color);
+    color: var(--text-primary);
+    font-family: 'Inter', sans-serif;
+    overflow-x: hidden;
+    line-height: 1.6;
+}
+
+h1,
+h2,
+h3,
+.logo {
+    font-family: 'Outfit', sans-serif;
+}
+
+/* Background Glows */
+.glow-bg {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    z-index: -1;
+    pointer-events: none;
+}
+
+.gradient-text {
+    color: var(--text-dark);
+    /* Solid dark for the white card */
+}
+
+/* Nav */
+.navbar {
+    position: fixed;
+    top: 0;
+    width: 100%;
+    padding: 20px 50px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    backdrop-filter: blur(10px);
+    z-index: 100;
+    border-bottom: 1px solid var(--glass-border);
+}
+
+.logo {
+    font-size: 1.5rem;
+    font-weight: 800;
+    letter-spacing: 1px;
+}
+
+.logo span {
+    color: var(--accent-neon);
+}
+
+.nav-links {
+    list-style: none;
+    display: flex;
+    gap: 30px;
+    background: rgba(255, 255, 255, 0.05);
+    /* Pills like the reference */
+    padding: 10px 20px;
+    border-radius: 30px;
+    border: 1px solid var(--glass-border);
+}
+
+.nav-links a {
+    color: var(--text-primary);
+    text-decoration: none;
+    font-size: 0.9rem;
+    font-weight: 500;
+    transition: color 0.3s ease;
+}
+
+.nav-links a:hover {
+    color: var(--accent-neon);
+}
+
+/* Panels */
+.panel {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    padding: 120px 5vw 50px 5vw;
+}
+
+/* Hero Section */
+.hero-wrapper {
+    background-color: var(--card-bg);
+    border-radius: var(--radius-large);
+    color: var(--text-dark);
+    padding: 60px 40px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    position: relative;
+    overflow: hidden;
+    margin-bottom: 40px;
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.5);
+}
+
+.hero-content {
+    flex: 1;
+    z-index: 2;
+    padding-right: 40px;
+}
+
+.hero-title {
+    font-size: 4.5rem;
+    font-weight: 800;
+    line-height: 1.1;
+    margin-bottom: 20px;
+    letter-spacing: -1px;
+}
+
+.hero-subtitle {
+    font-size: 1.2rem;
+    font-weight: 500;
+    color: var(--text-dark);
+    opacity: 0.8;
+    max-width: 500px;
+    margin-bottom: 40px;
+}
+
+.hero-actions {
+    display: flex;
+    gap: 15px;
+    align-items: center;
+}
+
+.primary-btn {
+    text-decoration: none;
+    padding: 14px 32px;
+    background: linear-gradient(90deg, var(--accent-neon), #ff003c);
+    color: #000;
+    font-family: 'Outfit', sans-serif;
+    font-size: 1rem;
+    font-weight: 700;
+    border-radius: 30px;
+    display: inline-block;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    border: none;
+    cursor: pointer;
+}
+
+.primary-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 10px 20px rgba(204, 255, 0, 0.3);
+}
+
+.secondary-btn {
+    text-decoration: none;
+    padding: 12px 30px;
+    background-color: transparent;
+    color: var(--text-dark);
+    font-family: 'Outfit', sans-serif;
+    font-size: 1rem;
+    font-weight: 600;
+    border-radius: 30px;
+    display: inline-block;
+    border: 2px solid var(--text-dark);
+    transition: all 0.3s ease;
+}
+
+.secondary-btn:hover {
+    background-color: var(--text-dark);
+    color: var(--card-bg);
+}
+
+/* Hero Image Container */
+.hero-image-container {
+    flex: 1;
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+    position: relative;
+    z-index: 1;
+}
+
+.hero-image-container img {
+    max-height: 500px;
+    width: auto;
+    object-fit: contain;
+    border-radius: var(--radius-medium);
+    /* Adding subtle drop shadow to ground the image */
+    filter: drop-shadow(0 20px 30px rgba(0, 0, 0, 0.15));
+}
+
+/* Stats Ribbon */
+.stats-ribbon {
+    display: flex;
+    justify-content: space-around;
+    padding: 40px 0;
+    border-top: 1px solid var(--glass-border);
+    border-bottom: 1px solid var(--glass-border);
+    margin-bottom: 60px;
+}
+
+.stat-item {
+    text-align: center;
+}
+
+.stat-number {
+    font-size: 2.5rem;
+    font-weight: 800;
+    font-family: 'Outfit', sans-serif;
+    color: var(--accent-neon);
+    margin-bottom: 5px;
+}
+
+.stat-label {
+    font-size: 0.9rem;
+    color: var(--text-secondary);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+/* Bento Grid Projects */
+.projects-section {
+    padding: 0 5vw 100px 5vw;
+}
+
+.section-title {
+    font-size: 3rem;
+    margin-bottom: 50px;
+    text-align: center;
+}
+
+.bento-grid {
+    display: grid;
+    grid-template-columns: repeat(12, 1fr);
+    grid-gap: 20px;
+    gap: 20px;
+    max-width: 1400px;
+    margin: 0 auto;
+}
+
+.bento-item {
+    background-color: var(--dark-card-bg);
+    border: 1px solid var(--glass-border);
+    border-radius: var(--radius-medium);
+    padding: 40px;
+    backdrop-filter: blur(20px);
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    transition: transform 0.3s ease, background-color 0.3s ease;
+    overflow: hidden;
+    position: relative;
+}
+
+.bento-item:hover {
+    transform: translateY(-5px);
+    background-color: rgba(255, 255, 255, 0.08);
+}
+
+/* Grid Layout Assignments */
+.item-1 {
+    grid-column: span 7;
+    grid-row: span 2;
+}
+
+/* Large featured project */
+.item-2 {
+    grid-column: span 5;
+    grid-row: span 1;
+}
+
+/* Medium side project */
+.item-3 {
+    grid-column: span 5;
+    grid-row: span 1;
+}
+
+/* Row of 3 */
+.item-4 {
+    grid-column: span 4;
+    grid-row: span 1;
+}
+
+.item-5 {
+    grid-column: span 4;
+    grid-row: span 1;
+}
+
+.item-6 {
+    grid-column: span 4;
+    grid-row: span 1;
+}
+
+/* Large and Medium combo */
+.item-7 {
+    grid-column: span 5;
+    grid-row: span 2;
+}
+
+.item-8 {
+    grid-column: span 7;
+    grid-row: span 1;
+}
+
+.item-9 {
+    grid-column: span 7;
+    grid-row: span 1;
+}
+
+/* Half and Half */
+.item-10 {
+    grid-column: span 6;
+    grid-row: span 1;
+}
+
+.item-11 {
+    grid-column: span 6;
+    grid-row: span 1;
+}
+
+/* Full width bottom */
+.item-12 {
+    grid-column: span 12;
+    grid-row: span 1;
+}
+
+.project-number {
+    font-size: 1.5rem;
+    font-weight: 800;
+    font-family: 'Outfit';
+    color: var(--accent-neon);
+    margin-bottom: 10px;
+}
+
+.bento-item h2 {
+    font-size: 2rem;
+    margin-bottom: 15px;
+    line-height: 1.2;
+}
+
+.bento-item p {
+    color: var(--text-secondary);
+    margin-bottom: 30px;
+    font-size: 1rem;
+    flex-grow: 1;
+}
+
+.tech-stack {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-bottom: 30px;
+}
+
+.tag {
+    padding: 6px 14px;
+    background: transparent;
+    border: 1px solid var(--glass-border);
+    border-radius: 20px;
+    font-size: 0.8rem;
+    color: var(--text-primary);
+}
+
+.bento-item a.primary-btn {
+    align-self: flex-start;
+    padding: 10px 24px;
+    font-size: 0.9rem;
+}
+
+/* Mockups inside Bento */
+.mockup-container {
+    margin-top: 30px;
+    height: 150px;
+    border-radius: var(--radius-small);
+    background: rgba(0, 0, 0, 0.3);
+    border: 1px solid var(--glass-border);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    position: relative;
+}
+
+.item-1 .mockup-container {
+    height: 250px;
+}
+
+/* Glass Cards for Visuals */
+.glass-card {
+    background: var(--glass-bg);
+    border: 1px solid var(--glass-border);
+    border-radius: 16px;
+    padding: 40px;
+    backdrop-filter: blur(20px);
+    position: relative;
+    overflow: hidden;
+    height: 300px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+}
+
+/* Mockup Elements */
+.chart-line {
+    stroke-width: 3;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+}
+
+.active-line {
+    stroke: var(--accent-neon);
+    stroke-dasharray: 200;
+    stroke-dashoffset: 200;
+    animation: draw 3s forwards ease-out alternate infinite;
+}
+
+.base-line {
+    stroke: var(--text-secondary);
+    opacity: 0.3;
+}
+
+@keyframes draw {
+    to {
+        stroke-dashoffset: 0;
+    }
+}
+
+.chart-labels {
+    margin-top: 20px;
+    display: flex;
+    gap: 20px;
+    font-size: 0.9rem;
+}
+
+.chart-labels .gradient-text {
+    color: var(--accent-neon);
+}
+
+.network-mockup {
+    display: flex;
+    gap: 30px;
+    justify-content: center;
+    align-items: center;
+    height: 100%;
+}
+
+.node-layer {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.node-layer i {
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    background: var(--glass-border);
+    display: block;
+}
+
+.node-layer.hidden i {
+    background: var(--accent-neon);
+    animation: pulse 1.5s infinite alternate;
+}
+
+@keyframes pulse {
+    to {
+        transform: scale(1.3);
+        box-shadow: 0 0 10px rgba(204, 255, 0, 0.5);
+    }
+}
+
+.data-flow {
+    position: absolute;
+    bottom: 20px;
+    font-size: 0.9rem;
+    color: var(--accent-neon);
+    font-family: 'Outfit';
+    font-weight: 600;
+    letter-spacing: 1px;
+}
+
+.rl-mockup {
+    width: 100%;
+    text-align: center;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+}
+
+.state-action {
+    display: flex;
+    justify-content: center;
+    gap: 15px;
+    align-items: center;
+    margin-bottom: 20px;
+}
+
+.box {
+    padding: 10px;
+    border: 1px solid var(--glass-border);
+    border-radius: 8px;
+    font-size: 0.8rem;
+    background: rgba(0, 0, 0, 0.5);
+}
+
+.box.agent {
+    border-color: var(--accent-neon);
+    color: var(--accent-neon);
+    font-weight: bold;
+}
+
+.arrow {
+    color: var(--text-secondary);
+    font-size: 1.5rem;
+}
+
+.reward-feedback {
+    font-size: 0.8rem;
+    color: #ff3366;
+    font-weight: bold;
+    margin-top: 10px;
+}
+
+/* --- NEW PROJECTS MOCKUPS (04-12) --- */
+
+/* Project 4: Backtesting Engine */
+.backtest-mockup {
+    display: flex;
+    align-items: flex-end;
+    justify-content: center;
+    gap: 5px;
+    height: 100%;
+    position: relative;
+    width: 100%;
+    padding: 20px;
+}
+
+.order-bar {
+    width: 15px;
+    border-radius: 4px 4px 0 0;
+}
+
+.order-bar.sell {
+    background: #ff3366;
+    height: 60%;
+}
+
+.order-bar.sell.mid {
+    height: 40%;
+}
+
+.order-bar.buy {
+    background: var(--accent-neon);
+    height: 50%;
+}
+
+.order-bar.buy.mid {
+    height: 30%;
+}
+
+.spread-indicator {
+    align-self: center;
+    font-size: 0.7rem;
+    color: var(--text-secondary);
+    border-top: 1px dashed;
+    border-bottom: 1px dashed;
+    padding: 5px 0;
+    margin: 0 10px;
+}
+
+.execution-flash {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 10px;
+    height: 10px;
+    background: white;
+    border-radius: 50%;
+    opacity: 0;
+    animation: flash 2s infinite;
+}
+
+@keyframes flash {
+    0% {
+        opacity: 1;
+        transform: translate(-50%, -50%) scale(1);
+    }
+
+    100% {
+        opacity: 0;
+        transform: translate(-50%, -50%) scale(5);
+    }
+}
+
+/* Project 5: Battle Simulator */
+.battle-mockup {
+    position: relative;
+    width: 100%;
+    height: 100%;
+}
+
+.market-center {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 30px;
+    height: 30px;
+    border: 2px dashed var(--text-secondary);
+    border-radius: 50%;
+    animation: rotate 10s linear infinite;
+}
+
+.agent {
+    position: absolute;
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    background: var(--accent-neon);
+    top: 50%;
+}
+
+.bot-1 {
+    left: 20%;
+    animation: attack1 3s infinite alternate ease-in-out;
+}
+
+.bot-2 {
+    right: 20%;
+    background: #ff3366;
+    animation: attack2 4s infinite alternate ease-in-out;
+}
+
+@keyframes attack1 {
+    to {
+        left: 40%;
+        transform: scale(1.2);
+    }
+}
+
+@keyframes attack2 {
+    to {
+        right: 40%;
+        transform: scale(1.2);
+    }
+}
+
+@keyframes rotate {
+    to {
+        transform: translate(-50%, -50%) rotate(360deg);
+    }
+}
+
+/* Project 6: Monte Carlo */
+.mc-line {
+    stroke-width: 2;
+    opacity: 0.6;
+    stroke-dasharray: 150;
+    stroke-dashoffset: 150;
+    animation: drawMC 4s forwards infinite;
+    animation-timing-function: linear;
+}
+
+.mc-line.path-1 {
+    stroke: rgba(204, 255, 0, 0.9);
+    animation-delay: 0s;
+}
+
+.mc-line.path-2 {
+    stroke: rgba(204, 255, 0, 0.5);
+    animation-delay: 0.5s;
+}
+
+.mc-line.path-3 {
+    stroke: rgba(255, 255, 255, 0.5);
+    animation-delay: 1s;
+}
+
+.mc-line.path-4 {
+    stroke: rgba(255, 51, 102, 0.5);
+    animation-delay: 1.5s;
+}
+
+@keyframes drawMC {
+    50% {
+        stroke-dashoffset: 0;
+        opacity: 0.8;
+    }
+
+    100% {
+        stroke-dashoffset: -150;
+        opacity: 0;
+    }
+}
+
+/* Project 7: Black Scholes */
+.bs-mockup {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    width: 80%;
+}
+
+.greek-bar {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.greek-bar .label {
+    width: 20px;
+    font-weight: bold;
+    color: var(--text-secondary);
+}
+
+.bar-fill {
+    height: 6px;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 3px;
+    position: relative;
+    flex-grow: 1;
+    overflow: hidden;
+}
+
+.bar-fill::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    height: 100%;
+    border-radius: 3px;
+}
+
+.delta::after {
+    width: 60%;
+    background: var(--accent-neon);
+    animation: flexBar 3s infinite alternate;
+}
+
+.gamma::after {
+    width: 30%;
+    background: #ff3366;
+    animation: flexBar 2s infinite alternate-reverse;
+}
+
+.theta::after {
+    width: 80%;
+    background: #33ccff;
+    animation: flexBar 4s infinite alternate;
+}
+
+.vega::after {
+    width: 45%;
+    background: var(--text-primary);
+    animation: flexBar 2.5s infinite alternate-reverse;
+}
+
+@keyframes flexBar {
+    from {
+        transform: scaleX(0.8);
+        transform-origin: left;
+    }
+
+    to {
+        transform: scaleX(1.2);
+        transform-origin: left;
+    }
+}
+
+/* Project 8: VaR */
+.var-chart {
+    stroke-width: 2;
+    stroke: var(--text-secondary);
+}
+
+.var-line {
+    stroke: #ff3366;
+    stroke-width: 2;
+    stroke-dasharray: 4;
+    animation: moveVaR 4s infinite alternate;
+}
+
+.var-tail {
+    animation: pulseTail 4s infinite alternate;
+}
+
+.var-label {
+    position: absolute;
+    bottom: 10px;
+    left: 10px;
+    font-size: 0.7rem;
+    color: #ff3366;
+    font-weight: bold;
+}
+
+@keyframes moveVaR {
+    from {
+        transform: translateX(0);
+    }
+
+    to {
+        transform: translateX(5px);
+    }
+}
+
+@keyframes pulseTail {
+    from {
+        opacity: 0.3;
+    }
+
+    to {
+        opacity: 0.7;
+    }
+}
+
+/* Project 9: Markowitz */
+.markowitz-mockup {
+    width: 80%;
+    height: 80%;
+    position: relative;
+}
+
+.frontier-curve {
+    stroke: var(--accent-neon);
+    stroke-width: 2;
+    stroke-dasharray: 100;
+    animation: dash 5s linear infinite;
+}
+
+.asset-dot {
+    fill: var(--text-secondary);
+    opacity: 0.5;
+}
+
+.tangency-dot {
+    fill: var(--accent-neon);
+    animation: pulse 2s infinite;
+}
+
+.cal-line {
+    stroke: rgba(255, 255, 255, 0.2);
+    stroke-width: 1;
+    stroke-dasharray: 2;
+}
+
+@keyframes dash {
+    to {
+        stroke-dashoffset: -200;
+    }
+}
+
+/* Project 10: StatArb */
+.pair-line {
+    stroke-width: 2;
+}
+
+.pair-line.a {
+    stroke: var(--accent-neon);
+}
+
+.pair-line.b {
+    stroke: #33ccff;
+}
+
+.zero-line {
+    stroke: rgba(255, 255, 255, 0.2);
+    stroke-dasharray: 2;
+    stroke-width: 1;
+}
+
+.spread-line {
+    stroke: #ff3366;
+    stroke-width: 1.5;
+}
+
+.statarb-chart,
+.spread-chart {
+    animation: scrollLeft 10s linear infinite;
+}
+
+@keyframes scrollLeft {
+    from {
+        transform: translateX(0);
+    }
+
+    to {
+        transform: translateX(-10px);
+    }
+}
+
+/* Project 11: Trend Analysis */
+.regime-container {
+    position: relative;
+    display: flex;
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+}
+
+.regime-block {
+    height: 100%;
+    opacity: 0.1;
+}
+
+.regime-block.bull {
+    background: var(--accent-neon);
+}
+
+.regime-block.bear {
+    background: #ff3366;
+}
+
+.regime-block.sideways {
+    background: var(--text-secondary);
+}
+
+.trend-line {
+    stroke: var(--text-primary);
+    stroke-width: 2;
+    filter: drop-shadow(0 0 2px rgba(255, 255, 255, 0.5));
+}
+
+/* Project 12: LSTM Predictor */
+.history-line {
+    stroke: var(--text-secondary);
+    stroke-width: 2;
+}
+
+.predict-line {
+    stroke: var(--accent-neon);
+    stroke-width: 2;
+    stroke-dasharray: 4;
+    animation: march 1s linear infinite;
+}
+
+.pulse-dot {
+    fill: white;
+    animation: pulse 1s infinite alternate;
+}
+
+@keyframes march {
+    to {
+        stroke-dashoffset: -8;
+    }
+}
+
+/* Footer */
+.footer {
+    text-align: center;
+    padding: 80px 20px;
+    border-top: 1px solid var(--glass-border);
+    background: linear-gradient(to top, rgba(204, 255, 0, 0.05), transparent);
+}
+
+.footer h2 {
+    font-size: 2.5rem;
+    margin-bottom: 20px;
+    color: var(--text-primary);
+    font-weight: 800;
+}
+
+.footer p {
+    font-size: 1rem;
+    color: var(--text-secondary);
+}
+
+/* Scroll Animations */
+.scroll-reveal {
+    opacity: 0;
+    transition: all 1s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.scroll-reveal.left {
+    transform: translateX(-50px);
+}
+
+.scroll-reveal.right {
+    transform: translateX(50px);
+}
+
+.scroll-reveal.visible {
+    opacity: 1;
+    transform: translateX(0);
+}
